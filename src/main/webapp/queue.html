@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>中山大学发票识别监控系统</title>
+	<meta charset="utf-8">
+	<script src="script/jquery-3.2.1.min.js"></script>
+	<script type="text/javascript" src="script/bootstrap.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="style/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="style/layout.css">
+</head>
+<body>
+	<header>
+		<img src="image/zhongda.jpg" style="width: 15%;" />
+	</header>
+	<main>
+		<aside class="col-lg-2">
+			<div class="list-group">
+				<a href="queue.html" class="list-group-item selected">缓冲队列</a>
+				<a href="show.html" class="list-group-item">监控显示</a>
+				<a href="paint.html" class="list-group-item">模板库</a>
+				<a href="fault.html" class="list-group-item">报错发票
+					<span class="badge">4</span>
+				</a>
+			</div>
+		</aside>
+		<div class="col-lg-10">
+			<div class="panel panel-default">
+			    <div class="panel-heading">
+			        <h3 class="panel-title">缓冲队列（共<span>4</span>个待完成任务)</h3>
+			    </div>
+			    <div class="panel-body">
+					<img src="image/rectangle.png" class="rect_img" />
+					<img src="image/rectangle.png" class="rect_img" />
+					<img src="image/rectangle.png" class="rect_img" />
+					<img src="image/rectangle.png" class="rect_img" />
+			    </div>
+			</div>
+		</div>
+	</main>
+
+	<!-- 模态窗口 -->
+	<div class="modal fade col-lg-10" id="showWaiting" tabindex="-1" aria-hidden="true" style="margin: 0px auto; margin-top: 50px;">
+		<div>
+	        <div class="modal-content">
+	        	<div class="modal-header">
+	        		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+	        		<h4 class="modal-title">等待任务</h4>
+	        	</div>
+	        	<div class="modal-body">
+	        		<div style="width: 70%; margin-right: 3%; display: inline-block; vertical-align: top;">
+	        			<img src="4.bmp" style="width: 100%;" />
+	        		</div>
+	        		<div style="width: 25%; display: inline-block; vertical-align: top;">
+	        			<div class="panel panel-primary">
+						    <div class="panel-heading">
+						        <h3 class="panel-title">
+						            发送用户
+						        </h3>
+						    </div>
+						    <div class="panel-body">
+						        xxx
+						    </div>
+						</div>
+						<div class="panel panel-primary">
+						    <div class="panel-heading">
+						        <h3 class="panel-title">
+						            发送时间
+						        </h3>
+						    </div>
+						    <div class="panel-body">
+						        xxx
+						    </div>
+						</div>
+						<div class="panel panel-primary">
+						    <div class="panel-heading">
+						        <h3 class="panel-title">
+						            备注信息
+						        </h3>
+						    </div>
+						    <div class="panel-body">
+						        xxx
+						    </div>
+						</div>
+	        		</div>
+	        	</div>
+	        	<div class="modal-footer">
+	                <button type="button" class="btn btn-default" data-dismiss="modal" id="certain_progress">确定</button>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+
+	<script type="text/javascript">
+		var ip1 = "192.168.1.72:8080";
+		var ip2 = "172.18.92.209:8080";
+		var temp_ip = "192.168.137.221:8080";
+		var wsuri = "ws://" + temp_ip + "/invoice/webSocketServer";
+        var ws = null;
+        function connectEndpoint(){
+
+            ws = new WebSocket(wsuri);
+            var img_list = [];
+            ws.onmessage = function(evt) {
+            	//alert(evt.data);
+            	var data = JSON.parse(evt.data);
+            	if(data.data_id == 0) {  //初始加载初始化img_list
+            		img_list = data.recognize_wait.reverse();
+            		if(img_list != undefined) {
+	            		console.log(img_list);
+	        			$("#show_fapiao").get(0).src = img_list[0].url;
+	        			$(".title_load").text("（正在识别...）");	
+	        			$(".img_line div").each(function(index, e){
+							$(this).html("");
+							if(index < img_list.length) {
+								$(this).append("<img>");
+								$(this).children().eq(0).get(0).src = img_list[index].url;	
+							}
+						})
+	        			//resetImgLine($(".img_line div"), img_list);
+            		}
+            	}
+            	else if(data.data_id == 1) {  //识别完成更新img_list
+            		$("#img_msg li").each(function(index, e) {
+            			var key_ = $(this).text().split(":")[0];
+            			var value_ = data.response_data[key_];
+            			console.log(value_);
+            			$(this).text(key_+":"+value_);
+            		})
+            		$(".title_load").text("（识别完成）");
+            		setTimeout(function(){
+            			img_list.shift();
+            			$("#img_msg li").each(function(index, e) {
+	        				var key_ = $(this).text().split(":")[0];
+	        				$(this).text(key_ + ":");
+	        			})
+	        			$(".img_line div").each(function(index, e){
+        					$(this).html("");
+        					if(index < img_list.length) {
+	        					$(this).append("<img>");
+	    						$(this).children().eq(0).get(0).src = img_list[index].url;	
+	        				}	
+	        			})
+            			if(img_list.length > 0) {
+	            			$("#show_fapiao").get(0).src = img_list[0].url;
+		        			$(".title_load").text("（正在识别...）");	
+            			}
+            			else {
+            				$("#show_fapiao").get(0).src = 'image/shibie_placehold.png';
+	        				$(".title_load").text("");		
+            			}
+            		}, 5000)
+            	}
+            	else if(data.data_id == 3) {  //收到新的发票img
+            		console.log(data.new_recognize);
+            		if(img_list.length == 0) $(".title_load").text("（正在识别...）");
+            		for(var i = 0; i < data.new_recognize.length; i++) {
+            			img_list.push(data.new_recognize[i]);
+            		}
+            		console.log(img_list);
+            		$("#show_fapiao").get(0).src = img_list[0].url;
+            		$(".img_line div").each(function(index, e){
+            			$(this).html("");
+        				if(index < img_list.length) {
+        					$(this).append("<img>");
+    						$(this).children().eq(0).get(0).src = img_list[index].url;	
+        				}
+        			})	
+            	}
+            };
+
+            ws.onclose = function(evt) {
+                console.log("close");
+            };
+
+            ws.onopen = function(evt) {
+                console.log("open");
+            };
+        }
+
+        //生成随机数
+        function GetRandomNum(Min,Max)
+		{   
+			var Range = Max - Min;   
+			var Rand = Math.random();   
+			return(Min + parseFloat(Rand * Range));   
+		}  
+
+        $(document).ready(function(){
+        	//connectEndpoint();
+        	$(".rect_img").each(function() {
+        		var opacity_ = GetRandomNum(0,1);  
+        		console.log(opacity_);
+        		$(this).css("opacity", opacity_);
+        		$(this).click(function() {
+        			$("#showWaiting").modal('show');
+        		})
+        	})
+        })
+	</script>
+</body>
+</html>

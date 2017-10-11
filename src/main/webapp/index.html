@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>中山大学发票系统</title>
+	<meta charset="utf-8">
+	<script src="script/jquery-3.2.1.min.js"></script>
+	<script type="text/javascript" src="script/bootstrap.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="style/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="style/layout.css">
+</head>
+<body>
+	<div id="canvas_container" style="width:1160px; margin-left: 20%; margin-top: 100px;">
+		<canvas id="myCanvas"
+	height="817px"></canvas>
+	</div>
+	<div class="hid_panel">
+		<span id="close"></span><span id="certain" style="background-color: #003894;"></span><span id="setting"></span>
+	</div>
+	<div class="setting_panel form">
+		<form>
+			<label for="quyu">区域标签:</label><input type="text" name="quyu"/><br/>
+			<label for="font_color">字体颜色:</label><input type="text" name="font_color"/><br/>
+			<label for="bg_color">背景颜色:</label><input type="text" name="bg_color"/><br/>
+			<fieldset>
+			    <legend>干扰</legend>
+			    <input type="radio" name="ganrao" value="直线干扰" />直线干扰<br/>
+			    <input type="radio" name="ganrao" value="印章干扰" />印章干扰<br/>
+		    </fieldset>
+		</form>
+	</div>
+	<script>
+	 	function windowTocanvas(canvas, x, y) {  
+            var bbox = canvas.getBoundingClientRect();  
+            return {  
+                x: x - bbox.left * (canvas.width / bbox.width),   
+                y: y - bbox.top * (canvas.height / bbox.height)  
+            };  
+
+        } 
+        function getPaint(paint_area, cxt) {
+        	for(var i = 0; i < paint_area.length; i++){
+				cxt.strokeRect(paint_area[i].begin_x, paint_area[i].begin_y, paint_area[i].width, paint_area[i].height);
+			}
+        }
+		var c=document.getElementById("myCanvas");
+		c.width = $("#canvas_container").width();
+		var cxt=c.getContext("2d");
+		var paint_area=[];
+		$(document).ready(function() {
+			var end_x, end_y;
+			$("#myCanvas").mousedown(function(event){
+				console.log($(document).scrollTop());
+				var paint = true, dosomething = false;
+				var startpoint = windowTocanvas(c, event.pageX-$(document).scrollLeft(), event.pageY-$(document).scrollTop());
+				var begin_x = startpoint.x, begin_y = startpoint.y;
+				$(this).unbind("mousemove").mousemove(function(event1){
+					if(paint == true) {
+						cxt.clearRect(0,0, c.width, c.height);
+						getPaint(paint_area, cxt);
+						var endpoint = windowTocanvas(c, event1.pageX-$(document).scrollLeft(), event1.pageY-$(document).scrollTop());
+						cxt.strokeRect(begin_x, begin_y, endpoint.x-begin_x, endpoint.y-begin_y);				
+					}
+				})
+				$(this).mouseup(function(event2){
+					paint = false;
+					end_x = windowTocanvas(c, event2.pageX-$(document).scrollLeft(), event2.pageY-$(document).scrollTop()).x;
+					end_y = windowTocanvas(c, event2.pageX-$(document).scrollLeft(), event2.pageY-$(document).scrollTop()).y;
+					$(".hid_panel").css({
+						"display": "block",
+						"top": event2.pageY,
+						"right": document.body.clientWidth-event2.pageX
+					});
+					$(".hid_panel span").mouseenter(function(){
+						$(this).css("margin-bottom", "1px");
+					})
+					$(".hid_panel span").mouseleave(function(){
+						$(this).css("margin-bottom", "0px");
+					})
+					$(".hid_panel span").not("#setting").mouseenter(function(){
+						$(".setting_panel").css("display", "none");
+					})
+					$("#setting").mouseenter(function(){
+						console.log("enter");
+						var setting_width = parseInt($(".setting_panel").width());
+						$(".setting_panel").css("display", "block");
+						$(".setting_panel").css("top", event2.pageY+"px");
+						$(".setting_panel").css("left", event2.pageX+"px");
+					})
+					$("#close").unbind('click').click(function(){
+						$(".hid_panel").css("display","none");
+						if(begin_x <= end_x && begin_y <= end_y)
+							cxt.clearRect(begin_x-3,begin_y-3, end_x-begin_x+5, end_y-begin_y+5);
+						else if(begin_x <= end_x && begin_y > end_y)
+							cxt.clearRect(begin_x-3,begin_y+3, end_x-begin_x+5, end_y-begin_y-5);
+						else if(begin_x > end_x && begin_y <= end_y)
+							cxt.clearRect(begin_x+3,begin_y-3, end_x-begin_x-5, end_y-begin_y+5);
+						else 
+							cxt.clearRect(begin_x+3,begin_y+3, end_x-begin_x-5, end_y-begin_y-5);
+						$("form").get(0).reset();
+						getPaint(paint_area, cxt);
+						
+					})
+					$("#certain").unbind('click').click(function(){
+						$(".hid_panel").css("display","none");
+						$("form").get(0).reset();
+						console.log(paint_area.length);
+						getPaint(paint_area, cxt);
+						var temp_object = {
+							begin_x: begin_x,
+							begin_y: begin_y,
+							width: end_x-begin_x,
+							height: end_y-begin_y
+						};
+						paint_area.push(temp_object);
+					})
+				})
+				console.log("complete");
+			})
+		})
+	</script>
+</body>
+</html>

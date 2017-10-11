@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>中山大学发票识别监控系统</title>
+	<meta charset="utf-8">
+	<script src="script/jquery-3.2.1.min.js"></script>
+	<script type="text/javascript" src="script/StackBlur.js"></script>
+	<script type="text/javascript" src="script/bootstrap.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="style/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="style/layout.css">
+</head>
+<body>
+	<header>
+		<img src="image/zhongda.jpg" style="width: 15%;" />
+	</header>
+	<main>
+		<aside class="col-lg-2">
+			<div class="list-group">
+				<a href="queue.html" class="list-group-item">缓冲队列</a>
+				<a href="show.html" class="list-group-item selected">监控显示</a>
+				<a href="paint.html" class="list-group-item">模板库</a>
+				<a href="fault.html" class="list-group-item">报错发票
+					<span class="badge">4</span>
+				</a>
+			</div>
+		</aside>
+		<div class="col-lg-10">
+			<div class="col-lg-8" style="padding-left: 0px;">
+				<div class="panel panel-default">
+				    <div class="panel-heading">
+				        <h2 class="panel-title" style="font-size: 18px;">正在识别的图片</h2>
+				        <p class="help-block" style="margin: 1em 0 0; font-size: 14px;"><span>发送者：</span><span style="margin-left: 4em;">发送时间：</span></p>
+				    </div>
+				    <div class="panel-body" style="padding: 0px;">
+						<div style="width: 100%; height:auto; overflow: hidden; border-radius: 4px;" id="canvas_panel_body">
+							<canvas style="background: url('image/shibie_placehold.png') no-repeat center; background-size: cover;" id="show_fapiao"></canvas>
+						</div>
+				    </div>
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="panel panel-default">
+				    <div class="panel-heading">
+				        <h3 class="panel-title">区域信息<span class="title_load"></span></h3>
+				    </div>
+				    <div class="panel-body">
+				        <ul class="list-group" id="img_msg" style="margin-bottom: 0px;">
+				        	<li class="list-group-item">发票类型:</li>
+							<li class="list-group-item">金额:</li>
+							<li class="list-group-item">客户名称:</li>
+							<li class="list-group-item">发票号码:</li>
+							<li class="list-group-item">日期:</li>
+						    <li class="list-group-item">时间:</li>
+							<li class="list-group-item">具体信息:</li>
+							<li class="list-group-item">身份证号码:</li>
+						</ul>
+				    </div>
+				</div>
+				<div class="panel panel-default">
+					<div class="panel-heading">
+				        <h3 class="panel-title">套用模板<span class="title_load"></span></h3>
+				    </div>
+				    <div class="panel-body">
+				        <img src="4.bmp" style="width: 100%;" id="muban" />
+				    </div>
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<!-- 用于备份图片的画布 -->
+	<canvas id="copy_fapiao" style="display: none;"></canvas>
+
+	<script type="text/javascript">
+		//websocket
+		//实验室2.4G_plus "192.168.1.36:8080";
+		//宿舍 "172.18.92.209:8080"
+		//实验室secure "172.19.82.51:8080"
+		var ip2 = "192.168.1.36:8080";
+		var temp_ip = "192.168.137.221:8080";
+		var wsuri = "ws://" + ip2 + "/invoice/webSocketServer";
+        var ws = null;
+        function resetImgLine(jq_ele, img_list) {
+        	jq_ele.each(function(index, e){
+				$(this).html("");
+				if(index < img_list.length) {
+					$(this).append("<img>");
+					$(this).children().eq(0).get(0).src = img_list[index].url;	
+				}
+			})
+        }
+
+        //返回的画布坐标和实际画布坐标换算
+        function coordinateConvert(x, y, w, h) {
+        	var size = parseFloat($("#show_fapiao").width()) / 1160;
+        	return {
+        		convert_x: parseFloat(x * size),
+        		convert_y: parseFloat(y * size),
+        		convert_w: parseFloat(w * size),
+        		convert_h: parseFloat(h * size)
+        	}
+        }
+
+        //获取画布及其上下文
+        var c=document.getElementById("show_fapiao");
+        var c1=document.getElementById("copy_fapiao");
+		var cxt=c.getContext("2d");
+		var cxt1=c1.getContext("2d");
+		cxt.strokeStyle = "#00ff36";
+		cxt.lineWidth = 2;
+
+        function connectEndpoint(){
+
+            ws = new WebSocket(wsuri);
+            var img_list = [];
+            ws.onmessage = function(evt) {
+            	//alert(evt.data);
+            	console.log(evt.data);
+            	var data = JSON.parse(evt.data);
+            	if(data.msg_id == 203 || data.msg_id == 202) {
+					//copy_fapiao获取背景图, show_fapiao绘制图片
+            		$("#copy_fapiao").css("backgroundImage", "url(\'" + data.url + "\')");
+            		var temp_img = new Image();
+            		temp_img.src = $("#copy_fapiao").css("backgroundImage").split("url")[1].replace("(", "").replace(")","");
+            		console.log(cxt);
+            		temp_img.onload = function(){
+            			cxt.drawImage(temp_img, 0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));	
+            		}
+            		if(data.msg_id == 202) {
+            			console.log(data.region_list);
+            			for(var i = 0; i < data.region_list.length; i++) {
+            				var data1 = JSON.parse(data.region_list[i]);
+            				$("#img_msg li").each(function() {
+		            			if($(this).text().split(":")[0] == data1.pos_id) {
+		            				var origin_text = $(this).text();
+		            				$(this).text(origin_text + data1.ocr_result);
+		            			}
+		            		});
+            			}
+            		}
+            	}
+            	else if(data.msg_id == 100 && data.status == 0) {
+            		console.log(data.id); //输出发票类
+
+            	}
+            	else if(data.msg_id == 101 && data.status == 0) {
+            		//模糊其它区域 
+            		stackBlurCanvasRGB("show_fapiao", 0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()), 15);
+            		//框出识别区域并使其区域清晰
+					var position = coordinateConvert(data.position.x, data.position.y, data.position.w, data.position.h);
+					var temp_imageData = cxt1.getImageData(position.convert_x, position.convert_y, position.convert_w, position.convert_h);
+					cxt.putImageData(temp_imageData, position.convert_x, position.convert_y);
+            		cxt.strokeRect(position.convert_x, position.convert_y, position.convert_w, position.convert_h);
+            		$(".title_load").text("（正在识别" + data.pos_id + "）");
+            	}
+            	else if(data.msg_id == 102 && data.status == 0) {
+            		$("#img_msg li").each(function() {
+            			if($(this).text().split(":")[0] == data.pos_id) {
+            				var origin_text = $(this).text();
+            				$(this).text(origin_text + data.ocr_result);
+            			}
+            		});
+            	}
+            	else if(data.msg_id == 1 && data.status == 0) {
+            		$(".title_load").text("识别完毕");
+            		console.log(data);
+            	}
+            };
+
+            ws.onclose = function(evt) {
+                console.log("close");
+            };
+
+            ws.onopen = function(evt) {
+                console.log("open");
+                //开始加载图片
+                var send_json = {
+	        		code : 0
+	        	};
+                ws.send(JSON.stringify(send_json));
+            };
+        }
+
+        $(document).ready(function(){
+        	//调整画布及图片比例为1160/817
+        	$("#muban").get(0).style.height = parseFloat($("#muban").width() * parseFloat(817/1160)) + "px";
+        	$("#show_fapiao").get(0).width = $("#canvas_panel_body").get(0).offsetWidth;
+        	$("#show_fapiao").get(0).height = parseFloat($("#show_fapiao").get(0).width * parseFloat(817/1160));
+    		$("#show_fapiao").css("backgroundSize", $("#show_fapiao").get(0).width+"px "+$("#show_fapiao").get(0).height+"px");
+        	$("#copy_fapiao").get(0).width = $("#show_fapiao").get(0).width;
+        	$("#copy_fapiao").get(0).height = $("#show_fapiao").get(0).height;
+        	$("#copy_fapiao").css("backgroundSize", $("#copy_fapiao").get(0).width+"px "+$("#copy_fapiao").get(0).height+"px");
+        	connectEndpoint();
+        	//ws.send("success");
+        })
+	</script>
+</body>
+</html>

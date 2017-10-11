@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>test_blur</title>
+	<script src="script/jquery-3.2.1.min.js"></script>
+	<script type="text/javascript" src="script/StackBlur.js"></script>
+	<script type="text/javascript" src="script/bootstrap.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="style/bootstrap.min.css">
+</head>
+<body>
+	<canvas id="blur_canvas" width="800" height="400" style="background: url('4.bmp') center no-repeat; background-size: cover;">
+	</canvas>
+	<script type="text/javascript">
+		function windowTocanvas(canvas, x, y) {  
+            var bbox = canvas.getBoundingClientRect();  
+            return {  
+                x: x - bbox.left * (canvas.width / bbox.width),   
+                y: y - bbox.top * (canvas.height / bbox.height)  
+            };  
+
+        } 
+		$(document).ready(function() {
+			//stackBlurCanvasRGB( targetCanvasID, top_x, top_y, width, height, radius );
+			var c=document.getElementById("blur_canvas");
+			var cxt=c.getContext("2d");
+			var temp_img = new Image();
+			temp_img.src = $("#blur_canvas").css("backgroundImage").split("url")[1].replace("(", "").replace(")","");
+			cxt.drawImage(temp_img, 0,0, 800, 400);
+			var temp_imageData = cxt.getImageData(50,50,50,50);
+			stackBlurCanvasRGB("blur_canvas", 0, 0, parseInt($("#blur_canvas").width()), parseInt($("#blur_canvas").height()), 20);
+			cxt.putImageData(temp_imageData, 50, 50);
+			alert("finish");
+		})
+	</script>
+</body>
+</html>
