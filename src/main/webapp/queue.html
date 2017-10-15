@@ -26,13 +26,13 @@
 		<div class="col-lg-10">
 			<div class="panel panel-default">
 			    <div class="panel-heading">
-			        <h3 class="panel-title">缓冲队列（共<span>4</span>个待完成任务)</h3>
+			        <h3 class="panel-title">缓冲队列（共<span id="waiting_num">0</span>个待完成任务)</h3>
 			    </div>
-			    <div class="panel-body">
+			    <div class="panel-body waiting_list">
+					<!-- <img src="image/rectangle.png" class="rect_img" />
 					<img src="image/rectangle.png" class="rect_img" />
 					<img src="image/rectangle.png" class="rect_img" />
-					<img src="image/rectangle.png" class="rect_img" />
-					<img src="image/rectangle.png" class="rect_img" />
+					<img src="image/rectangle.png" class="rect_img" /> -->
 			    </div>
 			</div>
 		</div>
@@ -48,7 +48,7 @@
 	        	</div>
 	        	<div class="modal-body">
 	        		<div style="width: 70%; margin-right: 3%; display: inline-block; vertical-align: top;">
-	        			<img src="4.bmp" style="width: 100%;" />
+	        			<img src="4.bmp" style="width: 100%;" id="img_info" />
 	        		</div>
 	        		<div style="width: 25%; display: inline-block; vertical-align: top;">
 	        			<div class="panel panel-primary">
@@ -57,7 +57,7 @@
 						            发送用户
 						        </h3>
 						    </div>
-						    <div class="panel-body">
+						    <div class="panel-body" id="user_info">
 						        xxx
 						    </div>
 						</div>
@@ -67,13 +67,13 @@
 						            发送时间
 						        </h3>
 						    </div>
-						    <div class="panel-body">
+						    <div class="panel-body" id="time_info">
 						        xxx
 						    </div>
 						</div>
 						<div class="panel panel-primary">
 						    <div class="panel-heading">
-						        <h3 class="panel-title">
+						        <h3 class="panel-title" id="detail_info">
 						            备注信息
 						        </h3>
 						    </div>
@@ -91,11 +91,30 @@
 	</div>
 
 	<script type="text/javascript">
-		var ip1 = "192.168.1.72:8080";
-		var ip2 = "172.18.92.209:8080";
-		var temp_ip = "192.168.137.221:8080";
-		var wsuri = "ws://" + temp_ip + "/invoice/webSocketServer";
+		var ip2; //host_ip
+		var wsuri; //websocket_url
         var ws = null;
+
+        //读取config.xml配置ip等信息
+        function loadxml(fileName) {
+        	$.ajax({
+        		async : false,
+        		url : fileName,
+        		dataType : "xml",
+        		type : "GET",
+        		success : function(res, status) {
+        			var xml_data = res;
+        			ip2 = xml_data.getElementsByTagName("connect_ip")[0].innerHTML;
+        			wsuri = "ws://" + ip2 + "/invoice/webSocketServer";
+        			console.log(wsuri);
+        		},
+        		error : function() {
+        			alert("读取配置文件失败，稍后重试");
+        		}
+        	})
+        }
+
+        //连接websocket
         function connectEndpoint(){
 
             ws = new WebSocket(wsuri);
@@ -103,68 +122,30 @@
             ws.onmessage = function(evt) {
             	//alert(evt.data);
             	var data = JSON.parse(evt.data);
-            	if(data.data_id == 0) {  //初始加载初始化img_list
-            		img_list = data.recognize_wait.reverse();
-            		if(img_list != undefined) {
-	            		console.log(img_list);
-	        			$("#show_fapiao").get(0).src = img_list[0].url;
-	        			$(".title_load").text("（正在识别...）");	
-	        			$(".img_line div").each(function(index, e){
-							$(this).html("");
-							if(index < img_list.length) {
-								$(this).append("<img>");
-								$(this).children().eq(0).get(0).src = img_list[index].url;	
-							}
-						})
-	        			//resetImgLine($(".img_line div"), img_list);
+            	console.log(data);
+            	//增加数目
+            	if(data.msg_id == 201) {
+            		var num = parseInt($("#waiting_num").text());
+            		for(var i = 0; i < data.new_recognize.length; i++){
+            			$(".waiting_list").append("<img src=\"image/rectangle.png\" class=\"rect_img\" />");
+            			var opacity_ = GetRandomNum(0,1); 
+            			$(".waiting_list img:last-child").get(0).base_json = data.new_recognize[i];
+            			$(".waiting_list img:last-child").css("opacity", opacity_);
+            			$(".waiting_list img:last-child").click(function() {
+		        			$("#showWaiting").modal('show');
+		        			var temp_json = JSON.parse($(this).get(0).base_json);
+		        			$("#img_info").get(0).src = temp_json.url;
+		        		})
+		        		num++;
             		}
+            		$("#waiting_num").text(num.toString());
             	}
-            	else if(data.data_id == 1) {  //识别完成更新img_list
-            		$("#img_msg li").each(function(index, e) {
-            			var key_ = $(this).text().split(":")[0];
-            			var value_ = data.response_data[key_];
-            			console.log(value_);
-            			$(this).text(key_+":"+value_);
-            		})
-            		$(".title_load").text("（识别完成）");
-            		setTimeout(function(){
-            			img_list.shift();
-            			$("#img_msg li").each(function(index, e) {
-	        				var key_ = $(this).text().split(":")[0];
-	        				$(this).text(key_ + ":");
-	        			})
-	        			$(".img_line div").each(function(index, e){
-        					$(this).html("");
-        					if(index < img_list.length) {
-	        					$(this).append("<img>");
-	    						$(this).children().eq(0).get(0).src = img_list[index].url;	
-	        				}	
-	        			})
-            			if(img_list.length > 0) {
-	            			$("#show_fapiao").get(0).src = img_list[0].url;
-		        			$(".title_load").text("（正在识别...）");	
-            			}
-            			else {
-            				$("#show_fapiao").get(0).src = 'image/shibie_placehold.png';
-	        				$(".title_load").text("");		
-            			}
-            		}, 5000)
-            	}
-            	else if(data.data_id == 3) {  //收到新的发票img
-            		console.log(data.new_recognize);
-            		if(img_list.length == 0) $(".title_load").text("（正在识别...）");
-            		for(var i = 0; i < data.new_recognize.length; i++) {
-            			img_list.push(data.new_recognize[i]);
-            		}
-            		console.log(img_list);
-            		$("#show_fapiao").get(0).src = img_list[0].url;
-            		$(".img_line div").each(function(index, e){
-            			$(this).html("");
-        				if(index < img_list.length) {
-        					$(this).append("<img>");
-    						$(this).children().eq(0).get(0).src = img_list[index].url;	
-        				}
-        			})	
+            	//减少数目
+            	else if(data.msg_id == 1) {
+            		$(".waiting_list img").first().remove();
+            		var num = parseInt($("#waiting_num").text());
+            		num--;
+            		$("#waiting_num").text(num.toString());
             	}
             };
 
@@ -174,6 +155,32 @@
 
             ws.onopen = function(evt) {
                 console.log("open");
+                //发送ajax请求获取当前缓冲队列
+	        	$.ajax({
+	        		url : "http://" + ip2 + "/invoice/recognizeWait",
+	        		type : "POST",
+	        		data : {},
+	        		success: function(res){
+	        			var data = JSON.parse(res);
+	        			$("#waiting_num").text(data.recognize_wait.length.toString());
+	            		for(var i = 0; i < data.recognize_wait.length; i++) {
+	            			$(".waiting_list").append("<img src=\"image/rectangle.png\" class=\"rect_img\" />");
+	            			var opacity_ = GetRandomNum(0,1); 
+	            			$(".waiting_list img:last-child").css("opacity", opacity_);
+	            			$(".waiting_list img:last-child").get(0).base_json = data.recognize_wait[i];
+	            			$(".waiting_list img:last-child").click(function() {
+			        			$("#showWaiting").modal('show');
+			        			var temp_json = JSON.parse($(this).get(0).base_json);
+			        			$("#user_info").text(temp_json.user_name);
+			        			$("#time_info").text(temp_json.action_start_time);
+			        			$("#img_info").get(0).src = temp_json.url;
+			        		})
+	            		}
+	        		},
+	        		error: function(e) {
+	        			console.log(e);
+	        		}
+	        	})
             };
         }
 
@@ -186,15 +193,9 @@
 		}  
 
         $(document).ready(function(){
-        	//connectEndpoint();
-        	$(".rect_img").each(function() {
-        		var opacity_ = GetRandomNum(0,1);  
-        		console.log(opacity_);
-        		$(this).css("opacity", opacity_);
-        		$(this).click(function() {
-        			$("#showWaiting").modal('show');
-        		})
-        	})
+        	loadxml("config.xml");
+        	connectEndpoint();
+
         })
 	</script>
 </body>

@@ -25,8 +25,10 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import com.alibaba.fastjson.JSON;
+import com.hl.domain.LocalConfig;
 import com.hl.service.InvoiceService;
 import com.hl.util.ImageUtil;
+import com.hl.util.TimeUtil;
 import com.hl.util.Const;
 import com.hl.util.IOUtil;
 import com.hl.websocket.SystemWebSocketHandler;
@@ -44,6 +46,9 @@ public class InvoiceController {
 	@Resource(name = "invoiceService")
 	private InvoiceService invoiceService;
 
+	@Resource(name = "localConfig")
+	private LocalConfig localConfig;
+	
 	@RequestMapping(value = "/test", method = RequestMethod.GET)
 	public void test(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		// 测试专用
@@ -60,11 +65,8 @@ public class InvoiceController {
 		response.setCharacterEncoding("utf-8");
 		System.out.println("接收到来自web端的识别发票请求");
 		final Map<String, Object> ans_map = new HashMap<>();
-		// 建立文件夹
-		File save_folder = new File("E:/invoice/originImage");
-		if (save_folder.exists() == false) {
-			save_folder.mkdirs();
-		}
+		//根目录下存储的文件夹
+		String dir = "image/data";
 		// 获取全部文件
 		CommonsMultipartResolver cmr = new CommonsMultipartResolver(request.getServletContext());
 		if (cmr.isMultipart(request)) {
@@ -78,23 +80,21 @@ public class InvoiceController {
 			
 			while (files.hasNext()) {
 				MultipartFile file = request2.getFile(files.next());
-				String origin_file_name = file.getOriginalFilename();
-				System.out.println("原始文件名:" + origin_file_name);
-				String save_file_name = UUID.randomUUID().toString() + ".bmp";//暂时 保存的文件名=原始文件名
-				// 返回图片的网络url
-				String url = Const.LOCAL_IP + "/invoice/originImage/" + save_file_name;
+				String uuidName = UUID.randomUUID().toString() + ".bmp";
+				//分别传入根目录，对应的存储文件夹，文件名传入
+				String url_suffix = ImageUtil.getUrlSuffix(localConfig.getImagePath(),dir, uuidName);	
 				try {
 					//先保存bmp
-					File bmp_file = new File(save_folder, save_file_name);
+					File bmp_file = new File(localConfig.getImagePath() + url_suffix);
 					FileOutputStream fos = new FileOutputStream(bmp_file);
 					InputStream ins = file.getInputStream();
 					IOUtil.inToOut(ins, fos);
 					IOUtil.close(ins, fos);
 					System.out.println("上传文件成功;");
 					//再保存jpg
-					ImageUtil.bmpTojpg("E:/invoice/originImage/"+save_file_name, "E:/invoice/originImage/");
-					//将jpg结尾的作为url
-					image_urls.add(ImageUtil.urlToJpg(url));
+					ImageUtil.bmpTojpg(localConfig.getImagePath() + url_suffix);
+					//将后缀jpg结尾的作为url
+					image_urls.add(ImageUtil.suffixToJpg(url_suffix));
 				} catch (Exception e) {
 					e.printStackTrace();
 					ans_map.put(Const.ERR, "上传文件失败");
@@ -112,7 +112,7 @@ public class InvoiceController {
 		writer.close();
 	}
 
-	// 接口2：增加或修改发票模板，ajax上传，图片为Base64，
+	// 接口2：增加发票模板，ajax上传，图片为Base64，
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/addModel", method = RequestMethod.POST)
 	public void addNewModel(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -130,11 +130,9 @@ public class InvoiceController {
 		System.out.println("user_id="+user_id + " model_id="+ model_id);
 		//名字来自客户端返回的
 		String file_name = ImageUtil.getFileName(request.getParameter("file_name"));
-		//String file_name = UUID.randomUUID().toString() + ".bmp";//生成随机名字
-		String url = null;
-		if (ImageUtil.generateImage(img_str, "E:/invoice/handleImage", file_name) == true) {
-			//生成图片url
-			url =  Const.LOCAL_IP + "/invoice/handleImage/" + file_name;
+		String url_suffix = "image/model/handle/" + TimeUtil.getYearMonthDir() + "/" + file_name;
+		if (ImageUtil.generateImage(img_str, localConfig.getImagePath() + "image/model/handle/"+TimeUtil.getYearMonthDir(),
+				file_name) == true) {
 			System.out.println("上传文件成功");
 		} else {
 			ans_map.put(Const.ERR, "上传文件失败");
@@ -142,10 +140,9 @@ public class InvoiceController {
 		}
 		Integer thread_msg = (Integer) request.getServletContext().getAttribute(Const.THREAD_MSG);//获取上锁对象
 		if(type == 0){
-			//jpg结尾的作为url
-			invoiceService.addOrUpdateInvoiceModel(ans_map, user_id,model_json_map,url,model_id,thread_msg,2);
+			invoiceService.addOrUpdateInvoiceModel(ans_map, user_id,model_json_map,url_suffix,model_id,thread_msg,2);
 		}else {
-			invoiceService.addOrUpdateInvoiceModel(ans_map, user_id,model_json_map, url,model_id,thread_msg,4);
+			invoiceService.addOrUpdateInvoiceModel(ans_map, user_id,model_json_map, url_suffix,model_id,thread_msg,4);
 		}
 		PrintWriter writer = response.getWriter();
 		writer.write(JSON.toJSONString(ans_map));
@@ -196,8 +193,8 @@ public class InvoiceController {
 		response.setCharacterEncoding("utf-8");
 		System.out.println("接收到来自web端的上传发票原图请求");
 		final Map<String, Object> ans_map = new HashMap<>();
-		// 建立文件夹
-		File save_folder = new File("E:/invoice/originImage");
+		// 建立文件夹,子目录为年+月
+		File save_folder = new File(localConfig.getImagePath() + "image/model/original/" + TimeUtil.getYearMonthDir());
 		if (save_folder.exists() == false) {
 			save_folder.mkdirs();
 		}
@@ -210,11 +207,10 @@ public class InvoiceController {
 			while (files.hasNext()) {
 				MultipartFile file = request2.getFile(files.next());
 				String origin_file_name = file.getOriginalFilename();
-				System.out.println("原始文件名:" + origin_file_name);
 				//保存的文件名由uuid生成
 				String save_file_name = UUID.randomUUID().toString() + ".bmp";//暂时 保存的文件名=原始文件名
-				// 返回图片的网络url
-				String url = Const.LOCAL_IP + "/invoice/originImage/" + save_file_name;
+				//生成后缀
+				String url_suffix = "image/model/original/"+TimeUtil.getYearMonthDir()+"/"+save_file_name;
 				try {
 					//先保存bmp
 					File bmp_file = new File(save_folder, save_file_name);
@@ -224,12 +220,11 @@ public class InvoiceController {
 					IOUtil.close(ins, fos);
 					System.out.println("上传文件成功;");
 					//再保存jpg
-					ImageUtil.bmpTojpg("E:/invoice/originImage/" + save_file_name, "E:/invoice/originImage/");
+					ImageUtil.bmpTojpg(localConfig.getImagePath() + url_suffix);
 					//重要！将文件url返回给web端
-					ans_map.put("file_name", ImageUtil.urlToJpg(url));
-					String local_bmp = ImageUtil.urlToLocalPathBmp(url, "E:/invoice/originImage/");
-					String jpg = ImageUtil.urlToJpg(local_bmp);
-					ans_map.put("img_str", "data:image/jpg;base64," + ImageUtil.GetImageStr(jpg));
+					ans_map.put("file_name", ImageUtil.suffixToJpg(localConfig.getIp() + url_suffix));
+					String local_jpg = ImageUtil.suffixToJpg(localConfig.getImagePath() + url_suffix);
+					ans_map.put("img_str", "data:image/jpg;base64," + ImageUtil.GetImageStr(local_jpg));
 				} catch (Exception e) {
 					e.printStackTrace();
 					ans_map.put(Const.ERR, "上传文件失败");
@@ -267,9 +262,9 @@ public class InvoiceController {
 		Map<String, Object> ans_map = new HashMap<>();
 		String url = request.getParameter(Const.URL);
 		System.out.println(url);
-		String local_path_bmp = ImageUtil.urlToLocalPathBmp(url, "E:/invoice/originImage/");
-		String local_path_jpg = ImageUtil.urlToJpg(local_path_bmp);
-		String img_str = ImageUtil.GetImageStr(local_path_jpg);
+		String url_suffix = ImageUtil.getUrlSuffix(url);
+		String local_path = localConfig.getImagePath() + url_suffix;
+		String img_str = ImageUtil.GetImageStr(local_path);
 		ans_map.put(Const.IMG_STR, "data:image/jpg;base64,"+ img_str);
 		PrintWriter writer = response.getWriter();
 		writer.write(JSON.toJSONString(ans_map));
@@ -302,7 +297,7 @@ public class InvoiceController {
 		writer.close();
 	}
 	
-	//特殊接口：更换图片url中的ip
+	//特殊接口：更换模板图片url中的ip，已经废弃
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/changeImageUrlIp", method = RequestMethod.POST)
 	public void changeUrlIp(HttpServletRequest request, HttpServletResponse response)throws IOException{
@@ -316,5 +311,25 @@ public class InvoiceController {
 		writer.close();
 	}
 
+	//特殊接口：将DataBase.xml文件里面的内容写入Mysql数据库
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/rewriteJsonModel", method = RequestMethod.POST)
+	public void rewriteJsonModel(HttpServletRequest request, HttpServletResponse response)throws IOException{
+		System.out.println("接收到将本地json_model写入Mysql数据库的请求");
+		PrintWriter writer = response.getWriter();
+		Map<String, Object> ans_map = new HashMap<>();
+		try {
+			invoiceService.rewriteJsonModel();
+			ans_map.put(Const.SUCCESS, "更新成功");
+			System.out.println("更新成功");
+		} catch (Exception e) {
+			e.printStackTrace();
+			ans_map.put(Const.SUCCESS, "更新失败");
+			System.out.println("更新失败");
+		}
+		writer.write(JSON.toJSONString(ans_map));
+		writer.flush();
+		writer.close();
+	}
 	
 }

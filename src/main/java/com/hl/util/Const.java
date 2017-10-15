@@ -87,4 +87,8 @@ public class Const {
 	//客户端发给服务器的
 	public static final String CODE                = "code";
 	
+	//图片保存所用，代表图片所在的文件夹+文件名形成的后缀
+	public static final String URL_SUFFIX              = "url_suffix";
+	
+	
 }

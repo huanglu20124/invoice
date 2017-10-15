@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<!--
+		websocket
+		实验室2.4G_plus "192.168.1.36:8080";
+		宿舍 "172.18.92.209:8080"
+		实验室secure "172.19.82.51:8080" 
+	-->
+    <connect_ip>172.18.92.209:8080</connect_ip>
+</configuration>

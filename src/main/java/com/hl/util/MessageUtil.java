@@ -23,7 +23,7 @@ public class MessageUtil {
 			if(json_str != null){
 				byte[] json_byte = json_str.getBytes("gbk");
 				int msg_len = json_byte.length;
-				System.out.println(msg_len);
+				System.out.println("消息长度msg_len为" + msg_len);
 				int last_length = 8 + msg_len;
 				byte[] msg_bytes = new byte[last_length];//确定最终消息长度
 				byte[] msg_id_array = IOUtil.intToByteArray(msg_id);

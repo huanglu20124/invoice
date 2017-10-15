@@ -16,6 +16,7 @@
 			<list>
 			    <value>classpath:redis.properties</value>
 				<value>classpath:jdbc.properties</value>
+				<value>classpath:local.properties</value>
 			</list>
 		</property>
 	</bean>
@@ -115,5 +116,14 @@
 	 <bean name="userDao" class="com.hl.dao.impl.UserDaoImpl">
 	   <property name="dataSource" ref="dataSource1"></property>
 	</bean>
+	
+	
+	<!-- 特殊bean，初始化后从配置文件加载到内存中 -->
+	<bean name="localConfig" class="com.hl.domain.LocalConfig">
+	   <property name="ip" value="${local.ip}"></property>
+	   <property name="dataBasePath" value="${local.dataBasePath}"></property>
+	   <property name="imagePath" value="${local.imagePath}"></property>
+	</bean>
+	
 	
 </beans>

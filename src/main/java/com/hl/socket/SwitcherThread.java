@@ -19,6 +19,7 @@ import org.springframework.web.socket.TextMessage;
 
 import com.alibaba.fastjson.JSON;
 import com.hl.dao.RedisDao;
+import com.hl.domain.LocalConfig;
 import com.hl.service.InvoiceService;
 import com.hl.util.Const;
 import com.hl.util.ImageUtil;
@@ -36,6 +37,8 @@ public class SwitcherThread implements Runnable {
 	private SystemWebSocketHandler systemWebSocketHandler;
 
 	private SocketLoadTool socketListener;
+	
+	private LocalConfig localConfig;
 
 	private Long wait_size = 0l;
 	private Long manage_size = 0l;
@@ -55,6 +58,7 @@ public class SwitcherThread implements Runnable {
 		this.redisDao = (RedisDao) applicationContext.getBean("redisDao");
 		this.systemWebSocketHandler = (SystemWebSocketHandler) applicationContext.getBean("systemWebSocketHandler");
 		this.invoiceService = (InvoiceService) applicationContext.getBean("invoiceService");
+		this.localConfig = (LocalConfig) applicationContext.getBean("localConfig");
 		
 		this.thread_msg = thread_msg;
 		this.servletContext = servletContext;
@@ -115,12 +119,12 @@ public class SwitcherThread implements Runnable {
 		}
 		// 1.先得到等待队列头的action_id
 		String action_id = redisDao.getRight(Const.RECOGNIZE_WAIT, 0l);
-		// 2.根据这个作为key，取得对应的url
-		String url = (String) redisDao.getValue(action_id);
+		// 2.根据这个作为key，取得对应的url_suffix
+		String url_suffix = (String) redisDao.getValue(action_id);
 		//补充，将当前要跑的发票的url等信息发给前端
-		invoiceService.broadcastNextRecognize(new Integer(action_id), url);
-		// 3.将网络url转换为本地硬盘路径
-		String absolute_path = ImageUtil.urlToLocalPathBmp(url, "E:/invoice/originImage/");
+		invoiceService.broadcastNextRecognize(new Integer(action_id), url_suffix);
+		// 3.将后缀转换为本地硬盘路径
+		String absolute_path = ImageUtil.suffixToBmp(localConfig.getImagePath() + url_suffix);
 		// 4.补充协议json信息
 		Map<String, Object> msg_map = new HashMap<>();
 		msg_map.put(Const.URL, absolute_path);
@@ -128,7 +132,7 @@ public class SwitcherThread implements Runnable {
 		MessageUtil.sendMessage(outputStream, 1, JSON.toJSONString(msg_map),systemWebSocketHandler);
 		System.out.println(action_id + "发送了识别请求");
 		//6. 调用service层方法处理识别过程返回的数据
-		invoiceService.broadcastRecognizeProcess(inputStream,new Integer(action_id),url);
+		invoiceService.broadcastRecognizeProcess(inputStream,new Integer(action_id),url_suffix);
 	}
 
 	public void switchManageModel() {
@@ -143,12 +147,14 @@ public class SwitcherThread implements Runnable {
 	    switch (msg_id) {
 		case 2://增加
 		{
-			//首先，将网络url变更为本地url
-			String url = (String) manage_map.get(Const.URL);
-			String absulote_path = ImageUtil.urlToLocalPathBmp(url,"E:/invoice/originImage/");
+			//首先，将后缀变更为本地url
+			String url_suffix = (String) manage_map.get(Const.URL_SUFFIX);
+			//得到原图先
+			String url_suffix_original = url_suffix.replaceAll("handle", "original");
+			String local_path = ImageUtil.suffixToBmp(localConfig.getImagePath() + url_suffix_original);
 			//得到json_model，加入图片url
 			Map<String, Object>json_model_map = (Map<String, Object>) manage_map.get(Const.JSON_MODEL);
-			json_model_map.put(Const.URL, absulote_path);
+			json_model_map.put(Const.URL, local_path);
 			//发送消息
 			//另外json_model还要包一层。。
 			Map<String, Object>temp = new HashMap<>();
@@ -156,7 +162,7 @@ public class SwitcherThread implements Runnable {
 			MessageUtil.sendMessage(outputStream, 2, JSON.toJSONString(temp),systemWebSocketHandler);
 			System.out.println(action_id + "发送了新增发票类型请求");
 			//调用service层的方法处理增加模板的结果
-			invoiceService.broadcastAddNewModel(inputStream,new Integer(action_id),json_model_map,url);
+			invoiceService.broadcastAddNewModel(inputStream,new Integer(action_id),json_model_map,url_suffix);
 		}
 		break;
 		
@@ -177,9 +183,10 @@ public class SwitcherThread implements Runnable {
 		
 		case 4: //修改
 		{
-			//首先，将网络url变更为本地url
-			String url = (String) manage_map.get(Const.URL);
-			String absulote_path = ImageUtil.urlToLocalPathBmp(url,"E:/invoice/originImage/");
+			//首先，将后缀变更为本地url
+			String url_suffix = (String) manage_map.get(Const.URL_SUFFIX);
+			String absulote_path = ImageUtil.suffixToBmp(localConfig.getImagePath() + 
+					url_suffix.replaceAll("handle", "original"));//同时变更文件夹名
 			//得到model_id
 			int model_id = (int) manage_map.get(Const.MODEL_ID);
 			//发送消息
@@ -193,7 +200,7 @@ public class SwitcherThread implements Runnable {
 			temp.put(Const.JSON_MODEL, json_model_map);
 			MessageUtil.sendMessage(outputStream, 4, JSON.toJSONString(temp),systemWebSocketHandler);
 			System.out.println(action_id + "发送了修改发票模板请求");
-			invoiceService.broadcastUpdateModel(inputStream,new Integer(action_id),json_model_map,url,model_id);
+			invoiceService.broadcastUpdateModel(inputStream,new Integer(action_id),json_model_map,url_suffix,model_id);
 		}
 		break;
 		

@@ -377,29 +377,30 @@ function stackBlurCanvasRGB( id, top_x, top_y, width, height, radius )
 	
 	var canvas  = document.getElementById( id );
 	var context = canvas.getContext("2d");
-	var imageData;
+	// console.log(context);
+	var imageData = context.getImageData( top_x, top_y, width, height);
 	
-	try {
-	  try {
-		imageData = context.getImageData( top_x, top_y, width, height );
-	  } catch(e) {
+	// try {
+	//   try {
+	// 	imageData = context.getImageData( top_x, top_y, width, height );
+	//   } catch(e) {
 	  
-		// NOTE: this part is supposedly only needed if you want to work with local files
-		// so it might be okay to remove the whole try/catch block and just use
-		// imageData = context.getImageData( top_x, top_y, width, height );
-		try {
-			netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
-			imageData = context.getImageData( top_x, top_y, width, height );
-		} catch(e) {
-			alert("Cannot access local image");
-			throw new Error("unable to access local image data: " + e);
-			return;
-		}
-	  }
-	} catch(e) {
-	  alert("Cannot access image");
-	  throw new Error("unable to access image data: " + e);
-	}
+	// 	// NOTE: this part is supposedly only needed if you want to work with local files
+	// 	// so it might be okay to remove the whole try/catch block and just use
+	// 	// imageData = context.getImageData( top_x, top_y, width, height );
+	// 	try {
+	// 		netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
+	// 		imageData = context.getImageData( top_x, top_y, width, height );
+	// 	} catch(e) {
+	// 		alert("Cannot access local image");
+	// 		throw new Error("unable to access local image data: " + e);
+	// 		return;
+	// 	}
+	//   }
+	// } catch(e) {
+	//   alert("Cannot access image");
+	//   throw new Error("unable to access image data: " + e);
+	// }
 			
 	var pixels = imageData.data;
 			

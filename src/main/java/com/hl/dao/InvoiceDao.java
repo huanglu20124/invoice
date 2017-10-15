@@ -10,7 +10,7 @@ public interface InvoiceDao {
 	Integer addRecognizeAction(Integer user_id);
 	Integer addNewModelAction(final Integer user_id);
 
-	int addRecognizeInvoice(Integer action_id, Map<String, Object> invoice_data,Integer model_id,String url);
+	int addRecognizeInvoice(Map<String, Object> invoice_data,Integer model_id,String url);
 
 	int finishRecognizeAction(int action_id, int invoice_id, int status);
 
@@ -36,6 +36,7 @@ public interface InvoiceDao {
 	Map<String, Object> findActionUserNameTime(Integer action_id);
 	void plusModelSuccess(Integer model_id);
 	void updateModelUrl(String url,String changed_url);
+	void updateModelJsonModel(int model_id, String string);
 
 
 

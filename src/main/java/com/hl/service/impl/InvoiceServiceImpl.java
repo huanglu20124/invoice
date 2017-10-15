@@ -1,44 +1,28 @@
 package com.hl.service.impl;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.Writer;
-import java.net.Socket;
-import java.sql.Time;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-
 import javax.annotation.Resource;
 
-import org.apache.hadoop.hdfs.web.JsonUtil;
-import org.json.JSONObject;
-import org.junit.Test;
-import org.springframework.context.ApplicationContext;
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.socket.TextMessage;
-
 import com.alibaba.fastjson.JSON;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.hl.dao.InvoiceDao;
 import com.hl.dao.RedisDao;
+import com.hl.domain.LocalConfig;
 import com.hl.domain.Model;
 import com.hl.domain.ResponseMessage;
 import com.hl.service.InvoiceService;
 import com.hl.socket.SocketLoadTool;
-import com.hl.socket.SocketUtil;
 import com.hl.util.Const;
-import com.hl.util.IOUtil;
 import com.hl.util.ImageUtil;
 import com.hl.util.MessageUtil;
 import com.hl.util.TimeUtil;
@@ -59,6 +43,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 	@Resource(name = "socketListener")
 	private SocketLoadTool socketListener;
 
+	@Resource(name = "localConfig")
+	private LocalConfig localConfig;
 
 	// ajax处理web请求
 	@Override
@@ -69,17 +55,17 @@ public class InvoiceServiceImpl implements InvoiceService {
 		List<Map<String, Object>> new_recognize = new ArrayList<>();//记录识别队列新增的发票
 		List<Integer> action_id_list = new ArrayList<>();
 		// 1.首先全部加入到等待队列里,队列左进右出
-		for (String url : image_urls) {
+		for (String url_suffix : image_urls) {
 			// 2.生成一条行为，插入action表，并获取返回的action_id
 			// action_id还作为存到redis队列表的的value，同时作为一个唯一集合的key,value为图片url，该id还作为数据库action表的主键
 			Integer action_id = invoiceDao.addRecognizeAction(user_id);
 			action_id_list.add(action_id);
-			System.out.println("上传的image_url为" + url + "对应action_id为：" + action_id);
+			System.out.println("上传的url_suffix为" + url_suffix + "对应action_id为：" + action_id);
 			redisDao.leftPush(Const.RECOGNIZE_WAIT, action_id.toString());
-			redisDao.addKey(action_id.toString(), url);
+			redisDao.addKey(action_id.toString(), url_suffix);
 			Map<String, Object> temp_map = new HashMap<>();
 			temp_map.put(Const.ACTION_ID, action_id);
-			temp_map.put(Const.URL, url);
+			temp_map.put(Const.URL_SUFFIX, url_suffix);
 			new_recognize.add(temp_map);
 		}
 		System.out.println("等待队列新增" + image_urls.size() + "张发票");
@@ -111,7 +97,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 	// ajax处理web请求
 	@Override
 	public void addOrUpdateInvoiceModel(Map<String, Object>ans_map, Integer user_id,
-			Map<String, Object> model_json_map, String image_url, Integer model_id,Integer thread_msg,Integer msg_id) {
+			Map<String, Object> model_json_map, String url_suffix, Integer model_id,Integer thread_msg,Integer msg_id) {
 		// 添加新的发票模型
 		// 1生成一条行为，插入action表，并获取返回的action_id
 		Integer action_id = null;
@@ -124,7 +110,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 		redisDao.leftPush(Const.MANAGE_WAIT, action_id.toString());// 加入到操作队列
 		// key为action_id，value为图片url以及msg_id=2,还有json_model
 		Map<String, Object> msg_map = new HashMap<>();
-		msg_map.put(Const.URL, image_url);
+		msg_map.put(Const.URL_SUFFIX, url_suffix);
 		msg_map.put(Const.MSG_ID, msg_id);
 		msg_map.put(Const.JSON_MODEL, model_json_map);
 		if(msg_id == 4 && model_id != null){
@@ -181,14 +167,14 @@ public class InvoiceServiceImpl implements InvoiceService {
 	
 	// websocket返回处理结果  msg_id = 1, 100, 101, 102
 	@Override
-	public void broadcastRecognizeProcess(InputStream inputStream, int action_id,String url_local) {
+	public void broadcastRecognizeProcess(InputStream inputStream, int action_id,String url_suffix) {
 		// 将算法运行结果分阶段的广播给所有管理员
 		// 首先，记录开始跑算法的时间
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
 		invoiceDao.startAction(action_id);
 		Integer model_id = 0;// 模板编号
-		//先将本地url变为网络url
-		String url = ImageUtil.localPathToJpg(url_local, Const.LOCAL_IP + "/invoice/originImage/");
+		//后缀变为网络url
+		String url = ImageUtil.suffixToJpg(localConfig.getIp() + url_suffix);
 		while (true) {
 			// 处理一次消息数据
 			try {
@@ -204,7 +190,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 						int status = (int) invoice_data.get("status");
 						Integer invoice_id = null;
 						if(status == 0){
-							invoice_id = invoiceDao.addRecognizeInvoice(action_id, invoice_data, model_id,url);
+							invoice_id = invoiceDao.addRecognizeInvoice(invoice_data, model_id,url);
 							System.out.println("成功将该发票信息写入数据库,invoice_id=" + invoice_id);
 						}
 						// 更新action表的一些信息
@@ -234,7 +220,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 						//在json里加入模板url
 						String json_str = message.getJson_str();
 						Map<String, Object>json_map = JSON.parseObject(json_str);
-						json_map.put(Const.URL, invoiceDao.getModelUrl(model_id));
+						json_map.put(Const.URL, localConfig.getIp() + invoiceDao.getModelUrl(model_id));
 						message.setJson_str(JSON.toJSONString(json_map));
 						// 过程信息，直接转交给前端
 						systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)));
@@ -259,11 +245,11 @@ public class InvoiceServiceImpl implements InvoiceService {
 
 	// websocket返回处理结果  msg_id = 2
 	@Override
-	public void broadcastAddNewModel(InputStream inputStream, int action_id,Map<String, Object>json_model_map,String url) {
+	public void broadcastAddNewModel(InputStream inputStream, int action_id,Map<String, Object>json_model_map,String url_suffix) {
 		//首先，更新action开始跑算法的时间
 		invoiceDao.startAction(action_id);
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
-		url = ImageUtil.localPathToJpg(url, Const.LOCAL_IP + "/invoice/handleImage/");//将本地url变为网络url
+		String url = ImageUtil.suffixToJpg(localConfig.getIp() + url_suffix);//变为网络url
 		// 处理增加模板的结果
 		try {
 			ResponseMessage message = MessageUtil.getMessage(inputStream);
@@ -283,7 +269,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 			// 2.成功的话，model表加入一个新model,model_id主键由算法端决定
 			if(status == 0){
 				model_id = (int) response_map.get("id");
-				invoiceDao.addModel(model_id,json_model_map,TimeUtil.getCurrentTime(),url);
+				invoiceDao.addModel(model_id,json_model_map,TimeUtil.getCurrentTime(),url_suffix);
 			}
 			// 3.更新数据库的action表,model_id，跑完的时间
 		    invoiceDao.finishAddModelAction(action_id,model_id,status);
@@ -308,15 +294,14 @@ public class InvoiceServiceImpl implements InvoiceService {
 	// websocket返回处理结果  msg_id = 4
 	@Override
 	public void broadcastUpdateModel(InputStream inputStream, Integer action_id, Map<String, Object> json_model_map,
-			String url,int model_id) {
+			String url_suffix,int model_id) {
 		//首先，更新action开始跑算法的时间
 		invoiceDao.startAction(action_id);
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
-		url = ImageUtil.localPathToJpg(url, Const.LOCAL_IP + "/invoice/handleImage/");//将本地url变为网络url
+		String url = ImageUtil.suffixToJpg(localConfig.getIp() + url_suffix);//将后缀变为网络url
 		// 处理增加模板的结果
 		try {
 			ResponseMessage message = MessageUtil.getMessage(inputStream);
-			int msg_id = message.getMsg_id();
 			String json_str = message.getJson_str();
 			// 1.解析json，先将结果直接返回给web端
 			Map<String, Object> response_map = JSON.parseObject(json_str);
@@ -359,19 +344,18 @@ public class InvoiceServiceImpl implements InvoiceService {
 		// 处理增加模板的结果
 		try {
 			ResponseMessage message = MessageUtil.getMessage(inputStream);
-			int msg_id = message.getMsg_id();
 			String json_str = message.getJson_str();
 			// 1.解析json，先将结果直接返回给web端
 			Map<String, Object> response_map = JSON.parseObject(json_str);
 			int status = (int) response_map.get("status");
 			systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)));
 			// 2.model表删除该model,其他携带该外键的行全部更新
-			String url = null;
+			String url_suffix = null;
 			//这个url用来后面删除图片文件
 			if(status == 0){
 				//找到图片文件,删除全部本地文件
-				url = invoiceDao.getModelUrl(model_id);
-				ImageUtil.deleteAllLocalImage(url);
+				url_suffix = invoiceDao.getModelUrl(model_id);
+				ImageUtil.deleteAllModelImage(localConfig.getImagePath(),url_suffix);
 				//找到全部携带该model_id的invoice，设置外键为null
 				invoiceDao.deleteInvoiceForeginModel(model_id);
 				//找到全部携带该model_id的action，设置外键为null
@@ -411,7 +395,6 @@ public class InvoiceServiceImpl implements InvoiceService {
 		// 处理增加模板的结果
 		try {
 			ResponseMessage message = MessageUtil.getMessage(inputStream);
-			int msg_id = message.getMsg_id();
 			String json_str = message.getJson_str();
 			// 1.解析json，先将结果直接返回给web端
 			Map<String, Object> response_map = JSON.parseObject(json_str);
@@ -427,7 +410,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 				List<String>urls = invoiceDao.getAllModelUrl();
 				//删除全部本地图片文件
 				for(String url : urls){
-					ImageUtil.deleteAllLocalImage(url);
+					ImageUtil.deleteAllModelImage(localConfig.getImagePath(),url);
 				}
 				//删除全部model
 				invoiceDao.clearAllModel();
@@ -454,19 +437,12 @@ public class InvoiceServiceImpl implements InvoiceService {
 	public void getAllModel(Map<String, Object> ans_map, Integer user_id, Integer start) {
 		//返回当前模板库全部信息,一次12条
 		List<Model>model_list = invoiceDao.getTwelveModel(start);
+		//将url_suffix转为网络url
+		for(Model model : model_list){
+			String url_suffix = model.getModel_url();
+			model.setModel_url(localConfig.getIp() + url_suffix);
+		}
 		ans_map.put(Const.MODEL_LIST, model_list);
-//		List<Map<String, Object>>model_list_temp = new ArrayList<>();
-//		for(int i = 0; i < model_list.size(); i++){
-//			Model model = model_list.get(i);
-//			Map<String, Object>temp = new HashMap<>();
-//			temp.put(Const.MODEL_ID, model.getModel_id());
-//			temp.put(Const.MODEL_REGISTER_TIME, model.getModel_register_time());
-//			temp.put(Const.MODEL_SUCCESS_COUNTER, model.getModel_url());
-//			Map<String, Object>json_model_map = JSON.parseObject(model.getJson_model());
-//			temp.put(Const.JSON_MODEL, json_model_map);
-//			model_list_temp.add(temp);
-//		}
-//		ans_map.put(Const.MODEL_LIST, JSON.toJSONString(model_list_temp));
 	}
 
 	// websocket返回处理结果 msg_id = 200
@@ -485,8 +461,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 	            	action_id = (String) temp;
 	            	one_action_map = invoiceDao.getOneAction(new Integer(action_id));
 	            	//添加url
-	            	String url = (String) redisDao.getValue(action_id);
-	            	one_action_map.put(Const.URL, url);
+	            	String url_suffix = (String) redisDao.getValue(action_id);
+	            	one_action_map.put(Const.URL, localConfig.getIp() + url_suffix);
 	            	recognize_wait.add(one_action_map);
 	            	System.out.println("将缓冲队列的信息推送给前端");
 	            }
@@ -539,9 +515,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 		String action_id_str = redisDao.getRight(Const.RECOGNIZE_WAIT, 0l);
 		if(action_id_str != null){
 			Integer action_id = new Integer(action_id_str);
-			String url = (String) redisDao.getValue(action_id.toString());
+			String url_suffix = (String) redisDao.getValue(action_id.toString());
+			String url = ImageUtil.suffixToJpg(localConfig.getIp() + url_suffix);
 			ans_map.put(Const.URL, url);
-			System.out.println("url = " + url);
 			ans_map.put(Const.ACTION_ID, action_id);
 			ans_map.put(Const.REGION_LIST, region_list);	
 			ans_map.put(Const.MSG_ID, 202);
@@ -550,6 +526,11 @@ public class InvoiceServiceImpl implements InvoiceService {
 			ans_map.put(Const.USER_ID, temp.get(Const.USER_ID));
 			ans_map.put(Const.USER_NAME, temp.get(Const.USER_NAME));
 			ans_map.put(Const.ACTION_START_TIME, temp.get(Const.ACTION_START_TIME));
+			
+			//补充，加入img_str
+			String local_path = ImageUtil.suffixToJpg(localConfig.getImagePath() + url_suffix);
+			String img_str = ImageUtil.GetImageStr(local_path);
+			ans_map.put(Const.IMG_STR, "data:image/jpg;base64," + img_str);
 		}
 
 	}
@@ -557,11 +538,17 @@ public class InvoiceServiceImpl implements InvoiceService {
 	
 	// websocket返回处理结果 msg_id = 203
 	@Override
-	public void broadcastNextRecognize(Integer action_id, String url) {
+	public void broadcastNextRecognize(Integer action_id, String url_suffix) {
 		//补充，将当前要跑的发票的url等信息发给前端
 		Map<String, Object>start_map = new HashMap<>();
 		start_map.put(Const.ACTION_ID, new Integer(action_id));
-		start_map.put(Const.URL, url);
+		//将url变为网络url
+		start_map.put(Const.URL, localConfig.getIp() + url_suffix);
+		//补充，加入img_str
+		String local_path = localConfig.getImagePath() + url_suffix;
+		String img_str = ImageUtil.GetImageStr(local_path);
+		start_map.put(Const.IMG_STR, "data:image/jpg;base64," + img_str);
+		
 		start_map.put(Const.MSG_ID, 203);
 		//找到user_id和user_name和开始时间
 		Map<String, Object>temp =  invoiceDao.findActionUserNameTime(action_id);
@@ -571,7 +558,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 		systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(start_map)));
 	}
 
-	
+	//ajax处理web请求，已经废弃
 	@Override
 	public void changeImageUrlIp() {
 		List<String>urls = invoiceDao.getAllModelUrl();
@@ -579,7 +566,85 @@ public class InvoiceServiceImpl implements InvoiceService {
 			//获得后一段
 			int index = url.indexOf("e");
 			String part2 = url.substring(index + 1, url.length());
-			invoiceDao.updateModelUrl(url,Const.LOCAL_IP + "/invoice" + part2);
+			invoiceDao.updateModelUrl(url,localConfig.getIp() + "/invoice" + part2);
+		}
+		
+	}
+
+	
+	//ajax处理web请求
+	@Override
+	public void rewriteJsonModel() throws Exception{
+		SAXReader saxReader = new SAXReader();
+		String path = localConfig.getDataBasePath();
+		Document document = saxReader.read(new File(path));
+		//根元素
+		Element root = document.getRootElement();
+		System.out.println("获取根节点:" + root.getName());
+		//获取所有子元素
+		Element database_current_size = root.element("Database_current_size");
+		//得到模板数量
+		Integer num =  new Integer((String)database_current_size.getData());
+		System.out.println("得到模板数量 = " + num);
+		Element element_invoice_info = root.element("invoice_info");
+		List<Element>elements = element_invoice_info.elements("_");
+		List<String>json_model_list = new ArrayList<>();
+		for(int i = 0; i < num; i ++){
+			//一个模板一个json_model,最终存在json_model_list里面
+			Map<String, Object>json_model_map = new HashMap<>();
+			Map<String, Object>global_setting_map = new HashMap<>();
+			
+			Element element_root = elements.get(i);
+			
+			String label = element_root.element("label").getText().replaceAll("\"", "");
+			String quota = element_root.elementText("quota");
+			global_setting_map.put("label", label);
+			global_setting_map.put("quota", quota);
+			json_model_map.put("global_setting",global_setting_map);
+			
+			Element element_info_area = element_root.element("info_area");
+			List<Element>roots_info_area = element_info_area.elements("_");
+			int area_num = roots_info_area.size();
+			System.out.println("area_num = " + area_num);
+			//现在只有两个区域
+			area_num = 2;
+			for(int j = 0; j < area_num; j++){
+				Element element = roots_info_area.get(j);//得到_
+				//开始遍历每个区域
+				Map<String, Object>area_map = new HashMap<>();
+				
+				Integer x = new Integer(element.elementText("absolute_x"));
+				area_map.put("x", x);
+				Integer y = new Integer(element.elementText("absolute_y"));
+				area_map.put("y", y);
+				Integer height = new Integer(element.elementText("height"));
+				area_map.put("height", height);
+				Integer width = new Integer(element.elementText("length"));
+				area_map.put("width", width);
+				Integer remove_line = new Integer(element.elementText("remove_line"));
+				area_map.put("remove_line", remove_line);
+				Integer remove_stamp = new Integer(element.elementText("remove_stamp"));
+				area_map.put("remove_stamp", remove_stamp);
+				String keywords = element.elementText("keywords").replaceAll("\"", "");;
+				area_map.put("keywords", keywords);
+				if(j == 0){
+					//money node
+					json_model_map.put("money", area_map);
+				}
+				else if(j == 1){
+					//head node
+					json_model_map.put("head", area_map);
+				}
+				else if(j == 7){
+					json_model_map.put("invoice_id", area_map);
+				}
+				
+			}
+			json_model_list.add(JSON.toJSONString(json_model_map));
+		}
+		//根据顺序，重新写入数据库
+		for(int model_id = 0; model_id < num; model_id++){
+			invoiceDao.updateModelJsonModel(model_id + 1,json_model_list.get(model_id));
 		}
 		
 	}

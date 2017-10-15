@@ -1,82 +1,28 @@
-package com.hl.util;
+package com.hl.test;
 
 import static org.junit.Assert.*;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.hadoop.hdfs.server.namenode.status_jsp;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.junit.Test;
 
 import com.alibaba.fastjson.JSON;
+import com.hl.domain.LocalConfig;
+import com.hl.util.IOUtil;
 
-
-public class IOUtil {
-	private IOUtil(){
+public class XmlTest {
+	@Test
+	public void test1() throws Exception {
 		
-	}
-	
-	public static void inToOut(InputStream in, OutputStream out) throws IOException{
-		byte[]bytes = new byte[1024];
-		int i = 0;
-		while((i =in.read(bytes)) != -1){
-			out.write(bytes, 0, i);
-		}
-	}
-	
-	public static void close(InputStream in, OutputStream out){
-		if(in != null){
-			try {
-				in.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}finally {
-				in = null;
-			}
-		}
-		
-		if(out != null){
-			try {
-				out.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}finally {
-				out = null;
-			}
-		}
-	}
-
-	public static int byteArrayToInt(byte [] b){
-		return b[0] &0xFF | (b[1] & 0xFF)<<8 | (b[2] & 0xFF)<<16 | (b[3] & 0xFF)<<24;
-	}
-	
-	public static byte[] intToByteArray(int i) {
-		  byte[] result = new byte[4];   
-		  //由高位到低位
-		  result[3] = (byte)((i >> 24) & 0xFF);
-		  result[2] = (byte)((i >> 16) & 0xFF);
-		  result[1] = (byte)((i >> 8) & 0xFF); 
-		  result[0] = (byte)(i & 0xFF);
-		  return result;
-	}
-
-	public static String dataBaseToJsonModel(String path) throws Exception{
-		//从本地的DataBase.xml读取出json_model
 		SAXReader saxReader = new SAXReader();
-		//String path = "E:/study_and_work/invoice/repo/ISRS5.2/ISRS5.0/x64/Debug/Database.xml";
+		String path = "E:/study_and_work/invoice/repo/ISRS5.6/ISRS5.3/ISRS5.2/ISRS5.0/x64/Debug/Database-utf8.xml";
 		Document document = saxReader.read(new File(path));
 		//根元素
 		Element root = document.getRootElement();
@@ -85,7 +31,7 @@ public class IOUtil {
 		Element database_current_size = root.element("Database_current_size");
 		//得到模板数量
 		Integer num =  new Integer((String)database_current_size.getData());
-		System.out.println("得到模板数量 :" + num);
+		System.out.println("得到模板数量 = " + num);
 		Element element_invoice_info = root.element("invoice_info");
 		List<Element>elements = element_invoice_info.elements("_");
 		List<Map<String, Object>>json_model_list = new ArrayList<>();
@@ -141,27 +87,6 @@ public class IOUtil {
 		}
 		String str = JSON.toJSONString(json_model_list);
 		System.out.println(str);
-		return str;
+		IOUtil.writeToLocal(str);
 	}
-	
-	//将一个字符串写入一个本地文件，测试用
-	public static void writeToLocal(String str){
-		try {
-			if(str == null){
-				System.out.println("字符串为空");
-			}
-			File file = new java.io.File("E:/invoice","test.txt");
-			file.delete();
-			if(!file.exists()){
-				file.createNewFile();
-			}
-			FileWriter writer = new FileWriter(file);
-			writer.write(str);
-			System.out.println("写入本地文件测试");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
-
 }

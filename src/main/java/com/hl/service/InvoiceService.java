@@ -23,4 +23,5 @@ public interface InvoiceService {
 	public void openConsole(Map<String, Object> ans_map);
 	public void broadcastNextRecognize(Integer action_id, String url);
 	public void changeImageUrlIp();
+	public void rewriteJsonModel()throws Exception;
 }

@@ -11,7 +11,7 @@
 </head>
 <body>
 	<header>
-		<img src="image/zhongda.jpg" style="width: 15%;" />
+		<img src="pic/zhongda.jpg" style="width: 15%;" />
 	</header>
 	<main>
 		<aside class="col-lg-2">
@@ -28,15 +28,15 @@
 			<div class="panel panel-default">
 			    <div class="panel-heading">
 			        <h3 class="panel-title flex_line">
-			        	<span class="flex_item">模板库（共<span id="muban_num">4</span>张模板)</span>
-                		<span class="nonflex_item"><input type="text" id="search_input" class="form-control" size="30" style="height: 25px; vertical-align: middle; display: inline-block; width: auto;" placeholder="--请输入要搜索的模板id--"><img src="image/search.png" style="display: inline-block; height: 20px; width: auto; vertical-align: middle; margin-left: 5px; cursor: pointer;" onclick="searchproduct()" /></span>
+			        	<span class="flex_item">模板库（共<span id="muban_num">0</span>张模板)</span>
+                		<span class="nonflex_item"><input type="text" id="search_input" class="form-control" size="30" style="height: 25px; vertical-align: middle; display: inline-block; width: auto;" placeholder="--请输入要搜索的模板id--"><img src="pic/search.png" style="display: inline-block; height: 20px; width: auto; vertical-align: middle; margin-left: 5px; cursor: pointer;" onclick="searchproduct()" /></span>
 			        </h3>
 			    </div>
 			    <div class="panel-body muban_contain">
-			    	<div class="ku_img_container">
+			    	<!-- <div class="ku_img_container">
 						<img src="2.bmp" class="ku_img" />
 						<p class="ku_img_id">1</p>
-					</div>
+					</div> -->
 					<!-- <img src="2.bmp" class="ku_img" />
 					<img src="3.bmp" class="ku_img" />
 					<img src="4.bmp" class="ku_img" /> -->
@@ -60,7 +60,12 @@
 	        <div class="modal-content">
 	            <div class="modal-header">
 	                <button type="button" class="close" data-dismiss="modal" aria-hidden="true" id="close_modal">&times;</button>
-	                <h4 class="modal-title" id="myModalLabel">操作图片</h4>
+	                <h4 class="modal-title" id="myModalLabel" style="display: inline-block; vertical-align: middle; width: auto; margin-right: 10px;">操作图片</h4>
+	                <div class="progress progress-striped active"  style="display: none; vertical-align: middle; width: 30%; margin-bottom: 0px;" id="myModalLabel_progress">
+					    <div class="progress-bar" role="progressbar" aria-valuenow="60" 
+					        aria-valuemin="0" aria-valuemax="100" style="width: 20%;">
+					    </div>
+					</div>
 	            </div>
 	            <div class="modal-body" style="padding: 0px;">
 	            	<div id="canvas_container" style="width:1160px; display: inline-block; vertical-align: top;">
@@ -88,7 +93,7 @@
 						</form>
 					</div>
 					<div class="hid_panel">
-						<img src="image/close_disabled.png" id="close"/><img src="image/tick_disabled.png" id="certain"/><img src="image/setting.png" id="setting" />
+						<img src="pic/close_disabled.png" id="close"/><img src="pic/tick_disabled.png" id="certain"/><img src="pic/setting.png" id="setting" />
 					</div>
 					<div class="setting_panel form">
 						<form id="setting_form" role="form">
@@ -161,15 +166,33 @@
 	    </div>
 	</div>
 	<script>
-		//websocket
-		//实验室2.4G_plus "192.168.1.36:8080";
-		//宿舍 "172.18.92.209:8080"
-		//实验室secure "172.19.82.51:8080"
-		var ip2 = "localhost:8080";
-		var temp_ip = "192.168.137.221:8080";
-		var wsuri = "ws://" + ip2 + "/invoice/webSocketServer";
+		var ip2; //host_ip
+		var wsuri; //websocket_url
         var ws = null;
 
+        var temp_click_jq_img; //记录当前被点击的图片
+        var temp_json_model; //记录当前增加/修改上传的json_model
+
+        //读取config.xml配置ip等信息
+        function loadxml(fileName) {
+        	$.ajax({
+        		async : false,
+        		url : fileName,
+        		dataType : "xml",
+        		type : "GET",
+        		success : function(res, status) {
+        			var xml_data = res;
+        			ip2 = xml_data.getElementsByTagName("connect_ip")[0].innerHTML;
+        			wsuri = "ws://" + ip2 + "/invoice/webSocketServer";
+        			console.log(wsuri);
+        		},
+        		error : function() {
+        			alert("读取配置文件失败，稍后重试");
+        		}
+        	})
+        }
+
+        //连接websocket
         function connectEndpoint(){
             ws = new WebSocket(wsuri);
             ws.onmessage = function(evt) {
@@ -183,10 +206,40 @@
             			$("#progressModal h4").text("添加模板成功");
             			$("#progressModal .progress-bar").get(0).style.width = "100%";
 						setTimeout(function(){$("#progressModal").modal('hide');}, 2000);
+						//增加图片至模板库
+						addImgMuban(res.url, temp_json_model, res.id);
+
+						//模板数相应增加
+						var muban_num = parseInt($("#muban_num").text());
+						muban_num += 1;
+						$("#muban_num").text(muban_num.toString());
+						
             		}
             		//新增失败
             		else {
             			$("#progressModal h4").text("添加模板失败");
+						$("#progressModal .progress-bar").addClass("progress-bar-danger");
+						$("#progressModal .btn").get(0).disabled = false;
+            		}
+            	}
+
+            	//删除模板返回msg_id = 3
+            	else if(res.msg_id == 3) {
+            		//删除成功
+            		if(res.status == 0) {
+            			$("#progressModal h4").text("删除模板成功");
+            			$("#progressModal .progress-bar").get(0).style.width = "100%";
+						setTimeout(function(){$("#progressModal").modal('hide');}, 2000);
+						temp_click_jq_img.parent().remove();
+
+						//模板数相应减少
+						var muban_num = parseInt($("#muban_num").text());
+						muban_num -= 1;
+						$("#muban_num").text(muban_num.toString());
+            		}
+            		//删除失败
+            		else {
+            			$("#progressModal h4").text("删除模板失败");
 						$("#progressModal .progress-bar").addClass("progress-bar-danger");
 						$("#progressModal .btn").get(0).disabled = false;
             		}
@@ -222,7 +275,9 @@
         //paint
 		var change = false; //表示是否更改过区域表单信息
 		function form_change() {
+			console.log("here");
 			change = true;
+			return true;
 		}
 	 	function windowTocanvas(canvas, x, y) {  
             var bbox = canvas.getBoundingClientRect();  
@@ -250,10 +305,11 @@
 
         //init paint
         var up_done=false, button_use=false; //up_done表示是否可以开始绘图, button_use表示打勾、打叉按钮是否可用
+        var muban_type = 0; //记录是修改还是提交模板
 
         function initPaintForm(src) { //初始化全局及局部表单，在未启动编辑之前禁用修改功能
         	$("#getEdit").get(0).disabled = false;
-        	$("#myCanvas").css("backgroundImage", "url(\'" + src + "\')");
+        	//$("#myCanvas").css("backgroundImage", "url(\'" + src + "\')");
 
         	$("#global_setting *").each(function(){
         		$(this).get(0).disabled = true;
@@ -264,8 +320,8 @@
         	$("#myCanvas").css("cursor", "default");
         	up_done = false; 
         	button_use = false;
-        	$("#close").get(0).src = "image/close_disabled.png";
-        	$("#certain").get(0).src = "image/tick_disabled.png";
+        	$("#close").get(0).src = "pic/close_disabled.png";
+        	$("#certain").get(0).src = "pic/tick_disabled.png";
         }
 
         function flushForm() { //激活所有表单，开启修改功能
@@ -275,11 +331,14 @@
         	$("#setting_form *").each(function(){
         		$(this).get(0).disabled = false;
         	})
+        	if($("#global_setting #dinge_checkbox").get(0).checked == true) {
+        		$("#dinge").get(0).disabled = true;
+        	}
         	$("#myCanvas").css("cursor", "crosshair");
         	up_done = true;
         	button_use = true;
-        	$("#close").get(0).src = "image/close.png";
-        	$("#certain").get(0).src = "image/tick.png";
+        	$("#close").get(0).src = "pic/close.png";
+        	$("#certain").get(0).src = "pic/tick.png";
 
         	$("#getEdit").get(0).disabled = true;
         }
@@ -293,7 +352,11 @@
 
 		//提交新增图片按钮 
 		function addImageSubmit() {
+			$("#myCanvas").css("backgroundImage","url(\'\')");
+			$("#myModalLabel").text("正在上传图片...");
+			$("#myModalLabel_progress ").css("display", "inline-block");
 			$('#myModal').modal('show');
+			$("#myModalLabel_progress .progress-bar").css("width", "40%");
 			flushForm();
 			muban_type = 0;
 			return true;
@@ -314,7 +377,9 @@
 				success: function(res, status) {
 					$("#progressModal h4").text("清空模板库成功");
         			$("#progressModal .progress-bar").get(0).style.width = "100%";
+        			$("#muban_num").text("0");
 					setTimeout(function(){$("#progressModal").modal('hide');}, 1500);
+					$(".muban_contain").html("");
 				},
 				error: function() {
 					$("#progressModal h4").text("清空模板库失败");
@@ -324,19 +389,106 @@
 			})
 		}
 
+		//判断websocket是否关闭
+		function WebsocketJustify() {
+			setInterval(function(){
+				if(ws.readyState == 2 || ws.readyState == 3) {
+					console.log("here");
+				}
+				else {
+					console.log("connect");
+				}
+			}, 10000)
+		}
+
+		//添加模板图片至模板库
+		function addImgMuban(url, json_model, id) {
+			$(".muban_contain").append("<div><img /><p>1</p></div>");
+			$(".muban_contain div:last-child").addClass("ku_img_container");	
+			$(".muban_contain div:last-child p").addClass("ku_img_id");
+			$(".muban_contain div:last-child p").text(id.toString());
+			$(".muban_contain div:last-child img").get(0).src = url;
+			$(".muban_contain div:last-child img").addClass("ku_img");	
+			$(".muban_contain div:last-child img").get(0).style.height = parseFloat($(".muban_contain div:last-child img").width() * parseFloat(817/1160)) + "px";
+			$(".muban_contain div:last-child img").get(0).json_model = json_model;
+			$(".muban_contain div:last-child img").get(0).model_id = id;
+			$(".muban_contain div:last-child img").unbind("click").click(function() {
+				initPaintForm($(this).get(0).src);
+				$('#myModal').modal('show');
+				temp_click_jq_img = $(this);
+				addImage_filename = $(this).get(0).src;
+				json_model = JSON.parse($(this).get(0).json_model);
+				console.log(json_model);
+				muban_type = 1;
+				//讲json_model的内容push进paint_area并设置global setting
+		 		if(json_model.money != undefined) {
+		 			paint_area.push(json_model.money);	
+		 		}
+				if(json_model.head != undefined) {
+		 			paint_area.push(json_model.head);	
+		 		}
+		 		if(json_model.date != undefined) {
+		 			paint_area.push(json_model.date);	
+		 		}
+		 		if(json_model.time != undefined) {
+		 			paint_area.push(json_model.time);	
+		 		}
+		 		if(json_model.id_card != undefined) {
+		 			paint_area.push(json_model.id_card);	
+		 		}
+		 		if(json_model.detail != undefined) {
+		 			paint_area.push(json_model.detail);	
+		 		}
+		 		if(json_model.invoice_id != undefined) {
+		 			paint_area.push(json_model.invoice_id);	
+		 		}
+		 		if(json_model.global_setting != undefined) {
+		 			$("#global_setting input[name='biaoqian']").val(json_model.global_setting.label);
+		 			$("#global_setting #dinge_checkbox").get(0).checked = json_model.global_setting.IsQuota? true: false;
+		 			$("#global_setting input[name='dinge']").val(json_model.global_setting.sum == undefined ? "" : json_model.global_setting.sum);
+		 		}
+
+		 		console.log(paint_area);
+
+				//点击某张图片后发送获取json_model的请求
+				var that = this;
+				$.ajax({
+					url: "http://" + ip2 + "/invoice/getImgStr",
+					type: "POST",
+					data:{
+						url: $(this).get(0).src
+					},
+					success: function(res) {
+						res1 = JSON.parse(res);
+						temp_img_str = res1.img_str;
+						console.log(res1.img_str);
+						$("#myCanvas").get(0).style.backgroundImage = "url(" + res1.img_str.toString() + ")";
+						getPaint(paint_area, cxt);
+					},
+					error: function(e) {
+						console.log(e);
+					}
+				})
+			})
+		}
+
 		var c=document.getElementById("myCanvas");
 		var canvas_width = 1160, canvas_height = 817;
 		c.width = $("#canvas_container").width();
 		var cxt=c.getContext("2d");
 		cxt.strokeStyle = "#00ff36";
 		cxt.lineWidth = 2;
-		var paint_area=[];
+		var paint_area=[]; //画图的区域
+		var final_paint_area = []; //备份记录最终画图区域
+		var temp_img_str; //保存当前返回的img_str
+		var addImage_filename; //记录服务器生成的新添图片的名字
+
 		$(document).ready(function() {
+			loadxml("config.xml");
 			connectEndpoint();
+			// WebsocketJustify();
 
 			//ajaxForm配置添加图片按钮
-			var addImage_filename; //记录服务器生成的新添图片的名字
-			var muban_type = 0; //记录是修改还是提交模板
 
 			var options = { 
 		        // target:        '#output1',   // target element(s) to be updated with server response 
@@ -346,7 +498,14 @@
 		        	var res1 = JSON.parse(res);
 		        	addImage_filename = res1.file_name;
 		        	console.log(res1.file_name);
-		        	$("#myCanvas").css("backgroundImage", "url(\'" + res1.file_name + "\')");
+		        	var img_temp = new Image();
+		        	temp_img_str = res1.img_str;
+		        	$("#myCanvas").get(0).style.backgroundImage = "url(\'" + res1.file_name + "\')";
+					$("#myModalLabel_progress .progress-bar").css("width", "100%");
+					setTimeout(function(){
+						$("#myModalLabel_progress ").css("display", "none");
+						$("#myModalLabel").text("操作图片");
+					}, 1000);
 		        },  
 		 
 		        // other available options: 
@@ -362,8 +521,6 @@
 		    // bind form using 'ajaxForm' 
 		    $('#addImageForm').ajaxForm(options);
 
-			var temp_click_jq_img; //记录当前被点击的图片
-
 			//一次获取12条发票模板的请求（首次查询）
 			$.ajax({
 				async: true,
@@ -376,20 +533,16 @@
 				success : function(res, status) {
 					console.log(res);
 					var res1 = JSON.parse(res);
+					
 					//添加模板img元素
 					for(var i = 0; i < res1.model_list.length; i++) {
-						$(".muban_contain").append("<div><img /><p>1</p></div>");
-						$(".muban_contain div:last-child").addClass("ku_img_container");	
-						$(".muban_contain div:last-child img").get(0).src = res1.model_list[i].model_url;
-						$(".muban_contain div:last-child img").addClass("ku_img");	
-						$(".muban_contain div:last-child img").get(0).style.height = parseFloat($(".muban_contain div:last-child img").width() * parseFloat(817/1160)) + "px";
-						$(".muban_contain div:last-child img").unbind("click").click(function() {
-							initPaintForm($(this).get(0).src);
-							$('#myModal').modal('show');
-							temp_click_jq_img = $(this);
-						})
+						//alert(res1.model_list[i].json_model);
+						addImgMuban(res1.model_list[i].model_url, res1.model_list[i].json_model, res1.model_list[i].model_id);
 					}
 					
+					var muban_num = res1.model_list.length;
+					$("#muban_num").text(muban_num.toString());
+
 				},
 				error : function() {
 					console.log("首次获取12条发票模板错误");
@@ -405,16 +558,17 @@
 				})
 			})
 
-			$(".ku_img").each(function(){
-				$(this).get(0).style.height = parseFloat($(this).width() * parseFloat(817/1160)) + "px";
-				$(this).unbind("click").click(function() {
-					initPaintForm($(this).get(0).src);
-					$('#myModal').modal('show');
-					muban_type = 1;
-					temp_click_jq_img = $(this);
-				})
-			});
-			var end_x, end_y, cur_x, cur_y;
+			// $(".ku_img").each(function(){
+			// 	$(this).get(0).style.height = parseFloat($(this).width() * parseFloat(817/1160)) + "px";
+			// 	$(this).unbind("click").click(function() {
+			// 		initPaintForm($(this).get(0).src);
+			// 		$('#myModal').modal('show');
+			// 		muban_type = 1;
+			// 		temp_click_jq_img = $(this);
+			// 	})
+			// });
+			var begin_x, begin_y, end_x, end_y, cur_x, cur_y;
+			var large_x, large_y, small_x, small_y;
 			var paint = true, dosomething = false, index = -1, paint_num = 0;
 
 			//画图前鼠标移到对应位置的响应函数
@@ -430,10 +584,12 @@
 					});
 				}
 				else {
-					$(".hid_panel").css("display", "none");
-					$(".setting_panel").css("display","none");
-					$("#setting_form").get(0).reset();
-					change = false;
+					if(change == false) {		
+						$(".hid_panel").css("display", "none");
+						$(".setting_panel").css("display","none");
+						$("#setting_form").get(0).reset();
+						change = false;
+					}
 				}	
 			})
 
@@ -466,7 +622,8 @@
 				if(up_done) {   // 如果可以绘制图片才开始响应以下函数
 					paint = true; //可以开始绘图
 					var startpoint = windowTocanvas(c, event.pageX-$(document).scrollLeft(), event.pageY-$(document).scrollTop());
-					var begin_x = startpoint.x, begin_y = startpoint.y;
+					begin_x = startpoint.x; 
+					begin_y = startpoint.y;
 
 					$(this).mousemove(function(event1){
 						if(up_done){
@@ -505,10 +662,10 @@
 							paint = false, up_done = false;
 							end_x = windowTocanvas(c, event2.pageX-$(document).scrollLeft(), event2.pageY-$(document).scrollTop()).x;
 							end_y = windowTocanvas(c, event2.pageX-$(document).scrollLeft(), event2.pageY-$(document).scrollTop()).y;
-							var large_x = end_x > begin_x ? end_x : begin_x;
-							var large_y = end_y > begin_y ? end_y : begin_y;
-							var small_x = end_x < begin_x ? end_x : begin_x;
-							var small_y = end_y < begin_y ? end_y : begin_y;
+							large_x = end_x > begin_x ? end_x : begin_x;
+							large_y = end_y > begin_y ? end_y : begin_y;
+							small_x = end_x < begin_x ? end_x : begin_x;
+							small_y = end_y < begin_y ? end_y : begin_y;
 							$(".hid_panel").css({
 								"display": "block",
 								"top": large_y,
@@ -524,7 +681,7 @@
 							// 	$(".setting_panel").css("display", "none");
 							// });
 
-							//进入设置按钮
+							//画图后进入设置按钮
 							$("#setting").mouseenter(function(){
 								var setting_width = parseInt($(".setting_panel").width());
 								if(index != -1){
@@ -548,119 +705,135 @@
 									$(".setting_panel").css("left", large_x+"px");	
 								}
 							});
-
-							//点击交叉图标
-							$("#close").unbind('click').click(function(){
-								if(button_use) {
-									$(".hid_panel").css("display","none");
-									if(index != -1){
-										begin_x = paint_area[index].begin_x;
-										begin_y = paint_area[index].begin_y;
-										end_x = paint_area[index].end_x;
-										end_y = paint_area[index].end_y;
-									}
-									if(begin_x <= end_x && begin_y <= end_y)
-										cxt.clearRect(begin_x-3,begin_y-3, end_x-begin_x+5, end_y-begin_y+5);
-									else if(begin_x <= end_x && begin_y > end_y)
-										cxt.clearRect(begin_x-3,begin_y+3, end_x-begin_x+5, end_y-begin_y-5);
-									else if(begin_x > end_x && begin_y <= end_y)
-										cxt.clearRect(begin_x+3,begin_y-3, end_x-begin_x-5, end_y-begin_y+5);
-									else 
-										cxt.clearRect(begin_x+3,begin_y+3, end_x-begin_x-5, end_y-begin_y-5);
-									$("#setting_form").get(0).reset();
-									if(index != -1){
-										paint_area.splice(index, 1);
-									}
-									getPaint(paint_area, cxt);
-									$(".setting_panel").css("display", "none");
-									up_done = true;
-									change = false;	
-								}
-							});
-
-							//点击打勾图标
-							$("#certain").unbind('click').click(function(){
-								if(button_use){
-									$(".hid_panel").css("display","none");
-									$(".setting_panel").css("display", "none");
-									getPaint(paint_area, cxt);
-									var check_value = [];
-									$(".setting_panel input[name='ganrao']:checked").each(function(){
-										check_value.push($(this).val());
-									})
-									//初次填写提交
-									if(index == -1) {
-										var temp_object = {
-											begin_x: begin_x,
-											begin_y: begin_y,
-											end_x: end_x,
-											end_y: end_y,
-											width: Math.round(end_x-begin_x),
-											height: Math.round(end_y-begin_y),
-											large_x: large_x,
-											large_y: large_y,
-											x: Math.round(small_x),
-											y: Math.round(small_y),
-											quyu: $(".setting_panel select[name='quyu']").val(),
-											bg_color: $(".setting_panel select[name='bg_color']").val(),
-											font_color: $(".setting_panel select[name='font_color']").val(),
-											keywords: $(".setting_panel input[name='keyword']").val(),
-											ganrao: check_value,
-											remove_line: $(".setting_panel input[value='直线干扰']").get(0).checked ? "1" : "0",
-											remove_stamp: $(".setting_panel input[value='印章干扰']").get(0).checked ? "1" : "0",
-										};
-										console.log(temp_object);
-										paint_area.push(temp_object);	
-									}
-									//修改后提交
-									else {
-										var temp_object = {
-											begin_x: paint_area[index].begin_x,
-											begin_y: paint_area[index].begin_y,
-											end_x: paint_area[index].end_x,
-											end_y: paint_area[index]. end_y,
-											width: paint_area[index].end_x-paint_area[index].begin_x,
-											height: paint_area[index].end_y-paint_area[index].begin_y,
-											large_x: paint_area[index].large_x,
-											large_y: paint_area[index].large_y,
-											x: paint_area[index].small_x,
-											y: paint_area[index].small_y,
-											quyu: $(".setting_panel select[name='quyu']").val(),
-											bg_color: $(".setting_panel select[name='bg_color']").val(),
-											font_color: $(".setting_panel select[name='font_color']").val(),
-											keywords: $(".setting_panel input[name='keyword']").val(),
-											ganrao: check_value,
-											remove_line: $(".setting_panel input[value='直线干扰']").get(0).checked ? "1" : "0",
-											remove_stamp: $(".setting_panel input[value='印章干扰']").get(0).checked ? "1" : "0",
-										};
-										paint_area.splice(index, 1, temp_object);
-									}
-									$("#setting_form").get(0).reset();
-									up_done = true;
-									change = false;	
-								}
-							});
-
-							//表单有更改
-							$(".setting_panel input[type='checkbox']").click(function(){
-								change = true;
-							})
+							
 						}
 					})	
 				}
 			})
-			
-			//点击删除摸版
+
+			//点击交叉图标
+			$("#close").unbind('click').click(function(){
+				if(button_use) {
+					$(".hid_panel").css("display","none");
+					if(index != -1){
+						begin_x = paint_area[index].begin_x;
+						begin_y = paint_area[index].begin_y;
+						end_x = paint_area[index].end_x;
+						end_y = paint_area[index].end_y;
+					}
+					if(begin_x <= end_x && begin_y <= end_y)
+						cxt.clearRect(begin_x-3,begin_y-3, end_x-begin_x+5, end_y-begin_y+5);
+					else if(begin_x <= end_x && begin_y > end_y)
+						cxt.clearRect(begin_x-3,begin_y+3, end_x-begin_x+5, end_y-begin_y-5);
+					else if(begin_x > end_x && begin_y <= end_y)
+						cxt.clearRect(begin_x+3,begin_y-3, end_x-begin_x-5, end_y-begin_y+5);
+					else 
+						cxt.clearRect(begin_x+3,begin_y+3, end_x-begin_x-5, end_y-begin_y-5);
+					$("#setting_form").get(0).reset();
+					if(index != -1){
+						paint_area.splice(index, 1);
+					}
+					getPaint(paint_area, cxt);
+					$(".setting_panel").css("display", "none");
+					up_done = true;
+					change = false;	
+				}
+			});
+
+			//点击打勾图标
+			$("#certain").unbind('click').click(function(){
+				if(button_use){
+					$(".hid_panel").css("display","none");
+					$(".setting_panel").css("display", "none");
+					getPaint(paint_area, cxt);
+					var check_value = [];
+					$(".setting_panel input[name='ganrao']:checked").each(function(){
+						check_value.push($(this).val());
+					})
+					//初次填写提交
+					if(index == -1) {
+						var temp_object = {
+							begin_x: begin_x,
+							begin_y: begin_y,
+							end_x: end_x,
+							end_y: end_y,
+							width: Math.round(end_x-begin_x),
+							height: Math.round(end_y-begin_y),
+							large_x: large_x,
+							large_y: large_y,
+							x: Math.round(small_x),
+							y: Math.round(small_y),
+							quyu: $(".setting_panel select[name='quyu']").val(),
+							bg_color: $(".setting_panel select[name='bg_color']").val(),
+							font_color: $(".setting_panel select[name='font_color']").val(),
+							keywords: $(".setting_panel input[name='keyword']").val(),
+							ganrao: check_value,
+							remove_line: $(".setting_panel input[value='直线干扰']").get(0).checked ? "1" : "0",
+							remove_stamp: $(".setting_panel input[value='印章干扰']").get(0).checked ? "1" : "0",
+						};
+						console.log(temp_object);
+						paint_area.push(temp_object);	
+					}
+					//修改后提交
+					else {
+						var temp_object = {
+							begin_x: paint_area[index].begin_x,
+							begin_y: paint_area[index].begin_y,
+							end_x: paint_area[index].end_x,
+							end_y: paint_area[index]. end_y,
+							width: paint_area[index].end_x-paint_area[index].begin_x,
+							height: paint_area[index].end_y-paint_area[index].begin_y,
+							large_x: paint_area[index].large_x,
+							large_y: paint_area[index].large_y,
+							x: paint_area[index].small_x,
+							y: paint_area[index].small_y,
+							quyu: $(".setting_panel select[name='quyu']").val(),
+							bg_color: $(".setting_panel select[name='bg_color']").val(),
+							font_color: $(".setting_panel select[name='font_color']").val(),
+							keywords: $(".setting_panel input[name='keyword']").val(),
+							ganrao: check_value,
+							remove_line: $(".setting_panel input[value='直线干扰']").get(0).checked ? "1" : "0",
+							remove_stamp: $(".setting_panel input[value='印章干扰']").get(0).checked ? "1" : "0",
+						};
+						paint_area.splice(index, 1, temp_object);
+					}
+					$("#setting_form").get(0).reset();
+					up_done = true;
+					change = false;	
+				}
+			});
+
+			//表单有更改
+			$(".setting_panel input[type='checkbox']").click(function(){
+				change = true;
+			})
+
+			//点击删除模板
 			$("#delete_mb").click(function() {
 				$.ajax({
 					url: "http://" + ip2 + "/invoice/deleteModel",
 					type: "POST",
 					data: {
-						user_id : 123,
-						model_id : 123
+						user_id : 1,
+						model_id : temp_click_jq_img.get(0).model_id
 					},
-					success: function(status, res) {
-						alert(res);
+					success: function(res, status) {
+						console.log(res);
+						res1 = JSON.parse(res);
+						if(res1.err != undefined) { 
+							$("#progressModal h4").text("删除模板失败");
+							$("#progressModal .progress-bar").addClass("progress-bar-danger");
+							$("#progressModal .btn").get(0).disabled = false;
+						}
+						else {
+							$("#progressModal .progress-bar").get(0).style.width = "80%";
+						}
+					},
+					error: function(e) {
+						console.log(e);
+						$("#progressModal h4").text("删除模板失败");
+						$("#progressModal .progress-bar").addClass("progress-bar-danger");
+						$("#progressModal .btn").get(0).disabled = false;
 					}
 				})
 
@@ -679,20 +852,14 @@
 			$("#submit_modal").click(function(){
 				cxt.clearRect(0,0, c.width, c.height);
 				var temp_img = new Image();
-				//temp_img.crossOrigin = "Anonymous";
-				//temp_img.src = $("#myCanvas").css("backgroundImage").split("url")[1].replace("(", "").replace(")","");
-				temp_img.src = "4.bmp";
-				alert(temp_img.src);
 				temp_img.onload = function() {
-					console.log("123");
+					//console.log(temp_img.src);
 					cxt.drawImage(temp_img, 0,0,1160,817);
 					getPaint(paint_area, cxt);
 					var canvas_url = c.toDataURL();
-					alert(canvas_url);
-					if(muban_type == 1) temp_click_jq_img.get(0).src = canvas_url;
+					//alert(canvas_url);
 
 					var area_ = [1,0,0,0,0,0,0,0], money_ = null, head_ = null, date_ = null, time_ = null, id_card_ = null, detail_ = null, invoice_id_ = null;
-
 					//获取各个区域的表单信息变成json_model信息
 					for(var i = 0; i < paint_area.length; i++){
 						if(paint_area[i].quyu == 'money') {
@@ -725,7 +892,22 @@
 						} 
 					}
 
-					 $.ajax({
+					temp_json_model = {
+			 			global_setting:{
+							label: $("input[name='biaoqian']").val(),
+							quota: $("input#dinge_checkbox").get(0).checked ? $("input[name='dinge']").val() : "0",
+							area_bitmap: area_.join("")	
+						},
+						money: money_,
+						head: head_,
+						date: date_,
+						time: time_,
+						id_card: id_card_,
+						detail: detail_,
+						invoice_id: invoice_id_
+			 		};
+
+					$.ajax({
 						url: "http://" + ip2 + "/invoice/addModel",
 						type: "POST",
 						dataType: "text",
@@ -747,18 +929,20 @@
 					 		}),
 					 		file_name: addImage_filename,
 					 		user_id: 1,
-					 		model_id: 1,
+					 		model_id: temp_click_jq_img == undefined ? -1 : temp_click_jq_img.get(0).model_id,
 					 		type: muban_type
 					 	},
 						success: function(res, status) {
 							console.log(res);
-							if(res.err != undefined) { 
+							res1 = JSON.parse(res);
+							if(res1.err != undefined) { 
 								$("#progressModal h4").text("添加/修改模板失败");
 								$("#progressModal .progress-bar").addClass("progress-bar-danger");
 								$("#progressModal .btn").get(0).disabled = false;
 							}
 							else {
 								$("#progressModal .progress-bar").get(0).style.width = "80%";
+								if(muban_type == 1) temp_click_jq_img.get(0).src = canvas_url;
 							}
 						},
 						error: function(e) {
@@ -767,15 +951,18 @@
 							$("#progressModal .progress-bar").addClass("progress-bar-danger");
 							$("#progressModal .btn").get(0).disabled = false;
 						}
-					})
-					console.log("here");
+					})	
+					
+					//清除表单及重置画布和paint_area
+					cxt.clearRect(0,0,c.width,c.height);
+					paint_area=[];
+					$("#global_setting").get(0).reset();
+					console.log("finish");
 				}
-				
-
-				//清除表单及重置画布和paint_area
-				cxt.clearRect(0,0,c.width,c.height);
-				paint_area=[];
-				$("#global_setting").get(0).reset();
+				temp_img.crossOrigin = "anonymous"; //允许跨域
+				// temp_img.src = $("#myCanvas").css("backgroundImage").split("url")[1].replace("(", "").replace(")","");
+				// console.log(temp_img_str);
+				temp_img.src = temp_img_str;
 
 				//显示进度条
 				$("#progressModal h4").text("正在添加/修改...");

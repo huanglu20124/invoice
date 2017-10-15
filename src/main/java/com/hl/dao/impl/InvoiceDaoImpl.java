@@ -87,7 +87,7 @@ public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 	}
 	
 	@Override
-	public int addRecognizeInvoice(final Integer action_id, Map<String, Object> invoice_data,
+	public int addRecognizeInvoice(Map<String, Object> invoice_data,
 			final Integer model_id,final String url) {
 		//添加一条发票信息
 		final String invoice_type = (String) invoice_data.get("发票类型");
@@ -106,19 +106,17 @@ public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 			@Override
 			public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 				PreparedStatement psm = connection.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
-				psm.setInt(1, action_id);
-				psm.setInt(2, model_id);
-				
-				psm.setString(3, invoice_type);
-				psm.setString(4, invoice_money);
-				psm.setString(5, invoice_customer);
-				psm.setString(6, invoice_code);
-				psm.setString(7, invoice_date);
-				psm.setString(8, invoice_time);
-				psm.setString(9, invoice_detail);
-				psm.setString(10,invoice_identity);
-				psm.setInt(11, invoice_region_num);
-				psm.setString(12,url);
+				psm.setInt(1, model_id);
+				psm.setString(2, invoice_type);
+				psm.setString(3, invoice_money);
+				psm.setString(4, invoice_customer);
+				psm.setString(5, invoice_code);
+				psm.setString(6, invoice_date);
+				psm.setString(7, invoice_time);
+				psm.setString(8, invoice_detail);
+				psm.setString(9,invoice_identity);
+				psm.setInt(10, invoice_region_num);
+				psm.setString(11,url);
 				return psm;
 			}
 		},keyHolder);
@@ -305,6 +303,12 @@ public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 	public void updateModelUrl(String url,String changed_url) {
 		String sql = "update model set model_url = ? where model_url = ?";
 		getJdbcTemplate().update(sql,changed_url,url);
+	}
+
+	@Override
+	public void updateModelJsonModel(int model_id, String json_model) {
+		String sql = "update model set json_model = ? where model_id = ?";
+		getJdbcTemplate().update(sql,json_model,model_id);
 	}
 
 

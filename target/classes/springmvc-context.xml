@@ -24,10 +24,13 @@
 	<!-- 对全部资源放行 test -->
 	<mvc:resources location="/" mapping="/*.html" />
 	<mvc:resources location="/" mapping="/*.bmp" />
+	<mvc:resources location="/" mapping="/*.xml" />
+	<mvc:resources location="/" mapping="/*.jpg" />
+	<mvc:resources location="/" mapping="/*.png" />
+	<mvc:resources location="/pic/" mapping="/pic/**" />
 	<mvc:resources location="/font-awesome-4.7.0/" mapping="/font-awesome-4.7.0/**/**" />
 	<mvc:resources location="/script/" mapping="/script/**" />
 	<mvc:resources location="/style/" mapping="/style/**" />
-	<mvc:resources location="/image/" mapping="/image/**" />
 	<!-- <mvc:resources location="/html/" mapping="/html/**" /> <mvc:resources 
 		location="/script/" mapping="/js/**" /> <mvc:resources location="/fonts/" 
 		mapping="/fonts/**" /> <mvc:resources location="/image/" mapping="/image/**" 

@@ -20,6 +20,19 @@ import org.apache.mahout.common.IntPairWritable.FirstGroupingComparator;
 import org.springframework.util.Base64Utils;
 
 public class ImageUtil {
+	
+	//分目录，输入上一级的文件夹，文件名，返回url_suffix
+	public static String getUrlSuffix(String imagePath, String dir,String uuidName){
+		String hash = Integer.toHexString(uuidName.hashCode());
+		for(char c : hash.toCharArray()){
+			dir += ("/" + c);
+		}
+		//创建本地文件夹
+		new File(imagePath + dir).mkdirs();
+		//返回url_suffix
+		return dir + "/" + uuidName;
+	}
+	
 	public static boolean generateImage(String imgStr, String folder_path, String file_name) {
 		File folder = new File(folder_path);
 		if(folder.exists() == false){
@@ -71,16 +84,20 @@ public class ImageUtil {
 		return Base64Utils.encodeToString(data);// 返回Base64编码过的字节数组字符串
 	}
 
-    public static String bmpTojpg(String origin_file, String dir) {
-    	//将bmp文件转换为jpg文件，并返回文件名字
+    public static String bmpTojpg(String origin_file) {
+    	//将bmp文件转换为jpg文件，放在同一路径下
         try {
         	//参数是jpg的路径，要得到对应的bmp路径
         	int last_index = origin_file.lastIndexOf("/");
         	String file_name_origin = origin_file.substring(last_index + 1, origin_file.length());
+        	String dir = origin_file.substring(0, last_index + 1);//包括斜杠
+        	
         	int last_dot = file_name_origin.lastIndexOf(".");
         	String temp = file_name_origin.substring(0,last_dot);
         	String file_name = temp + ".jpg";
+        	
         	String dstFile = dir + file_name;
+        	
             FileInputStream in = new FileInputStream(origin_file);
             Image TheImage = read(in);
             int wideth = TheImage.getWidth(null);
@@ -98,26 +115,8 @@ public class ImageUtil {
         }
         return null;
     }
- 
-	public static String urlToLocalPathBmp(String url,String dir){
-		//网络url转换为本地绝对路径,并且保证为bmp格式，并且能选择是哪类文件handleImage or originImage
-		int last_index_jpg = url.lastIndexOf("/");
-		int last_index_dot = url.lastIndexOf(".");
-		String temp = url.substring(last_index_jpg +1, last_index_dot);
-		String file_name = temp + ".bmp";
-		return dir + file_name;
-	}
-    
-    public static String localPathToJpg(String local_path,String dir){
-    	//网络url转换为本地绝对路径,并且保证为jpg格式，并且能选择是哪类文件handleImage or originImage
-		int last_index_bmp = local_path.lastIndexOf("/");
-		int last_index_dot = local_path.lastIndexOf(".");
-		String temp = local_path.substring(last_index_bmp +1, last_index_dot);
-		String file_name = temp + ".jpg";
-		return dir + file_name;
-    }
-    
-    public static String urlToJpg(String url){
+  
+    public static String suffixToJpg(String url){
     	//将一个url的后缀变为jpg
 		int last_index_dot = url.lastIndexOf(".");
 		String pre = url.substring(0,last_index_dot);
@@ -126,11 +125,24 @@ public class ImageUtil {
 		return jpg_url;	
     }
     
-    public static String urlToBmp(String url){
+    public static String suffixToBmp(String url){
     	//将一个url的后缀变为jpg
 		int last_index_dot = url.lastIndexOf(".");
 		String pre = url.substring(0,last_index_dot);
 		return pre + ".bmp";	
+    }
+    
+    public static String getUrlSuffix(String url){
+    	int start = 0;
+    	int count = 0;
+    	for(int i = 0; i < url.length(); i++){
+    		if(url.charAt(i) == '/') count ++;
+    		if(count == 4){
+    			start = i;
+    			break;
+    		}
+    	}
+    	return url.substring(start, url.length());
     }
     
     public static String getFileName(String url){
@@ -139,43 +151,47 @@ public class ImageUtil {
     	return name;
     }
     
-    public static void deleteAllLocalImage(String url){
+    public static void deleteAllModelImage(String root, String url_suffix){
     	//删除所有本地文件
-    	int last_index = url.lastIndexOf("/");
-    	String file_name = url.substring(last_index + 1 , url.length());
-    	String origin_file = "E:/invoice/originImage/" + file_name;
-    	String handle_file = "E:/invoice/handleImage/" + file_name;
-    	//全部执行一轮，确保删干净
-    	File file1 = new File(origin_file);
-    	File file2 = new File(handle_file);
-    	if (file1.exists()) {
-			file1.delete();
-		}
-    	if (file2.exists()) {
-			file2.delete();
+		
+    	if(url_suffix.contains("handle")){
+    		File file1 = new File(root + url_suffix);
+    		if (file1.exists()) {
+    			file1.delete();
+    		}
+    		
+    		String original_url = url_suffix.replace("handle", "original");
+    		File file2 = new File(root + original_url);
+    		if (file2.exists()) {
+				file2.delete();
+			}
+    		//删除bmp
+    		File file3 = new File(root + ImageUtil.suffixToBmp(original_url));
+    		if (file3.exists()) {
+				file3.delete();
+			}
+    	}
+    	else if (url_suffix.contains("original")){
+    		File file1 = new File(root + url_suffix);
+    		if (file1.exists()) {
+    			file1.delete();
+    		}
+    		//删除bmp
+    		File file2 = new File(root + ImageUtil.suffixToBmp(url_suffix));
+    		if (file2.exists()) {
+				file2.delete();
+			}
+    		
+    		String original_url = url_suffix.replace("original", "handle");
+    		File file3 = new File(root + original_url);
+    		if (file3.exists()) {
+				file3.delete();
+			}
 		}
     	
-    	String origin_file_ = null;
-    	String handle_file_ = null;
-    	if(file_name.endsWith(".bmp")){
-    		origin_file_ = urlToJpg(origin_file);
-    		handle_file_ = urlToJpg(handle_file);
-    	}else if (file_name.endsWith(".jpg")){
-    		origin_file_ = urlToBmp(origin_file);
-    		handle_file_ = urlToBmp(handle_file);
-		}
-    	
-    	File file3 = new File(origin_file_);
-    	File file4 = new File(handle_file_);
-    	if (file3.exists()) {
-			file3.delete();
-		}
-    	if (file4.exists()) {
-			file4.delete();
-		}
     }
     
-    public static int constructInt(byte[] in, int offset) {
+    private static int constructInt(byte[] in, int offset) {
         int ret = ((int) in[offset + 3] & 0xff);
         ret = (ret << 8) | ((int) in[offset + 2] & 0xff);
         ret = (ret << 8) | ((int) in[offset + 1] & 0xff);
@@ -184,7 +200,7 @@ public class ImageUtil {
     }
  
     
-    public static int constructInt3(byte[] in, int offset) {
+    private static int constructInt3(byte[] in, int offset) {
         int ret = 0xff;
         ret = (ret << 8) | ((int) in[offset + 2] & 0xff);
         ret = (ret << 8) | ((int) in[offset + 1] & 0xff);
@@ -192,7 +208,7 @@ public class ImageUtil {
         return (ret);
     }
  
-    public static long constructLong(byte[] in, int offset) {
+    private static long constructLong(byte[] in, int offset) {
         long ret = ((long) in[offset + 7] & 0xff);
         ret |= (ret << 8) | ((long) in[offset + 6] & 0xff);
         ret |= (ret << 8) | ((long) in[offset + 5] & 0xff);
@@ -204,12 +220,12 @@ public class ImageUtil {
         return (ret);
     }
  
-    public static double constructDouble(byte[] in, int offset) {
+    private static double constructDouble(byte[] in, int offset) {
         long ret = constructLong(in, offset);
         return (Double.longBitsToDouble(ret));
     }
  
-    public static short constructShort(byte[] in, int offset) {
+    private static short constructShort(byte[] in, int offset) {
         short ret = (short) ((short) in[offset + 1] & 0xff);
         ret = (short) ((ret << 8) | (short) ((short) in[offset + 0] & 0xff));
         return (ret);
@@ -308,4 +324,6 @@ public class ImageUtil {
         fs.close();
         return (image);
     }
+
+
 }

@@ -10,7 +10,7 @@ body {
 #myCanvas {
 	border: 1px solid #000; 
 	cursor: crosshair; 
-	background: url('../4.bmp') no-repeat center;
+	background: url('') no-repeat center;
 		/*background-size: cover;*/ 
 	background-size: 1160px 817px;
 }

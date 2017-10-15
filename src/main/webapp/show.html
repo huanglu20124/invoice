@@ -32,8 +32,10 @@
 				        <p class="help-block" style="margin: 1em 0 0; font-size: 14px;"><span>发送者：</span><span style="margin-left: 4em;">发送时间：</span></p>
 				    </div>
 				    <div class="panel-body" style="padding: 0px;">
-						<div style="width: 100%; height:auto; overflow: hidden; border-radius: 4px;" id="canvas_panel_body">
-							<canvas style="background: url('image/shibie_placehold.png') no-repeat center; background-size: cover;" id="show_fapiao"></canvas>
+						<div style="width: 100%; height:auto; overflow: hidden; border-radius: 4px; position: relative;" id="canvas_panel_body">
+							<canvas style="background: url('') no-repeat center; background-size: cover; position:relative; z-index: 2;" id="show_fapiao"></canvas>
+							<!-- 用于备份图片的画布 -->
+							<canvas id="copy_fapiao" style="z-index: 1; position: absolute; background-image: url('image/shibie_placehold.png') no-repeat center; background-size: cover;"></canvas>
 						</div>
 				    </div>
 				</div>
@@ -58,28 +60,40 @@
 				</div>
 				<div class="panel panel-default">
 					<div class="panel-heading">
-				        <h3 class="panel-title">套用模板<span class="title_load"></span></h3>
+				        <h3 class="panel-title">套用模板</h3>
 				    </div>
 				    <div class="panel-body">
-				        <img src="4.bmp" style="width: 100%;" id="muban" />
+				        <img src="image/shibie_placehold.png" style="width: 100%;" id="muban" />
 				    </div>
 				</div>
 			</div>
 		</div>
 	</main>
 
-	<!-- 用于备份图片的画布 -->
-	<canvas id="copy_fapiao" style="display: none;"></canvas>
-
 	<script type="text/javascript">
-		//websocket
-		//实验室2.4G_plus "192.168.1.36:8080";
-		//宿舍 "172.18.92.209:8080"
-		//实验室secure "172.19.82.51:8080"
-		var ip2 = "192.168.1.36:8080";
-		var temp_ip = "192.168.137.221:8080";
-		var wsuri = "ws://" + ip2 + "/invoice/webSocketServer";
+		var ip2; //host_ip
+		var wsuri; //websocket_url
         var ws = null;
+
+        //读取config.xml配置ip等信息
+        function loadxml(fileName) {
+        	$.ajax({
+        		async : false,
+        		url : fileName,
+        		dataType : "xml",
+        		type : "GET",
+        		success : function(res, status) {
+        			var xml_data = res;
+        			ip2 = xml_data.getElementsByTagName("connect_ip")[0].innerHTML;
+        			wsuri = "ws://" + ip2 + "/invoice/webSocketServer";
+        			console.log(wsuri);
+        		},
+        		error : function() {
+        			alert("读取配置文件失败，稍后重试");
+        		}
+        	})
+        }
+
         function resetImgLine(jq_ele, img_list) {
         	jq_ele.each(function(index, e){
 				$(this).html("");
@@ -104,28 +118,40 @@
         //获取画布及其上下文
         var c=document.getElementById("show_fapiao");
         var c1=document.getElementById("copy_fapiao");
-		var cxt=c.getContext("2d");
-		var cxt1=c1.getContext("2d");
-		cxt.strokeStyle = "#00ff36";
-		cxt.lineWidth = 2;
+		var cxt;
+		var cxt1;
 
         function connectEndpoint(){
 
             ws = new WebSocket(wsuri);
             var img_list = [];
+            var nth_area = 1; //记录这是识别的第几个区域
+
+            //test
+            $("#copy_fapiao").css("backgroundImage", "url(\'4.bmp\')");
+            var temp_img = new Image();
+            temp_img.onload = function(){
+    			//cxt.drawImage(temp_img, 0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
+    			//stackBlurCanvasRGB("show_fapiao", 0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()), 15);
+    			var temp_data = cxt1.getImageData(0, 0, 100, 100);
+    			console.log(temp_data);
+    			cxt.putImageData(temp_data, 0,0);
+    		}
+    		temp_img.src = $("#copy_fapiao").css("backgroundImage").split("url")[1].replace("(", "").replace(")","");
+
             ws.onmessage = function(evt) {
             	//alert(evt.data);
             	console.log(evt.data);
             	var data = JSON.parse(evt.data);
             	if(data.msg_id == 203 || data.msg_id == 202) {
 					//copy_fapiao获取背景图, show_fapiao绘制图片
-            		$("#copy_fapiao").css("backgroundImage", "url(\'" + data.url + "\')");
+            		$("#copy_fapiao").css("backgroundImage", "url(" + data.img_str + ")");
             		var temp_img = new Image();
-            		temp_img.src = $("#copy_fapiao").css("backgroundImage").split("url")[1].replace("(", "").replace(")","");
-            		console.log(cxt);
             		temp_img.onload = function(){
+            			cxt.clearRect(0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
             			cxt.drawImage(temp_img, 0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));	
             		}
+            		temp_img.src = data.img_str;
             		if(data.msg_id == 202) {
             			console.log(data.region_list);
             			for(var i = 0; i < data.region_list.length; i++) {
@@ -140,14 +166,21 @@
             		}
             	}
             	else if(data.msg_id == 100 && data.status == 0) {
-            		console.log(data.id); //输出发票类
+            		console.log(data.id + " " + data.url); //输出发票类
+            		$("#muban").get(0).src = data.url;
 
             	}
             	else if(data.msg_id == 101 && data.status == 0) {
-            		//模糊其它区域 
-            		stackBlurCanvasRGB("show_fapiao", 0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()), 15);
+            		//模糊其它区域
+            		if(nth_area == 1){
+            			stackBlurCanvasRGB("show_fapiao", 0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()), 15);	
+            			nth_area ++;
+            		} 
+            		
             		//框出识别区域并使其区域清晰
+            		// console.log(cxt1);
 					var position = coordinateConvert(data.position.x, data.position.y, data.position.w, data.position.h);
+					//console.log("data.position.x:" + data.position.x + ";" + "position.convert_x:" + position.convert_x);
 					var temp_imageData = cxt1.getImageData(position.convert_x, position.convert_y, position.convert_w, position.convert_h);
 					cxt.putImageData(temp_imageData, position.convert_x, position.convert_y);
             		cxt.strokeRect(position.convert_x, position.convert_y, position.convert_w, position.convert_h);
@@ -162,8 +195,21 @@
             		});
             	}
             	else if(data.msg_id == 1 && data.status == 0) {
-            		$(".title_load").text("识别完毕");
+            		$(".title_load").text("（识别完毕）");
+            		nth_area = 1;
             		console.log(data);
+
+            		//过3秒后重置
+            		setTimeout(function(){
+            			$(".title_load").text("");
+            			cxt.clearRect(0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
+        				$("#muban").get(0).src = "image/shibie_placehold.png";
+        				$("#copy_fapiao").css("backgroundImage", "url('image/shibie_placehold.png')");
+            			$("#img_msg li").each(function() {
+            				var origin_text = $(this).text().split(":")[0];
+            				$(this).text(origin_text+":");
+	            		});
+            		}, 3000);
             	}
             };
 
@@ -174,15 +220,41 @@
             ws.onopen = function(evt) {
                 console.log("open");
                 //开始加载图片
-                var send_json = {
-	        		code : 0
-	        	};
-                ws.send(JSON.stringify(send_json));
+                $.ajax({
+                	url: "http://" + ip2 + "/invoice/openConsole",
+                	type: "POST",
+                	data: {},
+                	success: function(res) {
+                		console.log(res);
+                		var data = JSON.parse(res);
+                		$("#copy_fapiao").css("backgroundImage", "url(" + data.img_str + ")");
+	            		var temp_img = new Image();
+	            		temp_img.onload = function(){
+	            			cxt.clearRect(0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
+	            			cxt.drawImage(temp_img, 0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));	
+	            		}
+	            		temp_img.src = data.img_str;
+	            		//temp_img.src = data.url;
+            			console.log(data.region_list);
+            			for(var i = 0; i < data.region_list.length; i++) {
+            				var data1 = JSON.parse(data.region_list[i]);
+            				$("#img_msg li").each(function() {
+		            			if($(this).text().split(":")[0] == data1.pos_id) {
+		            				var origin_text = $(this).text();
+		            				$(this).text(origin_text + data1.ocr_result);
+		            			}
+		            		});
+            			}
+                	},
+                	error: function(e) {
+                		console.log(e);
+                	}
+                })
             };
         }
 
-        $(document).ready(function(){
-        	//调整画布及图片比例为1160/817
+        //初始化画布调整画布及图片比例为1160/817
+        function initCanvasPhoto() {
         	$("#muban").get(0).style.height = parseFloat($("#muban").width() * parseFloat(817/1160)) + "px";
         	$("#show_fapiao").get(0).width = $("#canvas_panel_body").get(0).offsetWidth;
         	$("#show_fapiao").get(0).height = parseFloat($("#show_fapiao").get(0).width * parseFloat(817/1160));
@@ -190,6 +262,21 @@
         	$("#copy_fapiao").get(0).width = $("#show_fapiao").get(0).width;
         	$("#copy_fapiao").get(0).height = $("#show_fapiao").get(0).height;
         	$("#copy_fapiao").css("backgroundSize", $("#copy_fapiao").get(0).width+"px "+$("#copy_fapiao").get(0).height+"px");
+
+        	$("#copy_fapiao").get(0).style.top = $("#show_fapiao").get(0).offsetTop;
+        	$("#copy_fapiao").get(0).style.left = $("#show_fapiao").get(0).offsetLeft;
+        }
+
+        $(document).ready(function(){
+        	initCanvasPhoto();
+
+        	cxt = c.getContext("2d");
+        	cxt1 = c1.getContext("2d");
+        	cxt.strokeStyle = "#00ff36";
+			cxt.lineWidth = 2;
+        	//console.log(cxt);
+
+        	loadxml("config.xml");
         	connectEndpoint();
         	//ws.send("success");
         })
