@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Resource;
@@ -11,7 +13,9 @@ import javax.annotation.Resource;
 import org.junit.Test;
 
 import com.hl.dao.RedisDao;
+import com.hl.domain.User;
 import com.hl.util.ImageUtil;
+import com.sun.org.apache.bcel.internal.generic.NEW;
 import com.hl.util.Const;
 import com.hl.util.IOUtil;
 import net.sf.json.xml.XMLSerializer;
@@ -80,5 +84,32 @@ public class ImageTest {
 		}else {
 			System.out.println("文件不存在");
 		}
+	}
+ 
+	@Test
+	public void test8() throws Exception {
+		File file = new File("E:/study_and_work/invoice/repo/backup/backup3.0/model/original/201710/c741a5bc-f249-4795-81f9-30137124bbf0.jpg");
+		Double len = new Long(file.length()).doubleValue();
+		System.out.println(new Double(len/1024).intValue());
+	}
+	
+	@Test
+	public void test9() throws Exception {
+		User user1 = new User();
+		user1.setUser_id(1);
+		List<User>list1 = new ArrayList<>();
+		List<User>list2 = new ArrayList<>();
+		list1.add(user1);
+		user1.setUser_id(2);
+		list2.add(user1);
+		User user2 = list1.get(0);
+		User user3 = list1.get(0);
+		System.out.println(user2.equals(user3));
+		System.out.println(user2.getUser_id() + "   " + user3.getUser_id());
+	}
+	
+	@Test
+	public void test10() throws Exception {
+		
 	}
 }

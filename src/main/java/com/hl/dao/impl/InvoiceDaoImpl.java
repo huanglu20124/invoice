@@ -1,5 +1,6 @@
 package com.hl.dao.impl;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Date;
@@ -99,7 +100,7 @@ public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 		final String invoice_detail = (String) invoice_data.get("具体信息");
 		final String invoice_identity = (String) invoice_data.get("身份证号码");
 		final int invoice_region_num = (int) invoice_data.get("region_num");
-		final String sql = "insert into invoice values(null,?,?,0,null,?,?,?,?,?,?,?,?,?,?);";
+		final String sql = "insert into invoice values(null,?,0,null,?,?,?,?,?,?,?,?,?,?);";
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		//返回主键
 		getJdbcTemplate().update(new PreparedStatementCreator() {
@@ -124,18 +125,26 @@ public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 	}
 
 	@Override
-	public void addModel(int model_id, Map<String, Object> json_map, String model_register_time,String url) {
+	public void addModel(int model_id, Map<String, Object> json_map, 
+			String model_register_time,String url_suffix,Integer image_size) {
 		//增加一个新模板
-		String sql = "insert into model values(?,?,?,0,?);";
+		String sql = "insert into model values(?,?,?,0,?,?,?);";
 		String json_model = JSON.toJSONString(json_map);
-		getJdbcTemplate().update(sql,model_id,json_model,model_register_time,url);
+		//获得json_model里的model_label
+		Map<String, Object>global_setting_map = (Map<String, Object>) json_map.get("global_setting");
+		String model_label = (String) global_setting_map.get("label");
+		getJdbcTemplate().update(sql,model_id,json_model,model_register_time,url_suffix,model_label,image_size);
 		
 	}
 
 	@Override
 	public void updateModel(int model_id, String json_model,String url) {
-		String sql = "update model set json_model=? model_url = ? where model_id=?";
-		getJdbcTemplate().update(sql,json_model,url,model_id);
+		String sql = "update model set json_model=?, model_url=?, model_label=?, model_register_time=? where model_id=?";
+		//获得json_model里的model_label
+		Map<String, Object>json_map = JSON.parseObject(json_model);
+		Map<String, Object>global_setting_map = (Map<String, Object>) json_map.get("global_setting");
+		String model_label = (String) global_setting_map.get("label");
+		getJdbcTemplate().update(sql,json_model,url,model_label,com.hl.util.TimeUtil.getCurrentTime(),model_id);
 		
 	}
 
@@ -222,6 +231,8 @@ public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 			model.setModel_register_counter(rs.getInt(Const.MODEL_SUCCESS_COUNTER));
 			model.setModel_register_time(rs.getString(Const.MODEL_REGISTER_TIME));
 			model.setModel_url(rs.getString(Const.MODEL_URL));
+			model.setModel_label(rs.getString(Const.MODEL_LABEL));
+			model.setImage_size(rs.getInt(Const.IMAGE_SIZE));
 			return model;
 		}
 		
@@ -310,6 +321,14 @@ public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 		String sql = "update model set json_model = ? where model_id = ?";
 		getJdbcTemplate().update(sql,json_model,model_id);
 	}
+
+	@Override
+	public String getModelLabel(Integer model_id) {
+		String sql = "select model_label from model where model_id=?";
+		return getJdbcTemplate().queryForObject(sql, String.class,model_id);
+	}
+
+
 
 
 

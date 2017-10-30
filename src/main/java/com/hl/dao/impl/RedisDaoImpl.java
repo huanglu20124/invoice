@@ -76,4 +76,9 @@ public class RedisDaoImpl implements RedisDao {
 		//删除对应uuid的元素
 		redisTemplate.opsForList().remove(array_name, 1, uuid);
 	}
+	
+	@Override
+	public void addSelf(String key){
+		redisTemplate.opsForValue().increment(key, 1);
+	}
 }

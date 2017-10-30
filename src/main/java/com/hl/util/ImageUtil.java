@@ -3,6 +3,7 @@ package com.hl.util;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
@@ -21,7 +22,7 @@ import org.springframework.util.Base64Utils;
 
 public class ImageUtil {
 	
-	//分目录，输入上一级的文件夹，文件名，返回url_suffix
+	//分目录，输入上一级的文件夹，文件名，创建文件夹，返回url_suffix
 	public static String getUrlSuffix(String imagePath, String dir,String uuidName){
 		String hash = Integer.toHexString(uuidName.hashCode());
 		for(char c : hash.toCharArray()){
@@ -67,6 +68,36 @@ public class ImageUtil {
 		return true;
 	}
 
+	public static boolean generateImage(String imgStr, String folder_path) {
+		if (imgStr == null) {
+			System.out.println("返回的图片数据为空");
+			return false;
+		}
+		try {
+			String dataPrix;
+			String data;
+			String[]d = imgStr.split("base64,");
+	        if(d != null && d.length == 2){
+	            dataPrix = d[0];
+	            data = d[1];
+	        }else{
+	            throw new Exception("上传失败，数据不合法");
+	        }
+			byte[] bs = Base64Utils.decodeFromString(data);
+			FileOutputStream fos = new FileOutputStream(new File(folder_path));
+			fos.write(bs);
+			fos.flush();
+			fos.close();
+			System.out.println("返回的图片成功写入本地");
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("存储base64图片失败");
+			return false;
+		}
+		return true;
+	}
+	
 	public static String GetImageStr(String imgFile) {// 将图片文件转化为字节数组字符串，并对其进行Base64编码处理
 		//imgFile = "E:/study_and_work/invoice/repo/SIRS4.5/SIRS4.0/x64/Debug/1.bmp";// 待处理的图片
 		InputStream in = null;
@@ -149,6 +180,18 @@ public class ImageUtil {
     	int last_index = url.lastIndexOf("/");
     	String name = url.substring(last_index + 1, url.length());
     	return name;
+    }
+    
+    public static int getImageSize(String local_path){
+    	//返回图片大小
+    	Integer image_size = 0;
+		File file = new File(local_path);
+		if(file.exists()){
+			Double len = new Long(file.length()).doubleValue();
+			image_size = new Double(len/1024).intValue();
+			System.out.println("图片大小为"+ image_size+"KB");
+		}
+		return image_size;
     }
     
     public static void deleteAllModelImage(String root, String url_suffix){
@@ -325,5 +368,23 @@ public class ImageUtil {
         return (image);
     }
 
+	//将一个字符串写入一个本地文件，测试用
+	public static void writeToLocal(String str,String path){
+		try {
+			if(str == null){
+				System.out.println("字符串为空");
+			}
+			File file = new java.io.File(path);
+			if(!file.exists()){
+				file.createNewFile();
+			}
+			FileWriter writer = new FileWriter(file);
+			writer.write(str);
+			System.out.println("写入本地文件测试成功");
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("写入失败");
+		}
+	}
 
 }

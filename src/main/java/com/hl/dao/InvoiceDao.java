@@ -15,7 +15,7 @@ public interface InvoiceDao {
 	int finishRecognizeAction(int action_id, int invoice_id, int status);
 
 	int startAction(int action_id);
-	void addModel(int model_id, Map<String, Object> json_map, String currentTime,String url);
+	void addModel(int model_id, Map<String, Object> json_map, String currentTime,String url_suffix,Integer image_size);
 	void finishAddModelAction(int action_id, int model_id,int status);
 	void updateModel(int model_id, String jsonString,String url);
 	Integer addUpdateModelAction(Integer user_id, Integer model_id);
@@ -37,6 +37,7 @@ public interface InvoiceDao {
 	void plusModelSuccess(Integer model_id);
 	void updateModelUrl(String url,String changed_url);
 	void updateModelJsonModel(int model_id, String string);
+	String getModelLabel(Integer model_id);
 
 
 

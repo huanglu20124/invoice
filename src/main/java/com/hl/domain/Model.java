@@ -11,6 +11,15 @@ public class Model {
 	String model_register_time;
 	Integer model_register_counter;
 	String model_url;
+	String model_label;
+	Integer image_size;
+	
+	public String getModel_label() {
+		return model_label;
+	}
+	public void setModel_label(String model_label) {
+		this.model_label = model_label;
+	}
 	public Integer getModel_id() {
 		return model_id;
 	}
@@ -41,6 +50,14 @@ public class Model {
 	public void setModel_url(String model_url) {
 		this.model_url = model_url;
 	}
+	public Integer getImage_size() {
+		return image_size;
+	}
+	public void setImage_size(Integer image_size) {
+		this.image_size = image_size;
+	}
+
+	
 	
 	
 }

@@ -23,11 +23,11 @@ public class LoginInterceptor implements HandlerInterceptor{
 		System.out.println("方法前 1");
 		//判断用户是否登陆  如果没有登陆  重定向到登陆页面   不放行   如果登陆了  就放行了
 		String requestUri =  request.getRequestURI();
-		if(!requestUri.contains("/login")){
+		if(!requestUri.contains("/login.action")){
 			String username = (String) request.getSession().getAttribute("user_name");
 			if(username == null){
 				System.out.println("重定向到登录界面");
-				response.sendRedirect(request.getContextPath() + "/login.jsp");
+				response.sendRedirect(request.getContextPath() + "/login.action");
 				return false;
 			}
 		}

@@ -1,3 +1,5 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -11,15 +13,19 @@
 </head>
 <body>
 	<header>
-		<img src="image/zhongda.jpg" style="width: 15%;" />
+		<img src="pic/zhongda.jpg" style="width: 15%;" />
 	</header>
 	<main>
+		<div align="right">
+	      <h3 align="right">欢迎!${user.user_name}!</h3>
+	   	  <button onclick="javascrtpt:window.location.href='${pageContext.request.contextPath}/logout.action'">注销</button>
+	    </div> 
 		<aside class="col-lg-2">
 			<div class="list-group">
-				<a href="queue.html" class="list-group-item">缓冲队列</a>
-				<a href="show.html" class="list-group-item">监控显示</a>
-				<a href="paint.html" class="list-group-item">模板库</a>
-				<a href="fault.html" class="list-group-item selected">报错发票
+				<a href="${pageContext.request.contextPath}/queue.action" class="list-group-item">缓冲队列</a>
+				<a href="${pageContext.request.contextPath}/show.action" class="list-group-item">监控显示</a>
+				<a href="${pageContext.request.contextPath}/paint.action" class="list-group-item selected">模板库</a>
+				<a href="${pageContext.request.contextPath}/fault.action" class="list-group-item selected">报错发票
 					<span class="badge">4</span>
 				</a>
 			</div>

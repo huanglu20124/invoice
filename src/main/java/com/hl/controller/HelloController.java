@@ -28,7 +28,7 @@ public class HelloController {
 		ApplicationContext applicationContext = WebApplicationContextUtils.getRequiredWebApplicationContext(request.getServletContext());
 		SocketLoadTool socketListener = (SocketLoadTool) applicationContext.getBean("socketListener");
 		if(socketListener != null){
-			Socket socket = socketListener.getSocket();
+			Socket socket = socketListener.getAlgorithmSocket();
 			if(socket != null){
 				System.out.println("成功获取到socket");
 			}else {

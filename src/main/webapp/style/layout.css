@@ -83,7 +83,7 @@ aside, main{
 	width: 20%;
 	margin-right: 4%;
 	padding: 0px;
-	background-image: url('../image/shibie_placehold.png');
+	background-image: url('../pic/shibie_placehold.png');
 	background-color: #ffffff;
 	background-position: center;
 	background-size: cover;
@@ -166,7 +166,7 @@ aside, main{
 	margin-right: 0px;
 }
 
-.ku_img, .rect_img {
+.ku_img, .rect_img, .list_muban .fa-image, .muban_table tbody tr{
 	cursor: pointer;
 }
 
@@ -275,4 +275,25 @@ aside, main{
     -webkit-flex: none;
     -ms-flex: none;
     flex: none;
+}
+
+.list_muban_contain {
+	display: inline-block;
+	width: 20%;
+	margin-right: 5%;
+	margin-top: 10px;
+}
+
+.list_muban_contain:nth-of-type(4n) {
+	margin-right: 0px;
+}
+
+.list_muban_contain .ku_img_id{
+	font-size: 16px;
+	margin-left: 0.5em;
+}
+
+.list_muban_contain .fa {
+	font-size: 30px;
+	color: #0078d7;
 }

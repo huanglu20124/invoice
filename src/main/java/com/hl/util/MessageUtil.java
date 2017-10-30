@@ -50,7 +50,8 @@ public class MessageUtil {
 			System.out.println("发送消息异常");
 			Map<String,Object>err_map = new HashMap<>();
 			err_map.put(Const.ERR, "向服务器发送消息异常");
-			systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(err_map)));
+			if(systemWebSocketHandler != null)//吧错误信息发给控制台前端
+			  systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(err_map)));
 		}
 
 	}
@@ -90,4 +91,8 @@ public class MessageUtil {
 		return null;
 	}
 
+	//发送消息给模拟客户端(与第一个方法不同的是，发送的对象是模拟客户端，使用的byteArrayToInt是针对java的)
+	public static void sendCustomerMessage(OutputStream outputStream,int msg_id, String json_str){
+		
+	}
 }

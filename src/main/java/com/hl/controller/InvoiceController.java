@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -123,6 +124,7 @@ public class InvoiceController {
 		IOUtil.writeToLocal(img_str);
 		String json_model = request.getParameter(Const.JSON_MODEL);
 		System.out.println("json_model="+ json_model);
+		//System.out.println("file_name "+ request.getParameter("file_name"));
 		Map<String, Object>model_json_map = JSON.parseObject(json_model);
 		Integer user_id = new Integer(request.getParameter(Const.USER_ID));
 		Integer model_id = new Integer(request.getParameter(Const.MODEL_ID));
@@ -178,7 +180,6 @@ public class InvoiceController {
 		Integer user_id = new Integer(request.getParameter(Const.USER_ID));
 		Integer start = new Integer(request.getParameter("start"));
 		invoiceService.getAllModel(ans_map,user_id,start);
-		System.out.println(ans_map);
 		PrintWriter writer = response.getWriter();
 		writer.write(JSON.toJSONString(ans_map));
 		writer.flush();
@@ -264,7 +265,9 @@ public class InvoiceController {
 		System.out.println(url);
 		String url_suffix = ImageUtil.getUrlSuffix(url);
 		String local_path = localConfig.getImagePath() + url_suffix;
-		String img_str = ImageUtil.GetImageStr(local_path);
+		//获得原图
+		String original_path = local_path.replace("handle", "original");
+		String img_str = ImageUtil.GetImageStr(original_path);
 		ans_map.put(Const.IMG_STR, "data:image/jpg;base64,"+ img_str);
 		PrintWriter writer = response.getWriter();
 		writer.write(JSON.toJSONString(ans_map));
@@ -297,6 +300,74 @@ public class InvoiceController {
 		writer.close();
 	}
 	
+	// 接口10：ajax json  接收imgStr作为图片保存，POST请求
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/recognizeImgStr", method = RequestMethod.POST)
+	public void recognizeImgStr(HttpServletRequest request, HttpServletResponse response)throws IOException{
+		request.setCharacterEncoding("utf-8");
+		response.setCharacterEncoding("utf-8");
+		System.out.println("接收到imgStr并识别的请求");
+		Map<String, Object>ans_map = new HashMap<>();
+		List<String>image_urls = new ArrayList<>();
+		Integer thread_msg = (Integer) request.getServletContext().getAttribute(Const.THREAD_MSG);
+		//根目录下存储的文件夹
+		String dir = "image/data";
+		Enumeration<String>test = request.getParameterNames();
+		Integer user_id = new Integer(request.getParameter(Const.USER_ID));
+		String img_str_list_str = request.getParameter("img_str_list");
+		List<String>img_str_list = (List<String>) JSON.parse(img_str_list_str);
+		if(img_str_list != null){
+			System.out.println("收到" + img_str_list.size() + "张图片" );
+			for(int i = 0; i < img_str_list.size(); i++){
+				String imgStr = img_str_list.get(i);
+				String uuidName = null;
+				if(imgStr.startsWith("data:image/bmp")){
+					uuidName = UUID.randomUUID().toString() + ".bmp";
+					//分别传入根目录，创建对应的存储文件夹，文件名传入
+					String url_suffix = ImageUtil.getUrlSuffix(localConfig.getImagePath(),dir, uuidName);	
+					try {
+						//先保存bmp
+						ImageUtil.generateImage(imgStr, localConfig.getImagePath() + url_suffix);
+						System.out.println("上传文件成功;");
+						//再保存jpg
+						ImageUtil.bmpTojpg(localConfig.getImagePath() + url_suffix);
+						//将后缀jpg结尾的作为url
+						image_urls.add(ImageUtil.suffixToJpg(url_suffix));
+					} catch (Exception e) {
+						e.printStackTrace();
+						ans_map.put(Const.ERR, "上传文件失败");
+					}
+				}
+				else if(imgStr.startsWith("data:image/jpg")){
+					//uuidName = UUID.randomUUID().toString() + ".jpg";
+					System.out.println("传入图片不是bmp格式！");
+				}
+			}
+			//图片全部上传完毕才调用service层
+			invoiceService.addRecognizeInvoice(ans_map, user_id, image_urls, thread_msg);
+		}
+		PrintWriter writer = response.getWriter();
+		writer.write(JSON.toJSONString(ans_map));
+		writer.flush();
+		writer.close();
+	}
+
+	// 接口11 ：调整发票识别速度的请求
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/changeSpeed", method = RequestMethod.POST)
+	public void changeSpeed(HttpServletRequest request, HttpServletResponse response) throws IOException{
+		System.out.println("接收到调整发票识别速度的请求");
+		Map<String, Object>ans_map = new HashMap<>();
+		Integer user_id = new Integer(request.getParameter(Const.USER_ID));
+		Integer thread_msg = (Integer) request.getServletContext().getAttribute(Const.THREAD_MSG);//获取上锁对象
+		Integer delay = new Integer(request.getParameter("delay"));
+		invoiceService.UpdateRecognizeSpeed(ans_map,user_id,delay,request.getServletContext());
+		PrintWriter writer = response.getWriter();
+		writer.write(JSON.toJSONString(ans_map));
+		writer.flush();
+		writer.close();
+	}
+	
 	//特殊接口：更换模板图片url中的ip，已经废弃
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/changeImageUrlIp", method = RequestMethod.POST)
@@ -311,7 +382,7 @@ public class InvoiceController {
 		writer.close();
 	}
 
-	//特殊接口：将DataBase.xml文件里面的内容写入Mysql数据库
+	//特殊接口：将DataBase.xml文件里面的内容写入Mysql数据库，已经废弃
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/rewriteJsonModel", method = RequestMethod.POST)
 	public void rewriteJsonModel(HttpServletRequest request, HttpServletResponse response)throws IOException{
@@ -332,4 +403,31 @@ public class InvoiceController {
 		writer.close();
 	}
 	
+	//jsp接口
+	@RequestMapping(value = "/paint.action", method = RequestMethod.GET)
+	public String paintAction(){
+		System.out.println("准备渲染paint界面");
+		return "paint";
+	}
+	
+	//jsp接口
+	@RequestMapping(value = "/show.action", method = RequestMethod.GET)
+	public String showAction(){
+		System.out.println("准备渲染show界面");
+		return "show";
+	}
+	
+	//jsp接口
+	@RequestMapping(value = "/queue.action", method = RequestMethod.GET)
+	public String showQueue(){
+		System.out.println("准备渲染queue界面");
+		return "queue";
+	}
+	
+	//jsp接口
+	@RequestMapping(value = "/fault.action", method = RequestMethod.GET)
+	public String showFault(){
+		System.out.println("准备渲染fault界面");
+		return "fault";
+	}
 }

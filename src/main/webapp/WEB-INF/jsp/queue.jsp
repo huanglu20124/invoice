@@ -1,3 +1,5 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -10,15 +12,19 @@
 </head>
 <body>
 	<header>
-		<img src="image/zhongda.jpg" style="width: 15%;" />
+		<img src="pic/zhongda.jpg" style="width: 15%;" />
 	</header>
 	<main>
+		<div align="right">
+	      <h3 align="right">欢迎!${user.user_name}!</h3>
+	   	  <button onclick="javascrtpt:window.location.href='${pageContext.request.contextPath}/logout.action'">注销</button>
+	    </div> 
 		<aside class="col-lg-2">
 			<div class="list-group">
-				<a href="queue.html" class="list-group-item selected">缓冲队列</a>
-				<a href="show.html" class="list-group-item">监控显示</a>
-				<a href="paint.html" class="list-group-item">模板库</a>
-				<a href="fault.html" class="list-group-item">报错发票
+				<a href="${pageContext.request.contextPath}/queue.action" class="list-group-item selected">缓冲队列</a>
+				<a href="${pageContext.request.contextPath}/show.action" class="list-group-item">监控显示</a>
+				<a href="${pageContext.request.contextPath}/paint.action" class="list-group-item">模板库</a>
+				<a href="${pageContext.request.contextPath}/fault.action" class="list-group-item">报错发票
 					<span class="badge">4</span>
 				</a>
 			</div>
@@ -127,8 +133,8 @@
             	if(data.msg_id == 201) {
             		var num = parseInt($("#waiting_num").text());
             		for(var i = 0; i < data.new_recognize.length; i++){
-            			$(".waiting_list").append("<img src=\"image/rectangle.png\" class=\"rect_img\" />");
-            			var opacity_ = GetRandomNum(0,1); 
+            			$(".waiting_list").append("<img src=\"pic/rectangle.png\" class=\"rect_img\" />");
+            			var opacity_ = parseFloat(data.new_recognize[i].image_size / 500) > 1 ? 1 : parseFloat(data.new_recognize[i].image_size / 500); 
             			$(".waiting_list img:last-child").get(0).base_json = data.new_recognize[i];
             			$(".waiting_list img:last-child").css("opacity", opacity_);
             			$(".waiting_list img:last-child").click(function() {
@@ -164,8 +170,8 @@
 	        			var data = JSON.parse(res);
 	        			$("#waiting_num").text(data.recognize_wait.length.toString());
 	            		for(var i = 0; i < data.recognize_wait.length; i++) {
-	            			$(".waiting_list").append("<img src=\"image/rectangle.png\" class=\"rect_img\" />");
-	            			var opacity_ = GetRandomNum(0,1); 
+	            			$(".waiting_list").append("<img src=\"pic/rectangle.png\" class=\"rect_img\" />");
+	            			var opacity_ = parseFloat(data.recognize_wait[i].image_size / 500) > 1 ? 1 : parseFloat(data.recognize_wait[i].image_size / 500);
 	            			$(".waiting_list img:last-child").css("opacity", opacity_);
 	            			$(".waiting_list img:last-child").get(0).base_json = data.recognize_wait[i];
 	            			$(".waiting_list img:last-child").click(function() {

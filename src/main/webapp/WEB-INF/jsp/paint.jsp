@@ -1,3 +1,5 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -8,18 +10,23 @@
 	<script type="text/javascript" src="script/bootstrap.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="style/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="style/layout.css">
-</head>
+	<link rel="stylesheet" type="text/css" href="font-awesome-4.7.0/css/font-awesome.min.css">
 <body>
 	<header>
+</head>
 		<img src="pic/zhongda.jpg" style="width: 15%;" />
 	</header>
 	<main>
+	    <div align="right">
+	      <h3 align="right">欢迎!${user.user_name}!</h3>
+	   	  <button onclick="javascrtpt:window.location.href='${pageContext.request.contextPath}/logout.action'">注销</button>
+	    </div> 
 		<aside class="col-lg-2">
 			<div class="list-group">
-				<a href="queue.html" class="list-group-item">缓冲队列</a>
-				<a href="show.html" class="list-group-item">监控显示</a>
-				<a href="paint.html" class="list-group-item selected">模板库</a>
-				<a href="fault.html" class="list-group-item">报错发票
+				<a href="${pageContext.request.contextPath}/queue.action" class="list-group-item">缓冲队列</a>
+				<a href="${pageContext.request.contextPath}/show.action" class="list-group-item">监控显示</a>
+				<a href="${pageContext.request.contextPath}/paint.action" class="list-group-item selected">模板库</a>
+				<a href="${pageContext.request.contextPath}/fault.action" class="list-group-item">报错发票
 					<span class="badge">4</span>
 				</a>
 			</div>
@@ -29,17 +36,38 @@
 			    <div class="panel-heading">
 			        <h3 class="panel-title flex_line">
 			        	<span class="flex_item">模板库（共<span id="muban_num">0</span>张模板)</span>
-                		<span class="nonflex_item"><input type="text" id="search_input" class="form-control" size="30" style="height: 25px; vertical-align: middle; display: inline-block; width: auto;" placeholder="--请输入要搜索的模板id--"><img src="pic/search.png" style="display: inline-block; height: 20px; width: auto; vertical-align: middle; margin-left: 5px; cursor: pointer;" onclick="searchproduct()" /></span>
+			        	<span class="nonflex_item" style="font-size: 14px;">
+			        		查看方式:<select id="show_type" class="form-control" style="display: inline-block; width: 8em; height: 25px; margin-left: 0.5em; padding: 0em 0.5em; font-size: 13.5px;" onchange="changeShowType()">
+			        			<option selected>缩略图</option>
+			        			<option>列表</option>
+			        			<option>详细信息</option>
+			        		</select>
+			        	</span>
+                		<span class="nonflex_item" style="margin-left: 2em;"><input type="text" id="search_input" class="form-control" size="30" style="height: 25px; vertical-align: middle; display: inline-block; width: auto;" placeholder="--请输入要搜索的模板id--"><img src="pic/search.png" style="display: inline-block; height: 20px; width: auto; vertical-align: middle; margin-left: 5px; cursor: pointer;" onclick="searchproduct()" /></span>
 			        </h3>
 			    </div>
 			    <div class="panel-body muban_contain">
-			    	<!-- <div class="ku_img_container">
-						<img src="2.bmp" class="ku_img" />
-						<p class="ku_img_id">1</p>
-					</div> -->
-					<!-- <img src="2.bmp" class="ku_img" />
-					<img src="3.bmp" class="ku_img" />
-					<img src="4.bmp" class="ku_img" /> -->
+			    	<div class="thumbnail_muban">
+				    	
+					</div>
+					<div class="list_muban" style="display: none;">
+						
+					</div>
+					<div class="detail_muban" style="display: none;">
+						<table class="table table-hover table-striped muban_table">
+						  <thead>
+						    <tr>
+						      <th>名称</th>
+						      <th>修改日期</th>
+						      <th>文件大小</th>
+						      <th>类型</th>
+						    </tr>
+						  </thead>
+						  <tbody style="font-size: 13px; line-height: 1.5em;">
+							    
+						  </tbody>
+						</table>
+					</div>
 			    </div>
 			</div>
 
@@ -50,7 +78,7 @@
 					<!-- <p class="help-block">点击提交后可在原图上制作模板</p> -->
 				</div>
 				<button type="submit" class="btn btn-default" onclick="addImageSubmit()">提交图片并制作新的模板</button>
-				<button type="button" class="btn btn-danger" onclick="deleteAllMuban()">清空模板库</button>
+				<button type="button" class="btn btn-danger" onclick="deleteAllMuban()" style="display: none;">清空模板库</button>
 			</form>
 		</div>
 	</main>
@@ -173,6 +201,19 @@
         var temp_click_jq_img; //记录当前被点击的图片
         var temp_json_model; //记录当前增加/修改上传的json_model
 
+        //用户信息集合
+        var user_id = "${user.user_id}";
+        var user_name = "${user.user_name}";
+        var user_password = "${user.user_password}";
+        var company_name = "${user.company_name}";
+        var company_id = "${user.company_id}";
+        var user_register_time = "${user.user_register_time}";
+        var user_type = "${user.user_type}";
+        //用户权限集合
+        var user_auth = "${user.user_auth}";//用户表相关权限
+        var model_auth = "${user.model_auth}";//模板表相关权限
+        var invoice_auth = "${user.invoice_auth}";//invoice表（存储识别后的发票信息）相关权限
+        
         //读取config.xml配置ip等信息
         function loadxml(fileName) {
         	$.ajax({
@@ -207,7 +248,7 @@
             			$("#progressModal .progress-bar").get(0).style.width = "100%";
 						setTimeout(function(){$("#progressModal").modal('hide');}, 2000);
 						//增加图片至模板库
-						addImgMuban(res.url, temp_json_model, res.id);
+						addImgMuban(res.url, temp_json_model, res.id, res.model_register_time, res.image_size, res.model_label);
 
 						//模板数相应增加
 						var muban_num = parseInt($("#muban_num").text());
@@ -277,6 +318,7 @@
 		function form_change() {
 			console.log("here");
 			change = true;
+			up_done = false;
 			return true;
 		}
 	 	function windowTocanvas(canvas, x, y) {  
@@ -305,7 +347,7 @@
 
         //init paint
         var up_done=false, button_use=false; //up_done表示是否可以开始绘图, button_use表示打勾、打叉按钮是否可用
-        var muban_type = 0; //记录是修改还是提交模板
+        var muban_type = 0; //记录是修改还是增加模板
 
         function initPaintForm(src) { //初始化全局及局部表单，在未启动编辑之前禁用修改功能
         	$("#getEdit").get(0).disabled = false;
@@ -401,76 +443,130 @@
 			}, 10000)
 		}
 
-		//添加模板图片至模板库
-		function addImgMuban(url, json_model, id) {
-			$(".muban_contain").append("<div><img /><p>1</p></div>");
-			$(".muban_contain div:last-child").addClass("ku_img_container");	
-			$(".muban_contain div:last-child p").addClass("ku_img_id");
-			$(".muban_contain div:last-child p").text(id.toString());
-			$(".muban_contain div:last-child img").get(0).src = url;
-			$(".muban_contain div:last-child img").addClass("ku_img");	
-			$(".muban_contain div:last-child img").get(0).style.height = parseFloat($(".muban_contain div:last-child img").width() * parseFloat(817/1160)) + "px";
-			$(".muban_contain div:last-child img").get(0).json_model = json_model;
-			$(".muban_contain div:last-child img").get(0).model_id = id;
-			$(".muban_contain div:last-child img").unbind("click").click(function() {
-				initPaintForm($(this).get(0).src);
-				$('#myModal').modal('show');
-				temp_click_jq_img = $(this);
-				addImage_filename = $(this).get(0).src;
-				json_model = JSON.parse($(this).get(0).json_model);
-				console.log(json_model);
-				muban_type = 1;
-				//讲json_model的内容push进paint_area并设置global setting
-		 		if(json_model.money != undefined) {
-		 			paint_area.push(json_model.money);	
-		 		}
-				if(json_model.head != undefined) {
-		 			paint_area.push(json_model.head);	
-		 		}
-		 		if(json_model.date != undefined) {
-		 			paint_area.push(json_model.date);	
-		 		}
-		 		if(json_model.time != undefined) {
-		 			paint_area.push(json_model.time);	
-		 		}
-		 		if(json_model.id_card != undefined) {
-		 			paint_area.push(json_model.id_card);	
-		 		}
-		 		if(json_model.detail != undefined) {
-		 			paint_area.push(json_model.detail);	
-		 		}
-		 		if(json_model.invoice_id != undefined) {
-		 			paint_area.push(json_model.invoice_id);	
-		 		}
-		 		if(json_model.global_setting != undefined) {
-		 			$("#global_setting input[name='biaoqian']").val(json_model.global_setting.label);
-		 			$("#global_setting #dinge_checkbox").get(0).checked = json_model.global_setting.IsQuota? true: false;
-		 			$("#global_setting input[name='dinge']").val(json_model.global_setting.sum == undefined ? "" : json_model.global_setting.sum);
-		 		}
+		//点击模板后的动作
+		function clickMuban(jq_Muban) {
+			initPaintForm(jq_Muban.get(0).src);
+			$('#myModal').modal('show');
+			temp_click_jq_img = jq_Muban;
+			addImage_filename = jq_Muban.get(0).src;
+			json_model = JSON.parse(jq_Muban.get(0).json_model);
+			console.log(json_model);
+			muban_type = 1;
+			//讲json_model的内容push进paint_area并设置global setting
+	 		if(json_model.money != undefined) {
+	 			paint_area.push(json_model.money);	
+	 		}
+			if(json_model.head != undefined) {
+	 			paint_area.push(json_model.head);	
+	 		}
+	 		if(json_model.date != undefined) {
+	 			paint_area.push(json_model.date);	
+	 		}
+	 		if(json_model.time != undefined) {
+	 			paint_area.push(json_model.time);	
+	 		}
+	 		if(json_model.id_card != undefined) {
+	 			paint_area.push(json_model.id_card);	
+	 		}
+	 		if(json_model.detail != undefined) {
+	 			paint_area.push(json_model.detail);	
+	 		}
+	 		if(json_model.invoice_id != undefined) {
+	 			paint_area.push(json_model.invoice_id);	
+	 		}
+	 		if(json_model.global_setting != undefined) {
+	 			$("#global_setting input[name='biaoqian']").val(json_model.global_setting.label);
+	 			$("#global_setting #dinge_checkbox").get(0).checked = json_model.global_setting.IsQuota? true: false;
+	 			$("#global_setting input[name='dinge']").val(json_model.global_setting.sum == undefined ? "" : json_model.global_setting.sum);
+	 		}
 
-		 		console.log(paint_area);
+	 		console.log(paint_area);
 
-				//点击某张图片后发送获取json_model的请求
-				var that = this;
-				$.ajax({
-					url: "http://" + ip2 + "/invoice/getImgStr",
-					type: "POST",
-					data:{
-						url: $(this).get(0).src
-					},
-					success: function(res) {
-						res1 = JSON.parse(res);
-						temp_img_str = res1.img_str;
-						console.log(res1.img_str);
-						$("#myCanvas").get(0).style.backgroundImage = "url(" + res1.img_str.toString() + ")";
-						getPaint(paint_area, cxt);
-					},
-					error: function(e) {
-						console.log(e);
-					}
-				})
+			//点击某张图片后发送获取json_model的请求
+			$.ajax({
+				url: "http://" + ip2 + "/invoice/getImgStr",
+				type: "POST",
+				data:{
+					url: jq_Muban.get(0).src
+				},
+				success: function(res) {
+					res1 = JSON.parse(res);
+					temp_img_str = res1.img_str;
+					alert(res1.img_str);
+					$("#myCanvas").get(0).style.backgroundImage = "url(" + res1.img_str.toString() + ")";
+					getPaint(paint_area, cxt);
+				},
+				error: function(e) {
+					console.log(e);
+				}
 			})
 		}
+
+		//添加模板图片至模板库
+		function addImgMuban(url, json_model, id, model_register_time, image_size, model_label) {
+			//缩略图视角
+			$(".thumbnail_muban").append("<div><img /><p>1</p></div>");
+			$(".thumbnail_muban div:last-child").addClass("ku_img_container");	
+			$(".thumbnail_muban div:last-child p").addClass("ku_img_id");
+			$(".thumbnail_muban div:last-child p").text(model_label);
+			$(".thumbnail_muban div:last-child img").get(0).src = url;
+			$(".thumbnail_muban div:last-child img").addClass("ku_img");	
+			$(".thumbnail_muban div:last-child img").get(0).style.height = parseFloat($(".muban_contain div:last-child img").width() * parseFloat(817/1160)) + "px";
+			$(".thumbnail_muban div:last-child img").get(0).json_model = json_model;
+			$(".thumbnail_muban div:last-child img").get(0).model_id = id;
+			$(".thumbnail_muban div:last-child img").unbind("click").click(function() {
+				clickMuban($(this));
+			})
+
+			//列表视角
+			$(".list_muban").append("<div class=\"list_muban_contain\"><span class=\"fa fa-image\"></span><span class=\"ku_img_id\"></span></div>")
+			$(".list_muban .list_muban_contain:last-child .ku_img_id").text(model_label);
+			$(".list_muban .list_muban_contain:last-child .fa-image").get(0).json_model = json_model;
+			$(".list_muban .list_muban_contain:last-child .fa-image").get(0).model_id = id;
+			$(".list_muban .list_muban_contain:last-child .fa-image").get(0).src = url;
+			$(".list_muban .list_muban_contain:last-child .fa-image").unbind("click").click(function() {
+				clickMuban($(this));
+				
+			})
+
+			//详细信息视角
+			$(".muban_table tbody").append("<tr><td>" + model_label + "</td><td>" + model_register_time + "</td><td>" + image_size + "KB</td><td>" + url.split(".")[url.split(".").length-1] + "</td></tr>");
+			$(".muban_table tbody tr:last-child").get(0).json_model = json_model;
+			$(".muban_table tbody tr:last-child").get(0).model_id = id;
+			$(".muban_table tbody tr:last-child").get(0).src = url;
+			$(".muban_table tbody tr:last-child").unbind("click").click(function() {
+				clickMuban($(this));
+			})
+
+			//判断显示哪种视图
+			whichToShow();
+		}
+
+		//判断显示哪个视图
+		function whichToShow() {
+			if($("#show_type").val() == "缩略图") {
+				$(".thumbnail_muban").css("display", "block");
+				$(".list_muban").css("display", "none");
+				$(".detail_muban").css("display", "none");
+			}
+			else if($("#show_type").val() == "列表") {
+				$(".list_muban").css("display", "block");
+				$(".thumbnail_muban").css("display", "none");
+				$(".detail_muban").css("display", "none");
+			}
+			else if($("#show_type").val() == "详细信息") {
+				$(".detail_muban").css("display", "block");
+				$(".list_muban").css("display", "none");
+				$(".thumbnail_muban").css("display", "none");
+			}
+		}
+
+		//切换查看视图模式
+		function changeShowType() {
+			whichToShow();
+			return true;
+		}
+
 
 		var c=document.getElementById("myCanvas");
 		var canvas_width = 1160, canvas_height = 817;
@@ -527,7 +623,7 @@
 				url: "http://"+ip2+"/invoice/getAllModel",
 				type : 'POST',
 				data: {
-					user_id: "123",
+					user_id: "1",
 					start : "0" //首次查询
 				},
 				success : function(res, status) {
@@ -537,7 +633,7 @@
 					//添加模板img元素
 					for(var i = 0; i < res1.model_list.length; i++) {
 						//alert(res1.model_list[i].json_model);
-						addImgMuban(res1.model_list[i].model_url, res1.model_list[i].json_model, res1.model_list[i].model_id);
+						addImgMuban(res1.model_list[i].model_url, res1.model_list[i].json_model, res1.model_list[i].model_id, res1.model_list[i].model_register_time, res1.model_list[i].image_size, res1.model_list[i].model_label);
 					}
 					
 					var muban_num = res1.model_list.length;
@@ -558,39 +654,33 @@
 				})
 			})
 
-			// $(".ku_img").each(function(){
-			// 	$(this).get(0).style.height = parseFloat($(this).width() * parseFloat(817/1160)) + "px";
-			// 	$(this).unbind("click").click(function() {
-			// 		initPaintForm($(this).get(0).src);
-			// 		$('#myModal').modal('show');
-			// 		muban_type = 1;
-			// 		temp_click_jq_img = $(this);
-			// 	})
-			// });
 			var begin_x, begin_y, end_x, end_y, cur_x, cur_y;
 			var large_x, large_y, small_x, small_y;
 			var paint = true, dosomething = false, index = -1, paint_num = 0;
 
 			//画图前鼠标移到对应位置的响应函数
 			$("#myCanvas").mousemove(function(event1){
-				cur_x = windowTocanvas(c, event1.pageX-$(document).scrollLeft(), event1.pageY-$(document).scrollTop()).x;
-				cur_y = windowTocanvas(c, event1.pageX-$(document).scrollLeft(), event1.pageY-$(document).scrollTop()).y;
-				index = ifPaint(paint_area, cur_x, cur_y)
-				if(index != -1){
-					$(".hid_panel").css({
-						"display": "block",
-						"top": paint_area[index].large_y,
-						"right": $(".modal-body").width()-paint_area[index].large_x
-					});
-				}
-				else {
-					if(change == false) {		
-						$(".hid_panel").css("display", "none");
-						$(".setting_panel").css("display","none");
-						$("#setting_form").get(0).reset();
-						change = false;
+				if(!change){ // 修改好局部信息后才能响应改函数
+					cur_x = windowTocanvas(c, event1.pageX-$(document).scrollLeft(), event1.pageY-$(document).scrollTop()).x;
+					cur_y = windowTocanvas(c, event1.pageX-$(document).scrollLeft(), event1.pageY-$(document).scrollTop()).y;
+					index = ifPaint(paint_area, cur_x, cur_y)
+					if(index != -1){
+						$(".hid_panel").css({
+							"display": "block",
+							"top": paint_area[index].large_y,
+							"right": $(".modal-body").width()-paint_area[index].large_x
+						});
 					}
-				}	
+					else {
+						if(change == false) {		
+							$(".hid_panel").css("display", "none");
+							$(".setting_panel").css("display","none");
+							$("#setting_form").get(0).reset();
+							change = false;
+						}
+					}		
+				}
+				
 			})
 
 			//画图前进入设置按钮
@@ -766,10 +856,10 @@
 							quyu: $(".setting_panel select[name='quyu']").val(),
 							bg_color: $(".setting_panel select[name='bg_color']").val(),
 							font_color: $(".setting_panel select[name='font_color']").val(),
-							keywords: $(".setting_panel input[name='keyword']").val(),
+                             keywords: $(".setting_panel input[name='keyword']").val(),
 							ganrao: check_value,
-							remove_line: $(".setting_panel input[value='直线干扰']").get(0).checked ? "1" : "0",
-							remove_stamp: $(".setting_panel input[value='印章干扰']").get(0).checked ? "1" : "0",
+							remove_line: $(".setting_panel input[value='直线干扰']").get(0).checked ? 1 : 0,
+							remove_stamp: $(".setting_panel input[value='印章干扰']").get(0).checked ? 1 : 0,
 						};
 						console.log(temp_object);
 						paint_area.push(temp_object);	
@@ -792,8 +882,8 @@
 							font_color: $(".setting_panel select[name='font_color']").val(),
 							keywords: $(".setting_panel input[name='keyword']").val(),
 							ganrao: check_value,
-							remove_line: $(".setting_panel input[value='直线干扰']").get(0).checked ? "1" : "0",
-							remove_stamp: $(".setting_panel input[value='印章干扰']").get(0).checked ? "1" : "0",
+							remove_line: $(".setting_panel input[value='直线干扰']").get(0).checked ? 1 : 0,
+							remove_stamp: $(".setting_panel input[value='印章干扰']").get(0).checked ? 1 : 0,
 						};
 						paint_area.splice(index, 1, temp_object);
 					}
@@ -806,6 +896,7 @@
 			//表单有更改
 			$(".setting_panel input[type='checkbox']").click(function(){
 				change = true;
+				updone = false;
 			})
 
 			//点击删除模板
@@ -895,7 +986,7 @@
 					temp_json_model = {
 			 			global_setting:{
 							label: $("input[name='biaoqian']").val(),
-							quota: $("input#dinge_checkbox").get(0).checked ? $("input[name='dinge']").val() : "0",
+							quota: $("input#dinge_checkbox").get(0).checked ? parseInt($("input[name='dinge']").val()) : 0,
 							area_bitmap: area_.join("")	
 						},
 						money: money_,
@@ -916,7 +1007,7 @@
 							json_model: JSON.stringify({
 					 			global_setting:{
 									label: $("input[name='biaoqian']").val(),
-									quota: $("input#dinge_checkbox").get(0).checked ? $("input[name='dinge']").val() : "0",
+									quota: $("input#dinge_checkbox").get(0).checked ? parseInt($("input[name='dinge']").val()) : 0,
 									area_bitmap: area_.join("")	
 								},
 								money: money_,
@@ -999,6 +1090,20 @@
 				}
 			})
 		})
+		
+		//注销
+		function logout(){
+            $.ajax({
+            type: "POST",
+		    dataType: "json",
+            url: "${pageContext.request.contextPath}/logout.action",
+            data: {},
+            success: function(msg){
+                alert(msg);
+           }
+    })
+}
+
 	</script>
 </body>
 </html>

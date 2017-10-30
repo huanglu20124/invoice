@@ -7,6 +7,13 @@
 <title>Insert title here</title>
 </head>
 <body>
-欢迎!${user_name}!
+账号登录
+<form action="${pageContext.request.contextPath}/loginCheck" method="post">
+  username：<input type="text" name="user_name">
+  user_password：<input type="text" name="user_password">
+  <input type="submit" value="提交" > 
+</form>
+${err}
+<br>
 </body>
 </html>

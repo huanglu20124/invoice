@@ -36,4 +36,15 @@ public class ResponseMessage {
 		ans_map.put(Const.MSG_ID,msg_id);
 		return JSON.toJSONString(ans_map);
 	}
+	
+	public String getFinalConsoleMessage(int action_id,String user_name,Integer user_id,String action_start_time){
+		//控制台需要的消息，加入一些关键信息
+		Map<String, Object>ans_map = JSON.parseObject(json_str);
+		ans_map.put(Const.ACTION_ID, action_id);
+		ans_map.put(Const.MSG_ID,msg_id);
+		ans_map.put(Const.USER_ID, user_id);
+		ans_map.put(Const.USER_NAME, user_name);
+		ans_map.put(Const.ACTION_START_TIME, action_start_time);
+		return JSON.toJSONString(ans_map);
+	}
 }

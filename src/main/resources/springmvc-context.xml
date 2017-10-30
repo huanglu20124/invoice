@@ -22,13 +22,13 @@
 
 	<!-- 配置视图解析器 -->
 	<!-- 对全部资源放行 test -->
-	<mvc:resources location="/" mapping="/*.html" />
+    <mvc:resources location="/" mapping="/*.html" />
 	<mvc:resources location="/" mapping="/*.bmp" />
 	<mvc:resources location="/" mapping="/*.xml" />
 	<mvc:resources location="/" mapping="/*.jpg" />
 	<mvc:resources location="/" mapping="/*.png" />
 	<mvc:resources location="/pic/" mapping="/pic/**" />
-	<mvc:resources location="/font-awesome-4.7.0/" mapping="/font-awesome-4.7.0/**/**" />
+	<mvc:resources location="/font-awesome-4.7.0/" mapping="/font-awesome-4.7.0/**" />
 	<mvc:resources location="/script/" mapping="/script/**" />
 	<mvc:resources location="/style/" mapping="/style/**" />
 	<!-- <mvc:resources location="/html/" mapping="/html/**" /> <mvc:resources 
@@ -39,8 +39,8 @@
 	<!-- 配置视图解析器 -->
 	<bean
 		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-		<!-- 前缀 -->
-		<property name="prefix" value="/WEB-INF/jsp/" />
+		<!-- 前缀 为了前端方便，直接放行 -->
+             <property name="prefix" value="/WEB-INF/jsp/" />
 		<!-- 后缀 -->
 		<property name="suffix" value=".jsp" />
 	</bean>
@@ -52,10 +52,10 @@
 	</bean>
 
 	<!-- SPringmvc的拦截器 -->
-<!-- 	<mvc:interceptors>
+    <mvc:interceptors>
 		<mvc:interceptor>
-			<mvc:mapping path="/**" />
+			<mvc:mapping path="/*.action" />
 			<bean class="com.hl.intercepter.LoginInterceptor" />
 		</mvc:interceptor>
-	</mvc:interceptors> -->
+	</mvc:interceptors>
 </beans>

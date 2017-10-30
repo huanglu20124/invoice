@@ -7,10 +7,13 @@ public class User {
 	private String company_name;
 	private Integer company_id;
 	private String user_register_time;
-	private Integer user_auth;
 	private Integer user_type;
 	
-	
+	//权限管理集合
+	private Integer user_auth;
+	private Integer model_auth;
+	private Integer invoice_auth;
+	private Integer action_auth;
 	
 	public String getCompany_name() {
 		return company_name;
@@ -60,6 +63,24 @@ public class User {
 	}
 	public void setUser_password(String user_password) {
 		this.user_password = user_password;
+	}
+	public Integer getModel_auth() {
+		return model_auth;
+	}
+	public void setModel_auth(Integer model_auth) {
+		this.model_auth = model_auth;
+	}
+	public Integer getInvoice_auth() {
+		return invoice_auth;
+	}
+	public void setInvoice_auth(Integer invoice_auth) {
+		this.invoice_auth = invoice_auth;
+	}
+	public Integer getAction_auth() {
+		return action_auth;
+	}
+	public void setAction_auth(Integer action_auth) {
+		this.action_auth = action_auth;
 	}
 	
 	

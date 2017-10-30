@@ -1,6 +1,5 @@
 package com.hl.dao;
 
-import com.sun.xml.bind.v2.schemagen.xmlschema.List;
 
 public interface RedisDao {
 	public Long getWaitSize();
@@ -15,5 +14,5 @@ public interface RedisDao {
 	public java.util.List<Object> getRangeId(String array_name);
 	public void deleteKey(String key);
 	public void removeListIndex(String array_name,String uuid);
-	
+	public void addSelf(String key);
 }

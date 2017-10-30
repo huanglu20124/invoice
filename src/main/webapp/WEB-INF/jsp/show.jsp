@@ -1,3 +1,5 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -11,15 +13,19 @@
 </head>
 <body>
 	<header>
-		<img src="image/zhongda.jpg" style="width: 15%;" />
+		<img src="pic/zhongda.jpg" style="width: 15%;" />
 	</header>
 	<main>
+	   <div align="right">
+	      <h3 align="right">欢迎!${user.user_name}!</h3>
+	   	  <button onclick="javascrtpt:window.location.href='${pageContext.request.contextPath}/logout.action'">注销</button>
+	   </div> 
 		<aside class="col-lg-2">
 			<div class="list-group">
-				<a href="queue.html" class="list-group-item">缓冲队列</a>
-				<a href="show.html" class="list-group-item selected">监控显示</a>
-				<a href="paint.html" class="list-group-item">模板库</a>
-				<a href="fault.html" class="list-group-item">报错发票
+				<a href="${pageContext.request.contextPath}/queue.action" class="list-group-item">缓冲队列</a>
+				<a href="${pageContext.request.contextPath}/show.action" class="list-group-item selected">监控显示</a>
+				<a href="${pageContext.request.contextPath}/paint.action" class="list-group-item">模板库</a>
+				<a href="${pageContext.request.contextPath}/fault.action" class="list-group-item">报错发票
 					<span class="badge">4</span>
 				</a>
 			</div>
@@ -33,9 +39,9 @@
 				    </div>
 				    <div class="panel-body" style="padding: 0px;">
 						<div style="width: 100%; height:auto; overflow: hidden; border-radius: 4px; position: relative;" id="canvas_panel_body">
-							<canvas style="background: url('') no-repeat center; background-size: cover; position:relative; z-index: 2;" id="show_fapiao"></canvas>
+							<canvas style="background: url('pic/shibie_placehold.png')  no-repeat center; background-color: rgba(255,255,255,0); background-size: cover; position:relative; z-index: 2;" id="show_fapiao"></canvas>
 							<!-- 用于备份图片的画布 -->
-							<canvas id="copy_fapiao" style="z-index: 1; position: absolute; background-image: url('image/shibie_placehold.png') no-repeat center; background-size: cover;"></canvas>
+							<canvas id="copy_fapiao" style="z-index: 1; position: absolute; background: url('pic/shibie_placehold.png') no-repeat center; background-size: cover;"></canvas>
 						</div>
 				    </div>
 				</div>
@@ -60,10 +66,10 @@
 				</div>
 				<div class="panel panel-default">
 					<div class="panel-heading">
-				        <h3 class="panel-title">套用模板</h3>
+				        <h3 class="panel-title">套用模板<span class="muban_info"></span></h3>
 				    </div>
 				    <div class="panel-body">
-				        <img src="image/shibie_placehold.png" style="width: 100%;" id="muban" />
+				        <img src="pic/shibie_placehold.png" style="width: 100%;" id="muban" />
 				    </div>
 				</div>
 			</div>
@@ -146,10 +152,12 @@
             	if(data.msg_id == 203 || data.msg_id == 202) {
 					//copy_fapiao获取背景图, show_fapiao绘制图片
             		$("#copy_fapiao").css("backgroundImage", "url(" + data.img_str + ")");
+            		$("#show_fapiao").css("backgroundImage", "url('')");
             		var temp_img = new Image();
             		temp_img.onload = function(){
             			cxt.clearRect(0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
-            			cxt.drawImage(temp_img, 0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));	
+            			cxt.drawImage(temp_img, 0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
+            			$(".muban_info").text("（正在搜索可用模板）");
             		}
             		temp_img.src = data.img_str;
             		if(data.msg_id == 202) {
@@ -167,8 +175,10 @@
             	}
             	else if(data.msg_id == 100 && data.status == 0) {
             		console.log(data.id + " " + data.url); //输出发票类
+            		$(".muban_info").text("（模板名称：" + data.label + "）");
             		$("#muban").get(0).src = data.url;
-
+            		var origin_text = $("#img_msg li").eq(0).text();
+            		$("#img_msg li").eq(0).text(origin_text + data.model_label);
             	}
             	else if(data.msg_id == 101 && data.status == 0) {
             		//模糊其它区域
@@ -203,8 +213,10 @@
             		setTimeout(function(){
             			$(".title_load").text("");
             			cxt.clearRect(0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
-        				$("#muban").get(0).src = "image/shibie_placehold.png";
-        				$("#copy_fapiao").css("backgroundImage", "url('image/shibie_placehold.png')");
+            			$("#show_fapiao").css("backgroundImage", "url('pic/shibie_placehold.png')");
+        				$("#muban").get(0).src = "pic/shibie_placehold.png";
+        				$("#copy_fapiao").css("backgroundImage", "url('pic/shibie_placehold.png')");
+        				$(".muban_info").text("");
             			$("#img_msg li").each(function() {
             				var origin_text = $(this).text().split(":")[0];
             				$(this).text(origin_text+":");

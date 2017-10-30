@@ -2,9 +2,9 @@ package com.hl.util;
 
 public class Const {
 	
-	public static final String LOCAL_IP  = "http://192.168.1.24:8080";
+//	public static final String LOCAL_IP  = "http://192.168.1.24:8080";
 //	public static final String LOCAL_IP  = "http://172.18.92.209:8080";
-//	public static final String LOCAL_IP  = "http://192.168.155.2:8080";
+	public static final String LOCAL_IP  = "http://192.168.191.2:8080";
 	
 //	public static final String REMOTE_IP = "192.168.137.221";
 	//public static final String REMOTE_IP = "192.168.1.14";
@@ -22,8 +22,12 @@ public class Const {
 	public static final String USER_NAME          = "user_name";
 	public static final String USER_PASSWORD      = "user_password";
 	public static final String USER_REGISTER_TIME = "user_register_time";
-	public static final String USER_AUTH          = "user_auth";
 	public static final String USER_TYPE          = "user_type";
+	//用户权限管理
+	public static final String USER_AUTH          = "user_auth";
+	public static final String MODEL_AUTH         = "model_auth";
+	public static final String INVOICE_AUTH       = "invoice_auth";
+	public static final String ACTION_AUTH        = "action_auth";
 	
 	//发票模板表
 	public static final String MODEL_ID           = "model_id";
@@ -31,6 +35,8 @@ public class Const {
 	public static final String MODEL_REGISTER_TIME="model_register_time";
 	public static final String MODEL_SUCCESS_COUNTER="model_success_counter";
 	public static final String MODEL_URL          = "model_url";
+	public static final String MODEL_LABEL        = "model_label";
+	public static final String IMAGE_SIZE         = "image_size";
 	//行为表
 	public static final String ACTION_ID          = "action_id";
 	public static final String STATUS             = "status";
@@ -88,7 +94,11 @@ public class Const {
 	public static final String CODE                = "code";
 	
 	//图片保存所用，代表图片所在的文件夹+文件名形成的后缀
-	public static final String URL_SUFFIX              = "url_suffix";
+	public static final String URL_SUFFIX          = "url_suffix";
 	
+	//一分钟的吞吐量
+	public static final String MINUTE_SUM          = "minute_sum";
 	
+	//识别延时
+	public static final String DELEY               = "delay";
 }
