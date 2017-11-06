@@ -31,20 +31,6 @@
 	<!-- <listener> <listener-class>com.hl.listener.RecognizeListener</listener-class> 
 		</listener> -->
 
-	<!-- 配置过滤器，解决post的乱码问题 -->
-	<filter>
-		<filter-name>encoding</filter-name>
-		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
-		<init-param>
-			<param-name>encoding</param-name>
-			<param-value>UTF-8</param-value>
-		</init-param>
-	</filter>
-	<filter-mapping>
-		<filter-name>encoding</filter-name>
-		<url-pattern>/*</url-pattern>
-	</filter-mapping>
-
 	<!-- spring MVC相关 -->
 	<servlet>
 		<servlet-name>dispatcher</servlet-name>
@@ -59,21 +45,22 @@
 
 	<servlet-mapping>
 		<servlet-name>dispatcher</servlet-name>
-		<url-pattern>/</url-pattern>
+        <url-pattern>/</url-pattern>
+<!-- 		<url-pattern>*.action</url-pattern> -->
 	</servlet-mapping>
 
 
 	<!-- shiro的filter -->
 	<!-- shiro过虑器，DelegatingFilterProxy通过代理模式将spring容器中的bean和filter关联起来 -->
-<!-- 	<filter>
+	<filter>
 		<filter-name>shiroFilter</filter-name>
 		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
-		设置true由servlet容器控制filter的生命周期
+		<!-- 设置true由servlet容器控制filter的生命周期 -->
 		<init-param>
 			<param-name>targetFilterLifecycle</param-name>
 			<param-value>true</param-value>
 		</init-param>
-		设置spring容器filter的bean id，如果不设置则找与filter-name一致的bean
+		<!-- 设置spring容器filter的bean id，如果不设置则找与filter-name一致的bean -->
 		<init-param>
 			<param-name>targetBeanName</param-name>
 			<param-value>shiroFilter</param-value>
@@ -81,10 +68,25 @@
 	</filter>
 	<filter-mapping>
 		<filter-name>shiroFilter</filter-name>
-		<url-pattern>/*.action</url-pattern>
-	</filter-mapping> -->
+		<url-pattern>*.action</url-pattern>
+		<!--这里配置为对所有action结尾的url进行拦截-->
+	</filter-mapping>
 
-    <!-- 欢迎界面 -->
+	<!-- 配置过滤器，解决post的乱码问题 -->
+	<filter>
+		<filter-name>encoding</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>encoding</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+     <!-- 欢迎界面 -->
 	<welcome-file-list>
 		<welcome-file>login.jsp</welcome-file>
 	</welcome-file-list>

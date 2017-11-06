@@ -22,12 +22,8 @@ public class Const {
 	public static final String USER_NAME          = "user_name";
 	public static final String USER_PASSWORD      = "user_password";
 	public static final String USER_REGISTER_TIME = "user_register_time";
-	public static final String USER_TYPE          = "user_type";
-	//用户权限管理
-	public static final String USER_AUTH          = "user_auth";
-	public static final String MODEL_AUTH         = "model_auth";
-	public static final String INVOICE_AUTH       = "invoice_auth";
-	public static final String ACTION_AUTH        = "action_auth";
+	public static final String SALT               = "salt";
+	public static final String LOCKED             = "locked";
 	
 	//发票模板表
 	public static final String MODEL_ID           = "model_id";
@@ -58,6 +54,12 @@ public class Const {
 	public static final String INVOICE_IDENTITY   = "invoice_identity";
 	public static final String INVOICE_REGION_NUM = "invoice_region_num";
 	public static final String INVOICE_URL        = "invoice_url";
+	
+	//权限表
+	public static final String PERMISSION_ID      = "permission_id";
+	public static final String PERMISSION_NAME    = "permission_name";
+	public static final String PERMISSION_URL     = "permission_url";
+	
 	//服务端返回给前端的信息
 	public static final String ERR = "err";
 	public static final String SUCCESS = "success";

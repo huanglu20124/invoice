@@ -9,12 +9,12 @@ package com.hl.exception;
  * @date	2015-3-22下午2:50:30
  * @version 1.0
  */
-public class CustomException extends Exception {
+public class InvoiceException extends Exception {
 	
 	//异常信息
 	private String message;
 	
-	public CustomException(String message){
+	public InvoiceException(String message){
 		super(message);
 		this.message = message;
 		

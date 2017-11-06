@@ -14,7 +14,7 @@
 </head>
 <body>
 	<img src="pic/login_bg.jpg" style="height: 100%; width: auto; opacity: 0.5;">
-	<main class="login_main">
+	<main class="login_main" style="overflow: visible;">
 		<i class="fa fa-user-circle login_hd" aria-hidden="true" style="font-size: 60px; display: inline-block; margin-bottom: 0.5em;"></i>
 		<ul id="login_tab" class="nav nav-tabs login_nav">
 			<li class="active">
@@ -24,7 +24,7 @@
 		</ul>
 		<div class="tab-content">
 			<div class="tab-pane fade in active" id="user">
-				<form role="form" id="user_login" action="${pageContext.request.contextPath}/loginCheck" method="POST">
+				<form role="form" id="user_login" action="${pageContext.request.contextPath}/login.action" method="POST">
 					<div class="input-group">
 			            <span class="input-group-addon"><i class="fa fa-info" aria-hidden="true"></i></span>
 			            <input type="text" class="form-control" placeholder="请输入用户账号" name="user_name">

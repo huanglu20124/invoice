@@ -3,18 +3,18 @@
 	xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.2.xsd ">
-	
+
 	<!-- 开启注解扫描 -->
 	<context:component-scan base-package="com.hl.*"></context:component-scan>
-	
+
 	<!-- 读取.properties配置文件 -->
-		<bean
+	<bean
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
 		<property name="ignoreResourceNotFound" value="true" />
 		<property name="locations">
 			<list>
-			    <value>classpath:redis.properties</value>
+				<value>classpath:redis.properties</value>
 				<value>classpath:jdbc.properties</value>
 				<value>classpath:local.properties</value>
 			</list>
@@ -78,7 +78,7 @@
 		<constructor-arg ref="redisTemplate" />
 		<constructor-arg ref="redisCacheManager" />
 	</bean>
-	
+
 	<!-- mysql配置相关 -->
 	<!-- 1.mysql c3p0 连接池 -->
 	<bean name="dataSource1" class="com.mchange.v2.c3p0.ComboPooledDataSource"
@@ -89,12 +89,12 @@
 		<property name="password" value="${jdbc.password}"></property>
 		<!--<property name="maxPoolSize" value="${jdbc.maxPoolSize}"></property> -->
 	</bean>
-	
+
 	<!-- 2.将JDBCTemplate放入spring容器 -->
 	<bean name="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
 		<property name="dataSource" ref="dataSource1"></property>
 	</bean>
-	
+
 	<!-- 事务核心管理器,封装了所有事务操作. 依赖于连接池 -->
 	<bean name="transactionManager"
 		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
@@ -103,62 +103,86 @@
 
 	<!-- 开启使用注解管理aop事务 -->
 	<tx:annotation-driven transaction-manager="transactionManager" />
-	
+
 	<!-- Dao配置 -->
 	<bean name="redisDao" class="com.hl.dao.impl.RedisDaoImpl">
-	   <property name="redisTemplate" ref="redisTemplate"></property>
+		<property name="redisTemplate" ref="redisTemplate"></property>
+	</bean>
+
+	<bean name="invoiceDao" class="com.hl.dao.impl.InvoiceDaoImpl">
+		<property name="dataSource" ref="dataSource1"></property>
+	</bean>
+
+	<bean name="userDao" class="com.hl.dao.impl.UserDaoImpl">
+		<property name="dataSource" ref="dataSource1"></property>
 	</bean>
 	
-     <bean name="invoiceDao" class="com.hl.dao.impl.InvoiceDaoImpl">
-	   <property name="dataSource" ref="dataSource1"></property>
+	<bean name="actionDao" class="com.hl.dao.impl.ActionDaoImpl">
+		<property name="dataSource" ref="dataSource1"></property>
 	</bean>
 	
-	 <bean name="userDao" class="com.hl.dao.impl.UserDaoImpl">
-	   <property name="dataSource" ref="dataSource1"></property>
-	</bean>
-	
-	
-	<!-- 特殊bean，初始化后从配置文件加载到内存中 localConfig-->
+	<!-- 特殊bean，初始化后从配置文件加载到内存中 localConfig -->
 	<bean name="localConfig" class="com.hl.domain.LocalConfig">
-	   <property name="ip" value="${local.ip}"></property>
-	   <property name="dataBasePath" value="${local.dataBasePath}"></property>
-	   <property name="imagePath" value="${local.imagePath}"></property>
-	   <property name="customerHost" value="${local.customerHost}"></property>
-	   <property name="customerPort" value="${local.customerPort}"></property>
+		<property name="ip" value="${local.ip}"></property>
+		<property name="dataBasePath" value="${local.dataBasePath}"></property>
+		<property name="imagePath" value="${local.imagePath}"></property>
+		<property name="customerHost" value="${local.customerHost}"></property>
+		<property name="customerPort" value="${local.customerPort}"></property>
 	</bean>
-	
-	
+
+
 	<!-- web.xml中shiro的filter对应的bean -->
-    <!-- Shiro 的Web过滤器 -->
+	<!-- Shiro 的Web过滤器 -->
 	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
 		<property name="securityManager" ref="securityManager" />
 		<!-- loginUrl认证提交地址，如果没有认证将会请求此地址进行认证，请求此地址将由formAuthenticationFilter进行表单认证 -->
 		<property name="loginUrl" value="/login.action" />
-		<!-- 认证成功统一跳转到first.action，建议不配置，shiro认证成功自动到上一个请求路径 -->
-		<property name="successUrl" value="/first.action"/>
-		<!-- 通过unauthorizedUrl指定没有权限操作时跳转页面-->
-		<property name="unauthorizedUrl" value="/refuse.jsp" />
+		<!-- 认证成功统一跳转到paint.action，建议不配置，shiro认证成功自动到上一个请求路径 -->
+		<property name="successUrl" value="/queue.action" />
+		<!-- 通过unauthorizedUrl指定没有权限操作时跳转页面 -->
+		<property name="unauthorizedUrl" value="/login.jsp" />
 		<!-- 自定义filter配置 -->
 		<property name="filters">
 			<map>
-				<!-- 将自定义 的FormAuthenticationFilter注入shiroFilter中-->
+				<!-- 将自定义 的FormAuthenticationFilter注入shiroFilter中 -->
 				<entry key="authc" value-ref="formAuthenticationFilter" />
 			</map>
 		</property>
-		
+
 		<!-- 过虑器链定义，从上向下顺序执行，一般将/**放在最下边 -->
 		<property name="filterChainDefinitions">
 			<value>
+				<!-- 请求 logout.action地址，shiro去清除session -->
+				/logout.action = logout
+				<!-- /*.action = authc 所有url都必须认证通过才可以访问(这里记得与前端测试的时候，要关闭认证) -->
 			</value>
 		</property>
 	</bean>
-	
-	
+
+
 	<!-- securityManager安全管理器 -->
-    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
-		<property name="realm" ref="customerRealm" />		
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<property name="realm" ref="userRealm" />
 	</bean>
-	
-	<bean id="customerRealm" class="com.hl.shiro.CustomerRealm"></bean>
-	
+	<!-- 配置Realm -->
+	<bean id="userRealm" class="com.hl.shiro.UserRealm">
+	  <!-- 凭证匹配器 -->
+	    <property name="credentialsMatcher" ref="credentialsMatcher"/> 
+	</bean>
+
+	<!-- 凭证匹配器 采用md5,散列1次 -->
+     <bean id="credentialsMatcher" class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+		<property name="hashAlgorithmName" value="md5" />
+		<property name="hashIterations" value="1" />
+	</bean>
+
+	<!-- 自定义form认证过虑器 -->
+	<!-- 基于Form表单的身份验证过滤器，不配置将也会注册此过虑器，表单中的用户账号、密码及loginurl将采用默认值，建议配置 -->
+	<bean id="formAuthenticationFilter" class="com.hl.shiro.UserFormAuthenticationFilter">
+		<!-- 表单中账号的input名称 -->
+		<property name="usernameParam" value="user_name" />
+		<!-- 表单中密码的input名称 -->
+		<property name="passwordParam" value="user_password" />
+	</bean>
+
 </beans>

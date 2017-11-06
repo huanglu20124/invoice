@@ -110,6 +110,5 @@ public class ImageTest {
 	
 	@Test
 	public void test10() throws Exception {
-		
 	}
 }

@@ -7,6 +7,12 @@ body {
 	width: 100%;
 }
 
+a:link, a:visited {
+	text-decoration: none;
+	color: #000000;
+}
+
+
 #myCanvas {
 	border: 1px solid #000; 
 	cursor: crosshair; 
@@ -19,32 +25,36 @@ body {
 	display: none;
 	position: absolute;
 	z-index: 3;
+	height: 20px;
 	background-color: #e9edf3;
-	padding: 0px 10px;
+	/*padding: 0px 10px;*/
 }
 
 .hid_panel span {
 	display: inline-block;
-	width: 30px;
-	height: 30px;
+	width: 20px;
+	height: 20px;
+	padding: 5px;
+	text-align: center;
 	overflow: hidden;
 /*	border-radius: 50%;
 	background-color: #ca0613;*/
-	margin-right: 10px;
+/*	margin-right: 10px;*/
 }
 
 .hid_panel img:last-child {
-	margin-right: 0px;
+	/*margin-right: 0px;*/
 /*	background-color: #bda500;*/
 }
 
 .hid_panel img {
-	width: 100%;
-	height: 100%;
 	width: 10px;
 	height: 10px;
+	vertical-align: top;
+/*	width: 10px;
+	height: 10px;*/
 	overflow: hidden;
-	margin-right: 10px;
+/*	margin-right: 10px;*/
 }
 
 .setting_panel {
@@ -58,15 +68,55 @@ body {
 header {
 	width: 100%;
 	padding: 20px;
+	height: 100px;
 }
 
-aside, main{
+main{
+	background-color: #f8f9fb;
+	overflow: hidden;
 	/*padding-top: 20px;*/
 }
 
+.main_content {
+	border-left: 1px solid rgba(200, 200, 200, 0.5);
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+
+.aside_nav {
+	display: inline-block;
+	width: 15%;
+}
+
+.aside_nav_list {
+	display: block;
+	width: 100%;
+	height: 100%;
+	padding: 10px 0px;
+}
+
+.aside_nav_list-item {
+	border-radius: 2px;
+	padding: 5px 0px;
+	padding-left: 2em;
+	display: block;
+	margin: 10px 0px;
+	font-size: 16px;
+}
+
+.aside_nav_list-item-icon {
+	font-size: 16px;
+	margin-right: 1.5em;
+}
+
+.aside_nav_list-item:hover {
+	background-color: rgba(200, 200, 200, 0.5);
+}
+
 .selected {
-	background-color: #a7a1a1 !important;
-	color: #ffffff !important;
+	border-left: #337ab7 3px solid;
+	color: #337ab7 !important;
+	background-color: transparent !important; 
 }
 
 .first_line, .second_line {
@@ -166,8 +216,15 @@ aside, main{
 	margin-right: 0px;
 }
 
-.ku_img, .rect_img, .list_muban .fa-image, .muban_table tbody tr{
+.ku_img, .rect_img, .list_muban .fa-image, .muban_table tbody tr, .muban_table th{
 	cursor: pointer;
+}
+
+.muban_table th:hover {
+	background-color: rgba(200,200,200,0.3);
+	background-clip: padding-box;
+	border-radius: 5px;
+	box-shadow: 0px -1px 5px rgba(0,0,0, 0.2);
 }
 
 .ku_img_container {
@@ -206,7 +263,8 @@ aside, main{
 	width: 25%; 
 	position: absolute; 
 	top: 50%; 
-	left: 50%; 
+	left: 50%;
+	/*margin: 0 auto; */
 	padding: 0px 10px 20px; 
 	text-align: center; 
 	background-color: rgba(255,255,255,0.4);
@@ -296,4 +354,76 @@ aside, main{
 .list_muban_contain .fa {
 	font-size: 30px;
 	color: #0078d7;
+}
+
+.sorted_down:after {
+	font-family:'FontAwesome'; 
+	content: "\f0d7";
+	margin-left: 0.5em;
+	display: inline-block;
+	font-size: 14px;
+	vertical-align: middle;
+}
+
+.sorted_up:after {
+	font-family:'FontAwesome'; 
+	content: "\f0d8";
+	margin-left: 0.5em;
+	display: inline-block;
+	font-size: 14px;
+	vertical-align: middle;
+}
+
+.hid_panel span:hover, .hid_panel span:active {
+	background-color: #ccd1d9;
+}
+
+.disabled_button {
+	background-color: #e9edf3 !important;
+}
+
+header {
+	overflow: hidden;
+}
+
+.ui-slider-handle:active {
+	background-color: #aaaaaa !important;
+	border: 0.5px solid rgba(200, 200, 200, 1) !important;
+}
+
+.info_red {
+	color: red;
+}
+
+.info_blue {
+	color: #337ab7;
+}
+
+#slide_tooltip {
+	opacity: 0;
+	transition: opacity 0.5s;
+    width: 40px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    padding: 5px 2px;
+    border-radius: 6px;
+ 
+    /* 定位 */
+    position: absolute;
+    z-index: 1;
+    bottom: 150%;
+    left: 50%;
+    margin-left: -20px;
+}
+
+#slide_tooltip:after {
+ 	content: " ";
+    position: absolute;
+    top: 100%; /* 提示工具在顶部 */
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: black transparent transparent transparent;
 }
