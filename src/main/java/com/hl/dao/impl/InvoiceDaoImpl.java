@@ -22,7 +22,10 @@ import org.springframework.jdbc.support.KeyHolder;
 
 import com.alibaba.fastjson.JSON;
 import com.hl.dao.InvoiceDao;
+import com.hl.domain.Action;
+import com.hl.domain.Invoice;
 import com.hl.domain.Model;
+import com.hl.domain.RecognizeAction;
 import com.hl.util.Const;
 import com.mysql.jdbc.TimeUtil;
 import com.sun.istack.FinalArrayList;
@@ -30,9 +33,9 @@ import com.sun.istack.FinalArrayList;
 public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 
 	@Override
-	public Integer addRecognizeAction(final Integer user_id) {
+	public Integer addAction(final Action action) {
 		//生成一条行为，插入action表，并获取返回的action_id(主键) 
-		final String sql = "insert into invoice.action values(null,?,1,0,null,null,?,null,null)";
+		final String sql = "insert into invoice.action values(null,?,?,0,?,null,null,?)";
 		final String action_start_time = com.hl.util.TimeUtil.getCurrentTime();
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		//返回主键
@@ -40,8 +43,10 @@ public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 			@Override
 			public java.sql.PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 				java.sql.PreparedStatement psm =  connection.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
-				psm.setInt(1,user_id);
-				psm.setString(2, action_start_time);
+				psm.setInt(1,action.getUser_id());
+				psm.setInt(2, action.getMsg_id());
+				psm.setString(3, action_start_time);
+				psm.setInt(4, action.getCompany_id());
 				return psm;
 			}
 		},keyHolder);
@@ -68,28 +73,7 @@ public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 	}
 	
 	@Override
-	public Integer addUpdateModelAction(final Integer user_id, final Integer model_id) {
-		//增加修改发票模板的行为，返回主键
-		final String sql = "insert into invoice.action values(null,?,4,0,null,?,?,null,null)";
-		final String action_start_time = com.hl.util.TimeUtil.getCurrentTime();
-		KeyHolder keyHolder = new GeneratedKeyHolder();
-		//返回主键
-		getJdbcTemplate().update(new PreparedStatementCreator() {
-			@Override
-			public java.sql.PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
-				java.sql.PreparedStatement psm =  connection.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
-				psm.setInt(1,user_id);
-				psm.setInt(2, model_id);
-				psm.setString(3, action_start_time);
-				return psm;
-			}
-		},keyHolder);
-		return keyHolder.getKey().intValue();
-	}
-	
-	@Override
-	public int addRecognizeInvoice(Map<String, Object> invoice_data,
-			final Integer model_id,final String url) {
+	public int addRecognizeInvoice(Map<String, Object> invoice_data,final Invoice invoice) {
 		//添加一条发票信息
 		final String invoice_type = (String) invoice_data.get("发票类型");
 		final String invoice_money = (String) invoice_data.get("金额");
@@ -100,14 +84,17 @@ public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 		final String invoice_detail = (String) invoice_data.get("具体信息");
 		final String invoice_identity = (String) invoice_data.get("身份证号码");
 		final int invoice_region_num = (int) invoice_data.get("region_num");
-		final String sql = "insert into invoice values(null,?,0,null,?,?,?,?,?,?,?,?,?,?);";
+		final String sql = "insert into invoice values(null,?,0,null,?,"
+				                                     + " ?,?,?,?,?,"
+				                                     + " ?,?,?,?,?,"
+				                                     + " ?,?,?,?,?);";
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		//返回主键
 		getJdbcTemplate().update(new PreparedStatementCreator() {
 			@Override
 			public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 				PreparedStatement psm = connection.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
-				psm.setInt(1, model_id);
+				psm.setInt(1, invoice.getModel_id());
 				psm.setString(2, invoice_type);
 				psm.setString(3, invoice_money);
 				psm.setString(4, invoice_customer);
@@ -117,7 +104,13 @@ public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 				psm.setString(8, invoice_detail);
 				psm.setString(9,invoice_identity);
 				psm.setInt(10, invoice_region_num);
-				psm.setString(11,url);
+				psm.setString(11,invoice.getInvoice_url());
+				psm.setString(12, invoice.getInvoice_image_id());
+				psm.setString(13, invoice.getInvoice_note());
+				psm.setInt(14,invoice.getAction_id());
+				psm.setInt(15, invoice.getImage_size());
+				psm.setInt(16, invoice.getInvoice_status());
+				psm.setString(17, invoice.getRecognize_time());
 				return psm;
 			}
 		},keyHolder);
@@ -134,30 +127,19 @@ public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 		Map<String, Object>global_setting_map = (Map<String, Object>) json_map.get("global_setting");
 		String model_label = (String) global_setting_map.get("label");
 		getJdbcTemplate().update(sql,model_id,json_model,model_register_time,url_suffix,model_label,image_size);
-		
 	}
 
 	@Override
-	public void updateModel(int model_id, String json_model,String url) {
-		String sql = "update model set json_model=?, model_url=?, model_label=?, model_register_time=? where model_id=?";
+	public void updateModel(int model_id, String json_model,String url, Integer action_id) {
+		String sql = "update model set json_model=?, model_url=?, model_label=?, model_register_time=?, action_id = ? where model_id=?";
 		//获得json_model里的model_label
 		Map<String, Object>json_map = JSON.parseObject(json_model);
 		Map<String, Object>global_setting_map = (Map<String, Object>) json_map.get("global_setting");
 		String model_label = (String) global_setting_map.get("label");
-		getJdbcTemplate().update(sql,json_model,url,model_label,com.hl.util.TimeUtil.getCurrentTime(),model_id);
+		getJdbcTemplate().update(sql,json_model,url,model_label,com.hl.util.TimeUtil.getCurrentTime(),action_id,model_id);
 		
 	}
 
-
-	@Override
-	public void finishAddModelAction(int action_id, int model_id,int status) {
-		//新增模板跑完后action表信息更新
-		//识别完成后，更新action表的信息
-		String sql = "update action set model_id = ?,  action_end_time = ?, status=? where action_id = ?";
-		String action_end_time = com.hl.util.TimeUtil.getCurrentTime();
-		getJdbcTemplate().update(sql,model_id,action_end_time,status,action_id);	
-	}
-	
 	@Override
 	public int finishRecognizeAction(int action_id, int invoice_id, int status) {
 		//识别完成后，更新action表的信息
@@ -168,27 +150,12 @@ public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 	}
 
 	@Override
-	public void finishUpdateModelAction(Integer action_id, int status) {
-		//完成了修改模板的操作
-		String sql = "update action set status=? , action_end_time = ? where action_id = ?";
-		getJdbcTemplate().update(sql,status,com.hl.util.TimeUtil.getCurrentTime(),action_id);	
-	}
-	
-	@Override
 	public void finishDeleteModelAction(Integer action_id, int status) {
 		//完成了删除模板的工作
 		String sql = "update action set status=? , action_end_time = ? where action_id = ?";
 		getJdbcTemplate().update(sql,status,com.hl.util.TimeUtil.getCurrentTime(),action_id);	
 	}
 	
-	@Override
-	public int startAction(int action_id) {
-		//记录开始跑算法的时间
-		String action_run_time = com.hl.util.TimeUtil.getCurrentTime();
-		String sql = "update action set action_run_time = ? where action_id = ?";
-		return getJdbcTemplate().update(sql,action_run_time,action_id);
-	}
-
 	@Override
 	public void deleteInvoiceForeginModel(int model_id) {
 		//找到全部携带该model_id的invoice，设置外键为null
@@ -211,13 +178,14 @@ public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 	}
 
 	@Override
-	public List<Model> getTwelveModel(Integer start) {
-		if(start == 0){
+	public List<Model> getTwelveModel(Integer page) {
+		if(page == 0){
 			String sql = "select * from model order by model_id desc LIMIT 12";
 			return getJdbcTemplate().query(sql,new ModelRowmapper());
 		}else {
-			String sql = "select * from model where model_id < ? order by model_id desc LIMIT 12";
-			return getJdbcTemplate().query(sql,new ModelRowmapper(),start);
+			Integer beagin = page * 12;
+			String sql = "select * from model order by model_id desc LIMIT ?,12";
+			return getJdbcTemplate().query(sql,new ModelRowmapper(),beagin);
 		}
 		
 	}
@@ -233,6 +201,7 @@ public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 			model.setModel_url(rs.getString(Const.MODEL_URL));
 			model.setModel_label(rs.getString(Const.MODEL_LABEL));
 			model.setImage_size(rs.getInt(Const.IMAGE_SIZE));
+			model.setAction_id(rs.getInt(Const.ACTION_ID));
 			return model;
 		}
 		
@@ -327,6 +296,21 @@ public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 		String sql = "select model_label from model where model_id=?";
 		return getJdbcTemplate().queryForObject(sql, String.class,model_id);
 	}
+
+	@Override
+	public void runAction(Integer action_id) {
+		//更新action开始跑的时间
+		String sql = "update action set action_run_time = ? where action_id = ?";
+		getJdbcTemplate().update(sql,com.hl.util.TimeUtil.getCurrentTime(),action_id);	
+	}
+
+	@Override
+	public void finishAction(Integer action_id, int status) {
+		//更新action完成的时间
+		String sql = "update action set action_end_time = ?, status = ? where action_id = ?";
+		getJdbcTemplate().update(sql,com.hl.util.TimeUtil.getCurrentTime(),status,action_id);	
+	}
+
 
 
 

@@ -1,4 +1,4 @@
-package com.hl.socket;
+package com.hl.controller;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,14 +19,19 @@ import org.springframework.web.socket.TextMessage;
 
 import com.alibaba.fastjson.JSON;
 import com.hl.dao.RedisDao;
+import com.hl.domain.Invoice;
 import com.hl.domain.LocalConfig;
+import com.hl.domain.ModelAction;
+import com.hl.domain.RecognizeAction;
 import com.hl.service.InvoiceService;
 import com.hl.util.Const;
 import com.hl.util.ImageUtil;
 import com.hl.util.MessageUtil;
+import com.hl.util.SocketLoadTool;
 import com.hl.websocket.SystemWebSocketHandler;
 import com.sun.org.apache.bcel.internal.generic.NEW;
 
+//调度线程的类
 public class SwitcherThread implements Runnable {
 
 	private ServletContext servletContext;
@@ -79,7 +84,7 @@ public class SwitcherThread implements Runnable {
 			e.printStackTrace();
 		}
 		servletContext.setAttribute(Const.THREAD_MSG, thread_msg);// 将这个变量存到servletContext中
-		servletContext.setAttribute(Const.DELEY, 0);
+		servletContext.setAttribute(Const.DELAY, 0);
 	}
 
 	@Override
@@ -115,35 +120,18 @@ public class SwitcherThread implements Runnable {
 	}
 
 	public void switchRecognizeInvoice() {
-		checkAlogrithmConnect();
-		// 0.延时3秒
 		try {
 			Thread.sleep(3000);
 		} catch (InterruptedException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		// 1.先得到等待队列头的action_id
-		String action_id = redisDao.getRight(Const.RECOGNIZE_WAIT, 0l);
-		// 2.根据这个作为key，取得对应的map,再取里面的信息
-		String action_map_str = (String) redisDao.getValue(action_id);
-		Map<String, Object>action_map = JSON.parseObject(action_map_str);
-		String url_suffix = (String) action_map.get(Const.URL_SUFFIX);
-		//补充，将当前要跑的发票的url等信息发给前端
-		invoiceService.broadcastNextRecognize(new Integer(action_id), action_map);
-		// 3.将后缀转换为本地硬盘路径
-		String absolute_path = ImageUtil.suffixToBmp(localConfig.getImagePath() + url_suffix);
-		// 4.补充协议json信息
-		Map<String, Object> msg_map = new HashMap<>();
-		msg_map.put(Const.URL, absolute_path);
+		checkAlogrithmConnect();
 		//得到最新的延时速度
-		deley = (Integer) servletContext.getAttribute(Const.DELEY);
-		msg_map.put(Const.DELEY, deley);
-		// 5.发送消息
-		MessageUtil.sendMessage(outputStream, 1, JSON.toJSONString(msg_map),systemWebSocketHandler);
-		System.out.println(action_id + "发送了识别请求");
-		//6. 调用service层方法处理识别过程返回的数据
-		invoiceService.broadcastRecognizeProcess(inputStream,new Integer(action_id),action_map);
+		deley = (Integer) servletContext.getAttribute(Const.DELAY);
+		// 0.延时3秒
+		//调用service层方法处理识别过程返回的数据
+		invoiceService.broadcastRecognizeProcess(inputStream,outputStream,deley);
 	}
 
 	public void switchManageModel() {
@@ -152,19 +140,19 @@ public class SwitcherThread implements Runnable {
 		String action_id = redisDao.getRight(Const.MANAGE_WAIT,0l);
 		// 2.根据这个作为key，取得对应的url,json_model,msg_id
 		String manage_map_str = (String) redisDao.getValue(action_id);
-	    Map<String, Object>manage_map = JSON.parseObject(manage_map_str);
+	    ModelAction modelAction  = JSON.parseObject(manage_map_str,ModelAction.class);
 	    //4.判断msg_id，决定采取的操作类型
-	    int msg_id = (int) manage_map.get(Const.MSG_ID);
+	    int msg_id = modelAction.getMsg_id();
 	    switch (msg_id) {
 		case 2://增加
 		{
 			//首先，将后缀变更为本地url
-			String url_suffix = (String) manage_map.get(Const.URL_SUFFIX);
+			String url_suffix = modelAction.getUrl_suffix();
 			//得到原图
 			String url_suffix_original = url_suffix.replaceAll("handle", "original");
 			String local_path = ImageUtil.suffixToBmp(localConfig.getImagePath() + url_suffix_original);
 			//得到json_model，加入图片url
-			Map<String, Object>json_model_map = (Map<String, Object>) manage_map.get(Const.JSON_MODEL);
+			Map<String, Object>json_model_map = (Map<String, Object>) JSON.parse(modelAction.getJson_model());
 			json_model_map.put(Const.URL, local_path);
 			//发送消息
 			//另外json_model还要包一层。。
@@ -179,7 +167,7 @@ public class SwitcherThread implements Runnable {
 		
 		case 3://删除
 		{
-			int model_id = (int) manage_map.get(Const.MODEL_ID);
+			int model_id = modelAction.getModel_id();
 			//另外还要包一层。。
 			Map<String, Object>temp = new HashMap<>();
 			temp.put("id", model_id);
@@ -195,14 +183,14 @@ public class SwitcherThread implements Runnable {
 		case 4: //修改
 		{
 			//首先，将后缀变更为本地url
-			String url_suffix = (String) manage_map.get(Const.URL_SUFFIX);
+			String url_suffix = modelAction.getUrl_suffix();
 			String absulote_path = ImageUtil.suffixToBmp(localConfig.getImagePath() + 
 					url_suffix.replaceAll("handle", "original"));//同时变更文件夹名
 			//得到model_id
-			int model_id = (int) manage_map.get(Const.MODEL_ID);
+			int model_id = modelAction.getModel_id();
 			//发送消息
 			//得到json_model
-			Map<String, Object>json_model_map = (Map<String, Object>) manage_map.get(Const.JSON_MODEL);
+			Map<String, Object>json_model_map = (Map<String, Object>) JSON.parse(modelAction.getJson_model());
 			Map<String, Object>global_setting_map = (Map<String, Object>) json_model_map.get("global_setting");
 			global_setting_map.put("id", model_id);
 			json_model_map.put("global_setting", global_setting_map);

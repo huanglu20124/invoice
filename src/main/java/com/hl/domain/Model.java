@@ -6,14 +6,14 @@ import com.alibaba.fastjson.JSON;
 
 //模板类
 public class Model {
-	Integer model_id;
-	String json_model;
-	String model_register_time;
-	Integer model_register_counter;
-	String model_url;
-	String model_label;
-	Integer image_size;
-	
+	private Integer model_id;
+	private String json_model;
+	private String model_register_time;
+	private Integer model_register_counter;
+	private String model_url;
+	private String model_label;
+	private Integer image_size;
+	private Integer action_id;
 	public String getModel_label() {
 		return model_label;
 	}
@@ -55,6 +55,12 @@ public class Model {
 	}
 	public void setImage_size(Integer image_size) {
 		this.image_size = image_size;
+	}
+	public Integer getAction_id() {
+		return action_id;
+	}
+	public void setAction_id(Integer action_id) {
+		this.action_id = action_id;
 	}
 
 	

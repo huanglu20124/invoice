@@ -19,8 +19,8 @@ import org.springframework.web.socket.WebSocketSession;
 import com.alibaba.fastjson.JSON;
 import com.hl.dao.RedisDao;
 import com.hl.service.InvoiceService;
-import com.hl.socket.SocketLoadTool;
 import com.hl.util.Const;
+import com.hl.util.SocketLoadTool;
 
 @Component("systemWebSocketHandler")
 public class SystemWebSocketHandler implements WebSocketHandler {
@@ -109,16 +109,20 @@ public class SystemWebSocketHandler implements WebSocketHandler {
      * @param message
      */
     public void sendMessageToUsers(TextMessage message) {
-        for (WebSocketSession user : users) {
-            try {
-                if (user.isOpen()) {
-                    user.sendMessage(message);
-                    System.out.println("成功群发消息");
+    	try {
+            for (WebSocketSession user : users) {
+                try {
+                    if (user.isOpen()) {
+                        user.sendMessage(message);
+                        System.out.println("成功群发消息");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
-        }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
     }
     
     

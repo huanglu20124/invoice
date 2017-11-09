@@ -15,8 +15,8 @@ import java.util.Map;
 
 import com.alibaba.fastjson.JSON;
 import com.hl.domain.ResponseMessage;
-import com.hl.socket.SocketUtil;
 import com.hl.util.IOUtil;
+import com.hl.util.SocketUtil;
 
 public class ServerSocketTest {
 	public static void main(String[] args) throws InterruptedException {

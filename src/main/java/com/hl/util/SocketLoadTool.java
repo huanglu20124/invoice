@@ -1,4 +1,4 @@
-package com.hl.socket;
+package com.hl.util;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.hl.domain.LocalConfig;
-import com.hl.util.Const;
 
 @Component("socketListener")
 @Scope("singleton")

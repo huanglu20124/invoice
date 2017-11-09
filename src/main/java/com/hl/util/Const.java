@@ -54,7 +54,8 @@ public class Const {
 	public static final String INVOICE_IDENTITY   = "invoice_identity";
 	public static final String INVOICE_REGION_NUM = "invoice_region_num";
 	public static final String INVOICE_URL        = "invoice_url";
-	
+	public static final String INVOICE_IMAGE_ID   = "invoice_image_id";
+	public static final String INVOICE_NOTE       = "invoice_note";
 	//权限表
 	public static final String PERMISSION_ID      = "permission_id";
 	public static final String PERMISSION_NAME    = "permission_name";
@@ -102,5 +103,5 @@ public class Const {
 	public static final String MINUTE_SUM          = "minute_sum";
 	
 	//识别延时
-	public static final String DELEY               = "delay";
+	public static final String DELAY               = "delay";
 }

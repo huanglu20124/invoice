@@ -6,7 +6,7 @@
 		宿舍 "172.18.92.209:8080"
 		实验室secure "172.19.82.51:8080" 
 	-->
-    <connect_ip>192.168.137.221:8080</connect_ip>
+    <connect_ip>172.18.92.209:8080</connect_ip>
     <invoice_width>1160</invoice_width>
 	<invoice_height>817</invoice_height>
 	<console_level>3</console_level>

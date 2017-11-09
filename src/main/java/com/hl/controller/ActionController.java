@@ -29,11 +29,10 @@ public class ActionController {
 	// ajax接口：按时间排序，一次获取20条日志，
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/getTwentyAction.action", method = RequestMethod.POST)
-	public void getTwentyAction(HttpServletRequest request, HttpServletResponse response) throws IOException{
+	public void getTwentyAction(HttpServletRequest request, HttpServletResponse response, Integer page) throws IOException{
 		System.out.println("接收到查询操作日志的请求");
 		Map<String, Object>ans_map = new HashMap<>();
-		Integer start = new Integer(request.getParameter("start"));
-		actionService.getTwentyAction(start,ans_map);
+		actionService.getTwentyAction(page,ans_map);
 		PrintWriter printWriter = response.getWriter();
 		printWriter.write(JSON.toJSONString(ans_map));
 		printWriter.flush();

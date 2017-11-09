@@ -3,6 +3,7 @@ package com.hl.service.impl;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,6 +11,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
 import javax.annotation.Resource;
 import javax.servlet.ServletContext;
 
@@ -23,15 +26,19 @@ import com.alibaba.fastjson.JSON;
 import com.hl.dao.InvoiceDao;
 import com.hl.dao.RedisDao;
 import com.hl.dao.UserDao;
+import com.hl.domain.Action;
+import com.hl.domain.Invoice;
 import com.hl.domain.LocalConfig;
 import com.hl.domain.Model;
+import com.hl.domain.ModelAction;
+import com.hl.domain.RecognizeAction;
 import com.hl.domain.ResponseMessage;
 import com.hl.domain.User;
 import com.hl.service.InvoiceService;
-import com.hl.socket.SocketLoadTool;
 import com.hl.util.Const;
 import com.hl.util.ImageUtil;
 import com.hl.util.MessageUtil;
+import com.hl.util.SocketLoadTool;
 import com.hl.util.TimeUtil;
 import com.hl.websocket.SystemWebSocketHandler;
 
@@ -58,50 +65,48 @@ public class InvoiceServiceImpl implements InvoiceService {
 
 	// ajax处理web请求
 	@Override
-	public void addRecognizeInvoice(Map<String, Object> ans_map, Integer user_id, List<String> image_urls,
-			Integer thread_msg) {
-		// 首先进行权限判断
-		User user = userDao.getUserById(user_id);
-		// 一次识别的操作,注意，发给算法服务器时，image_url要变为本地的路径
+	public void addRecognizeInvoice(Map<String, Object> ans_map, RecognizeAction recognizeAction,
+			List<String>url_suffixs,Integer thread_msg) {
+		// 获得当前用户，首先进行权限判断
+		User user = userDao.getUserById(recognizeAction.getUser_id());
+		//获得发票列表
+		List<Invoice>invoice_list = recognizeAction.getInvoice_list();
+		//websocket用的map
 		Map<String, Object> broadcast_map = new HashMap<>();
-		List<Map<String, Object>> new_recognize = new ArrayList<>();// 记录识别队列新增的发票
-		List<Integer> action_id_list = new ArrayList<>();
-		// 1.首先全部加入到等待队列里,队列左进右出
-		for (String url_suffix : image_urls) {
-			// 2.生成一条行为，插入action表，并获取返回的action_id
-			// action_id还作为存到redis队列表的的value，同时作为一个唯一集合的key,value为图片url，user_id,user_name,action_start_time
-			// 该id还作为数据库action表的主键
-			Integer action_id = invoiceDao.addRecognizeAction(user_id);
-			action_id_list.add(action_id);
-			System.out.println("上传的url_suffix为" + url_suffix + "对应action_id为：" + action_id);
-			redisDao.leftPush(Const.RECOGNIZE_WAIT, action_id.toString());
-			// 加入必要信息
-			Map<String, Object> action_map = new HashMap<>();
-			action_map.put(Const.URL_SUFFIX, url_suffix);
-			action_map.put(Const.ACTION_START_TIME, TimeUtil.getCurrentTime());
-			action_map.put(Const.USER_ID, user_id);
-			String user_name = user.getUser_name();
-			if (user_name != null) {
-				action_map.put(Const.USER_NAME, user_name);
-			}
-			String company_name = user.getCompany_name();
-			if (company_name != null) {
-				action_map.put(Const.COMPANY_NAME, company_name);
-			}
-			redisDao.addKey(action_id.toString(), JSON.toJSONString(action_map));
-			Map<String, Object> temp_map = new HashMap<>();
-			temp_map.put(Const.ACTION_ID, action_id);
-			temp_map.put(Const.URL, localConfig.getIp() + url_suffix);
-			temp_map.put(Const.IMAGE_SIZE, ImageUtil.getImageSize(localConfig.getImagePath() + url_suffix));
-			temp_map.put(Const.COMPANY_NAME, company_name);
-			temp_map.put(Const.USER_NAME, user_name);
-			new_recognize.add(temp_map);
+		//将该action加入到数据库中
+		recognizeAction.setMsg_id(1);
+		Integer action_id = invoiceDao.addAction(recognizeAction);
+		// 发票全部加入到等待队列里,队列左进右出
+		int k = 0;
+		for (Invoice invoice : invoice_list) {
+			//生成uuid，作为invoice排队的主键
+			String uuid = UUID.randomUUID().toString();
+			invoice.setUuid(uuid);
+			//前端需要的一些信息，后期补充
+			invoice.setAction_id(action_id);
+			invoice.setAction_start_time(TimeUtil.getCurrentTime());
+			invoice.setUser_id(user.getUser_id());
+			invoice.setUser_name(user.getUser_name());
+			invoice.setCompany_id(user.getCompany_id());
+			invoice.setCompany_name(user.getCompany_name());
+			String url_suffix = url_suffixs.get(k);
+			invoice.setInvoice_url(url_suffix);
+			invoice.setUrl(localConfig.getIp() + url_suffix);
+			invoice.setImage_size(ImageUtil.getImageSize(localConfig.getImagePath() + url_suffix));
+			k++;
+			//设置发票序号
+			invoice.setOrder(k);
+			//暂时将recognize_num存到invoice里。。
+			invoice.setRecognize_num(invoice_list.size());
+			System.out.println("上传的url_suffix为" + invoice.getInvoice_url() + "对应uuid为：" + uuid);
+			redisDao.leftPush(Const.RECOGNIZE_WAIT, uuid);
+			redisDao.addKey(uuid, JSON.toJSONString(invoice));
 		}
-		System.out.println("等待队列新增" + image_urls.size() + "张发票");
+		System.out.println("等待队列新增" + invoice_list.size() + "张发票");
 
 		// 将增加的通知给全体用户
 		broadcast_map.put(Const.MSG_ID, 201);
-		broadcast_map.put(Const.NEW_RECOGNIZE, new_recognize);
+		broadcast_map.put(Const.NEW_RECOGNIZE, invoice_list);
 		systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(broadcast_map)));
 
 		Long recognize_size = redisDao.getWaitSize(); // 识别队列
@@ -109,8 +114,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 		System.out.println("当前识别队列的数量为：" + recognize_size);
 		System.out.println("当前操作队列的数量为：" + manage_size);
 
-		Long image_urls_size = Long.valueOf(new Integer(image_urls.size()).toString());
-		if ((recognize_size - image_urls_size) == 0l && manage_size == 0l) {
+		Long image_size = Long.valueOf(invoice_list.size());
+		if ((recognize_size - image_size) == 0l && manage_size == 0l) {
 			System.out.println("通知切换线程进行下一步操作");
 			// 7.通知切换线程进行下一步操作
 			synchronized (thread_msg) {
@@ -120,37 +125,26 @@ public class InvoiceServiceImpl implements InvoiceService {
 		ans_map.put(Const.SUCCESS, "已加入队列，等待算法服务器处理");
 		ans_map.put("recognize_size", recognize_size);
 		ans_map.put("manage_size", manage_size);
-		ans_map.put("action_id_list", action_id_list);
 
 	}
 
 	// ajax处理web请求
 	@Override
-	public void addOrUpdateInvoiceModel(Map<String, Object> ans_map, Integer user_id,
-			Map<String, Object> model_json_map, String url_suffix, Integer model_id, Integer thread_msg,
-			Integer msg_id) {
+	public void addOrUpdateInvoiceModel(Map<String, Object>ans_map, ModelAction modelAction,Integer thread_msg){
 		// 首先进行权限判断
-		User user = userDao.getUserById(user_id);
+		User user = userDao.getUserById(modelAction.getUser_id());
 		// 添加新的发票模型
 		// 1生成一条行为，插入action表，并获取返回的action_id
 		Integer action_id = null;
-		if (msg_id == 2) {
-			action_id = invoiceDao.addNewModelAction(user_id);
-		} else {
-			action_id = invoiceDao.addUpdateModelAction(user_id, model_id);
-		}
-
+		action_id = invoiceDao.addAction(modelAction);
+		//补全modelAction的一些参数
+		modelAction.setAction_id(action_id);
+		modelAction.setAction_start_time(TimeUtil.getCurrentTime());
+		modelAction.setUser_name(user.getUser_name());
+		modelAction.setCompany_name(user.getCompany_name());
 		redisDao.leftPush(Const.MANAGE_WAIT, action_id.toString());// 加入到操作队列
-		// key为action_id，value为图片url以及msg_id=2,还有json_model,以及图片大小
-		Map<String, Object> msg_map = new HashMap<>();
-		msg_map.put(Const.URL_SUFFIX, url_suffix);
-		msg_map.put(Const.MSG_ID, msg_id);
-		msg_map.put(Const.JSON_MODEL, model_json_map);
-		if (msg_id == 4 && model_id != null) {
-			// 如果是修改模板的话，还要增加model_id
-			msg_map.put(Const.MODEL_ID, model_id);
-		}
-		redisDao.addKey(action_id.toString(), JSON.toJSONString(msg_map));
+		// key为action_id,value为modelAction
+		redisDao.addKey(action_id.toString(), JSON.toJSONString(modelAction));
 		// 3.获取两个队列长度
 		Long recognize_size = redisDao.getWaitSize(); // 识别队列
 		Long manage_size = redisDao.getManageSize();// 操作队列
@@ -164,6 +158,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
 		}
 		ans_map.put(Const.SUCCESS, "已加入队列，等待算法服务器处理");
+		System.out.println("修改发票模板的请求已加入队列，等待算法服务器处理");
 		ans_map.put("recognize_size", recognize_size);
 		ans_map.put("manage_size", manage_size);
 	}
@@ -201,15 +196,32 @@ public class InvoiceServiceImpl implements InvoiceService {
 
 	// websocket返回处理结果 msg_id = 1, 100, 101, 102
 	@Override
-	public void broadcastRecognizeProcess(InputStream inputStream, int action_id, Map<String, Object> action_map) {
+	public void broadcastRecognizeProcess(InputStream inputStream,OutputStream outputStream,Integer delay) {
+		// 先得到等待队列头的uuid
+		String uuid = redisDao.getRight(Const.RECOGNIZE_WAIT, 0l);
+		//找到对应的invoice对象
+		String invoice_str = (String) redisDao.getValue(uuid);
+		Invoice invoice = JSON.parseObject(invoice_str, Invoice.class);
+		Integer action_id = invoice.getAction_id();
+		// 如果是属于一次action里的第一张，更新action相关信息
+		if(invoice.getOrder() == 1){
+			invoiceDao.runAction(invoice.getAction_id());
+		}
+		//补充，将当前要跑的发票的url等信息发给前端
+		broadcastNextRecognize(invoice);
+		// 将后缀转换为本地硬盘路径
+		String url_suffix = invoice.getInvoice_url();
+		String absolute_path = ImageUtil.suffixToBmp(localConfig.getImagePath() + url_suffix);
+		//补充协议json信息
+		Map<String, Object> msg_map = new HashMap<>();
+		msg_map.put(Const.URL, absolute_path);
+		msg_map.put(Const.DELAY, delay);
+		//发送消息给算法端
+		MessageUtil.sendMessage(outputStream, 1, JSON.toJSONString(msg_map),systemWebSocketHandler);
+		System.out.println(uuid + "发送了识别请求");
 		// 将算法运行结果分阶段的广播给所有管理员
-		String url_suffix = (String) action_map.get(Const.URL_SUFFIX);
-		// 首先，记录开始跑算法的时间
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
-		invoiceDao.startAction(action_id);
 		Integer model_id = 0;// 模板编号
-		// 后缀变为网络url
-		String url = ImageUtil.suffixToJpg(localConfig.getIp() + url_suffix);
 		// 结果同时推送给模拟客户端
 		Socket customerSocket = socketLoadTool.getCustomerSocket();
 
@@ -233,23 +245,28 @@ public class InvoiceServiceImpl implements InvoiceService {
 						int status = (int) invoice_data.get("status");
 						Integer invoice_id = null;
 						if (status == 0) {
-							invoice_id = invoiceDao.addRecognizeInvoice(invoice_data, model_id, url);
+							//设置发票的识别状态为成功，以及识别时间
+							invoice.setInvoice_status(1);
+							invoice.setRecognize_time(TimeUtil.getCurrentTime());
+							invoice_id = invoiceDao.addRecognizeInvoice(invoice_data,invoice);
 							System.out.println("成功将该发票信息写入数据库,invoice_id=" + invoice_id);
 							// 更新识别数量这东西
-							redisDao.addSelf(Const.MINUTE_SUM);
+							//redisDao.addSelf(Const.MINUTE_SUM);
 						}
-						// 更新action表的一些信息
-						invoiceDao.finishRecognizeAction(action_id, invoice_id, status);
-						System.out.println("成功更新该action,action_id=" + action_id);
+						// 如果是最后一张的话，更新action表的一些信息
+						if(invoice.getOrder() == invoice.getRecognize_num()){
+							invoiceDao.finishAction(action_id,1);//1代表成功
+							System.out.println("成功更新该action,action_id=" + action_id);
+						}
 						// 该模板的成功识别次数加一
 						invoiceDao.plusModelSuccess(model_id);
 						// 弹出队列头，同时删除key(如果正常识别的话，如果不能，则加到异常队列)
 						redisDao.pop(Const.RECOGNIZE_WAIT);
 						if (status < 0) {
 							// 识别失败，加入异常发票队列
-							redisDao.leftPush(Const.EXCEPTION_WAIT, action_id + "");
+							redisDao.leftPush(Const.EXCEPTION_WAIT, uuid);
 						} else {
-							redisDao.deleteKey(action_id + "");
+							redisDao.deleteKey(uuid);
 						}
 						// 最后，清除识别的过程队列
 						redisDao.deleteKey(Const.RECOGNIZE_PROCESS);
@@ -261,24 +278,26 @@ public class InvoiceServiceImpl implements InvoiceService {
 						// 同时，获得了model_id
 						Map<String, Object> temp_map = JSON.parseObject(message.getJson_str());
 						model_id = (Integer) temp_map.get("id");// 之后将模板id写入数据库
+						//赋值给invoice
+						invoice.setModel_id(model_id);
 						String label = invoiceDao.getModelLabel(model_id);
 						// 在json里加入模板url,以及label
 						String json_str = message.getJson_str();
 						Map<String, Object> json_map = JSON.parseObject(json_str);
 						json_map.put(Const.URL, localConfig.getIp() + invoiceDao.getModelUrl(model_id));
 						json_map.put(Const.MODEL_LABEL, label);
+						json_map.put(Const.MSG_ID, 100);
+						// 同时，加入到redis队列里记录
+						redisDao.leftPush(Const.RECOGNIZE_PROCESS, JSON.toJSONString(json_map));
 						message.setJson_str(JSON.toJSONString(json_map));
 						// 过程信息，直接转交给前端
 						systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)));
-						// 同时，加入到redis队列里记录
-						json_map.put(Const.MSG_ID, 100);
-						redisDao.leftPush(Const.RECOGNIZE_PROCESS, JSON.toJSONString(json_map));
 						System.out.println("model_id为" + model_id);
 					} else if (message.getMsg_id() == 101 || message.getMsg_id() == 102) {
-						// 过程信息，直接转交给前端
-						systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)));
 						// 同时，加入到redis队列里记录
 						redisDao.leftPush(Const.RECOGNIZE_PROCESS, message.getFinalMessage(action_id));
+						// 过程信息，直接转交给前端
+						systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)));
 					}
 				}
 
@@ -296,7 +315,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 	public void broadcastAddNewModel(InputStream inputStream, int action_id, Map<String, Object> json_model_map,
 			String url_suffix) {
 		// 首先，更新action开始跑算法的时间
-		invoiceDao.startAction(action_id);
+		invoiceDao.runAction(action_id);
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
 		String url = ImageUtil.suffixToJpg(localConfig.getIp() + url_suffix);// 变为网络url
 		// 处理增加模板的结果
@@ -322,8 +341,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 				Integer image_size = ImageUtil.getImageSize(localConfig.getImagePath() + url_suffix);
 				invoiceDao.addModel(model_id, json_model_map, TimeUtil.getCurrentTime(), url_suffix, image_size);
 			}
-			// 3.更新数据库的action表,model_id，跑完的时间
-			invoiceDao.finishAddModelAction(action_id, model_id, status);
+			// 3.更新数据库的model表,model_id，跑完的时间
+			invoiceDao.finishAction(action_id, status);;
 			// 4. 弹出队列头，删除key
 			redisDao.pop(Const.MANAGE_WAIT);
 			System.out.println(action_id + "弹出操作队列");
@@ -347,7 +366,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 	public void broadcastUpdateModel(InputStream inputStream, Integer action_id, Map<String, Object> json_model_map,
 			String url_suffix, int model_id) {
 		// 首先，更新action开始跑算法的时间
-		invoiceDao.startAction(action_id);
+		invoiceDao.runAction(action_id);
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
 		String url = ImageUtil.suffixToJpg(localConfig.getIp() + url_suffix);// 将后缀变为网络url
 		// 处理增加模板的结果
@@ -362,13 +381,12 @@ public class InvoiceServiceImpl implements InvoiceService {
 			temp_map.put(Const.URL, url);
 			temp_map.put(Const.JSON_MODEL, json_model_map);
 			String str = JSON.toJSONString(temp_map);
-			systemWebSocketHandler.sendMessageToUsers(new TextMessage(str.getBytes("utf-8")));
 			if (status == 0) {
 				// 2.model表更新该model
-				invoiceDao.updateModel(model_id, JSON.toJSONString(json_model_map), url_suffix);
+				invoiceDao.updateModel(model_id, JSON.toJSONString(json_model_map), url_suffix,action_id);
 			}
 			// 3.更新数据库的action表,model_id，跑完的时间
-			invoiceDao.finishUpdateModelAction(action_id, status);
+			invoiceDao.finishAction(action_id, status);;
 			// 4. 弹出队列头，删除key
 			redisDao.pop(Const.MANAGE_WAIT);
 			System.out.println(action_id + "弹出操作队列");
@@ -378,7 +396,14 @@ public class InvoiceServiceImpl implements InvoiceService {
 			} else {
 				redisDao.deleteKey(action_id + "");
 			}
-
+			//延时一秒，将结果推送给前端
+			try {
+				systemWebSocketHandler.sendMessageToUsers(new TextMessage(str.getBytes("utf-8")));
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 			err_map.put(Const.ERR, "接受算法服务器数据异常");
@@ -391,7 +416,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 	@Override
 	public void broadcastDeleteModel(InputStream inputStream, Integer action_id, int model_id) {
 		// 首先，更新action开始跑算法的时间
-		invoiceDao.startAction(action_id);
+		invoiceDao.runAction(action_id);
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
 		// 处理增加模板的结果
 		try {
@@ -442,7 +467,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 	@Override
 	public void broadcastClearModel(InputStream inputStream, Integer action_id) {
 		// 一键清空所有模板
-		invoiceDao.startAction(action_id);
+		invoiceDao.runAction(action_id);
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
 		// 处理增加模板的结果
 		try {
@@ -486,11 +511,12 @@ public class InvoiceServiceImpl implements InvoiceService {
 
 	// ajax处理web请求
 	@Override
-	public void getAllModel(Map<String, Object> ans_map, Integer user_id, Integer start) {
+	public void getAllModel(Map<String, Object> ans_map, Integer user_id, Integer page) {
 		// 返回当前模板库全部信息,一次12条
 		// 首先进行权限判断
 		User user = userDao.getUserById(user_id);
-		List<Model> model_list = invoiceDao.getTwelveModel(start);
+		List<Model> model_list = invoiceDao.getTwelveModel(page);
+		Collections.reverse(model_list);
 		// 将url_suffix转为网络url
 		for (Model model : model_list) {
 			String url_suffix = model.getModel_url();
@@ -506,22 +532,14 @@ public class InvoiceServiceImpl implements InvoiceService {
 		Map<String, Object> ans_map = new HashMap<>();
 		List<Object> recognize_wait_origin = redisDao.getRangeId(Const.RECOGNIZE_WAIT);
 		int recognize_size = recognize_wait_origin.size();
-		Map<String, Object> one_action_map;
-		String action_id = null;
 		// 在数据库里查询，返回一个action的主要信息
 		if (recognize_wait_origin != null && recognize_size != 0) {
-			List<Map<String, Object>> recognize_wait = new ArrayList<>();
+			List<Invoice> recognize_wait = new ArrayList<>();
 			for (Object temp : recognize_wait_origin) {
-				action_id = (String) temp;
-				one_action_map = invoiceDao.getOneAction(new Integer(action_id));
-				// 添加url
-				String action_map_str = (String) redisDao.getValue(action_id.toString());
-				Map<String, Object> action_map = JSON.parseObject(action_map_str);
-				String url_suffix = (String) action_map.get(Const.URL_SUFFIX);
-
-				one_action_map.put(Const.URL, localConfig.getIp() + url_suffix);
-				one_action_map.put(Const.IMAGE_SIZE, ImageUtil.getImageSize(localConfig.getImagePath() + url_suffix));
-				recognize_wait.add(one_action_map);
+				String uuid = (String) temp;
+				String invoice_str = (String) redisDao.getValue(uuid);
+				Invoice invoice = JSON.parseObject(invoice_str,Invoice.class);
+				recognize_wait.add(invoice);
 				System.out.println("将缓冲队列的信息推送给前端");
 			}
 			ans_map.put(Const.RECOGNIZE_WAIT, recognize_wait);
@@ -562,7 +580,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
 	// ajax处理web请求 msg_id = 202
 	@Override
-	public void openConsole(Map<String, Object> ans_map) {
+	public String openConsole() {
 		// 打开监控台，返回当前图片的url，action_id,以及之前过程得到的识别信息
 		List<Object> region_list_origin = redisDao.getRangeId(Const.RECOGNIZE_PROCESS);
 		List<String> region_list = new ArrayList<>();
@@ -573,60 +591,40 @@ public class InvoiceServiceImpl implements InvoiceService {
 		Collections.reverse(region_list);
 		System.out.println("region_list = " + region_list);
 
-		String action_id_str = redisDao.getRight(Const.RECOGNIZE_WAIT, 0l);
-		if (action_id_str != null) {
-			Integer action_id = new Integer(action_id_str);
-			String action_map_str = (String) redisDao.getValue(action_id.toString());
-			Map<String, Object> action_map = JSON.parseObject(action_map_str);
-			String url_suffix = (String) action_map.get(Const.URL_SUFFIX);
-			String url = ImageUtil.suffixToJpg(localConfig.getIp() + url_suffix);
-			ans_map.put(Const.URL, url);
-			ans_map.put(Const.ACTION_ID, action_id);
-			ans_map.put(Const.REGION_LIST, region_list);
-			ans_map.put(Const.MSG_ID, 202);
-			// 找到user_id和user_name和开始时间
-			// Map<String, Object>temp =
-			// invoiceDao.findActionUserNameTime(action_id);
-			ans_map.put(Const.USER_ID, (Integer) action_map.get(Const.USER_ID));
-			ans_map.put(Const.USER_NAME, (String) action_map.get(Const.USER_NAME));
-			ans_map.put(Const.ACTION_START_TIME, (String) action_map.get(Const.ACTION_START_TIME));
-			ans_map.put(Const.COMPANY_NAME, (String) action_map.get(Const.COMPANY_NAME));
+		String uuid = redisDao.getRight(Const.RECOGNIZE_WAIT, 0l);
+		if (uuid != null) {
+			String invoice_str = (String) redisDao.getValue(uuid);
+			Invoice invoice = JSON.parseObject(invoice_str,Invoice.class);
 			// 补充，加入img_str
-			String local_path = ImageUtil.suffixToJpg(localConfig.getImagePath() + url_suffix);
+			String local_path = ImageUtil.suffixToJpg(localConfig.getImagePath() + invoice.getInvoice_url());
 			String img_str = ImageUtil.GetImageStr(local_path);
-			ans_map.put(Const.IMG_STR, "data:image/jpg;base64," + img_str);
+			invoice.setImg_str("data:image/jpg;base64," + img_str);
+			return JSON.toJSONString(invoice);
+		}else {
+			return "{}";
 		}
-
 	}
 
 	// websocket返回处理结果 msg_id = 203
 	@Override
-	public void broadcastNextRecognize(Integer action_id, Map<String, Object> action_map) {
-		String url_suffix = (String) action_map.get(Const.URL_SUFFIX);
-		Integer user_id = (Integer) action_map.get(Const.USER_ID);
-		String user_name = (String) action_map.get(Const.USER_NAME);
-		String action_start_time = (String) action_map.get(Const.ACTION_START_TIME);
-		String company_name = (String) action_map.get(Const.COMPANY_NAME);
+	public void broadcastNextRecognize(Invoice invoice) {
 		// 补充，将当前要跑的发票的url等信息发给前端
 		Map<String, Object> start_map = new HashMap<>();
-		start_map.put(Const.ACTION_ID, new Integer(action_id));
+		start_map.put(Const.ACTION_ID, invoice.getAction_id());
+		String url_suffix = invoice.getInvoice_url();
 		// 将url变为网络url
 		start_map.put(Const.URL, localConfig.getIp() + url_suffix);
 		// 加入图片大小
-		start_map.put(Const.IMAGE_SIZE, ImageUtil.getImageSize(localConfig.getImagePath() + url_suffix));
+		start_map.put(Const.IMAGE_SIZE, invoice.getImage_size());
 		// 补充，加入img_str
 		String local_path = localConfig.getImagePath() + url_suffix;
 		String img_str = ImageUtil.GetImageStr(local_path);
 		start_map.put(Const.IMG_STR, "data:image/jpg;base64," + img_str);
 
 		start_map.put(Const.MSG_ID, 203);
-		// user_id和user_name和开始时间放进去
-		// Map<String, Object>temp =
-		// invoiceDao.findActionUserNameTime(action_id);
-		start_map.put(Const.USER_ID, user_id);
-		start_map.put(Const.USER_NAME, user_name);
-		start_map.put(Const.ACTION_START_TIME, action_start_time);
-		start_map.put(Const.COMPANY_NAME, company_name);
+		start_map.put(Const.USER_NAME, invoice.getUser_name());
+		start_map.put(Const.ACTION_START_TIME, invoice.getAction_start_time());
+		start_map.put(Const.COMPANY_NAME, invoice.getCompany_name());
 		systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(start_map)));
 	}
 
@@ -725,8 +723,10 @@ public class InvoiceServiceImpl implements InvoiceService {
 			ServletContext servletContext) {
 		// 首先进行权限判断
 		User user = userDao.getUserById(user_id);
-		servletContext.setAttribute(Const.DELEY, delay);
+		servletContext.setAttribute(Const.DELAY, delay);
 		ans_map.put(Const.SUCCESS, "成功调整速度");
 	}
+
+
 
 }

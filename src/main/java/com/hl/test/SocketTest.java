@@ -17,7 +17,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.hl.service.InvoiceService;
-import com.hl.socket.SocketLoadTool;
+import com.hl.util.SocketLoadTool;
 
 public class SocketTest { 
 	@Test
