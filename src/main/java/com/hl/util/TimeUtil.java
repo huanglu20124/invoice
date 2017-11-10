@@ -1,6 +1,9 @@
 package com.hl.util;
 
+import java.io.Closeable;
 import java.io.File;
+import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -25,6 +28,27 @@ public class TimeUtil {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	public static Timestamp StrToTimestamp(String str){
+		try {
+			return Timestamp.valueOf(str);
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("格式转换有错误");
+			return null;
+		}
+	}
+	
+	public static String TimestampToStr(Timestamp timestamp){
+        DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");   
+        try {   
+            //方法一   
+            return  sdf.format(timestamp);     
+        } catch (Exception e) {   
+            e.printStackTrace(); 
+            return null;
+        }  
 	}
 	
 	//目录为年份加月，创建文件夹用的,返回url_suffix

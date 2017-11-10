@@ -19,7 +19,8 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 	public User getUserByNamePwd(String user_name, String user_password) {
 		//简单的用户名密码登录
 		try {
-			String sql = "select * from user where user_name = ? and user_password = ?";
+			String sql = "select a.*,b.company_name from user a, company b "
+					+ " where a.user_name = ? and a.user_password = ? and a.company_id=b.company_id";
 			return getJdbcTemplate().queryForObject(sql, new UserRowmapper(),user_name,user_password);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -45,7 +46,8 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 	@Override
 	public User getUserById(Integer user_id) {
 		try {
-			String sql = "select * from user where user_id = ?";
+			String sql = "select a.*, b.company_name from user a, company b "
+					+ " where a.user_id = ?  and a.company_id=b.company_id";
 			return getJdbcTemplate().queryForObject(sql, new UserRowmapper(),user_id);
 		} catch (Exception e) {
 			//e.printStackTrace();
@@ -57,7 +59,8 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 	@Override
 	public User getUserByName(String user_name) {
 		try {
-			String sql = "select * from user where user_name = ?";
+			String sql = "select a.*, b.company_name from user a, company b "
+					+ " where a.user_name = ?  and a.company_id=b.company_id";
 			return getJdbcTemplate().queryForObject(sql, new UserRowmapper(),user_name);
 		} catch (Exception e) {
 			e.printStackTrace();

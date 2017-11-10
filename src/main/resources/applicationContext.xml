@@ -184,5 +184,4 @@
 		<!-- 表单中密码的input名称 -->
 		<property name="passwordParam" value="user_password" />
 	</bean>
-
 </beans>

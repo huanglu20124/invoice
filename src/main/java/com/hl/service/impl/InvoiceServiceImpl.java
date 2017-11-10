@@ -32,6 +32,7 @@ import com.hl.domain.LocalConfig;
 import com.hl.domain.Model;
 import com.hl.domain.ModelAction;
 import com.hl.domain.RecognizeAction;
+import com.hl.domain.RecognizeConsole;
 import com.hl.domain.ResponseMessage;
 import com.hl.domain.User;
 import com.hl.service.InvoiceService;
@@ -205,7 +206,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 		Integer action_id = invoice.getAction_id();
 		// 如果是属于一次action里的第一张，更新action相关信息
 		if(invoice.getOrder() == 1){
-			invoiceDao.runAction(invoice.getAction_id());
+			invoiceDao.runAction(action_id);
 		}
 		//补充，将当前要跑的发票的url等信息发给前端
 		broadcastNextRecognize(invoice);
@@ -598,8 +599,15 @@ public class InvoiceServiceImpl implements InvoiceService {
 			// 补充，加入img_str
 			String local_path = ImageUtil.suffixToJpg(localConfig.getImagePath() + invoice.getInvoice_url());
 			String img_str = ImageUtil.GetImageStr(local_path);
-			invoice.setImg_str("data:image/jpg;base64," + img_str);
-			return JSON.toJSONString(invoice);
+			RecognizeConsole console = new RecognizeConsole();
+			console.setUser_id(invoice.getUser_id());
+			console.setUser_name(invoice.getUser_name());
+			console.setCompany_id(invoice.getCompany_id());
+			console.setCompany_name(invoice.getCompany_name());
+			console.setAction_start_time(invoice.getAction_start_time());
+			console.setImg_str("data:image/jpg;base64," + img_str);
+			console.setRegion_list(region_list);
+			return JSON.toJSONString(console);
 		}else {
 			return "{}";
 		}

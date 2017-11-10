@@ -24,6 +24,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
@@ -277,16 +278,14 @@ public class InvoiceController {
 	// 接口8：打开监控台，发送一些重要的信息给前端
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/openConsole.action", method = RequestMethod.POST)
-	public void openConsole(HttpServletRequest request, HttpServletResponse response)throws IOException{
+	@ResponseBody
+	public String openConsole(HttpServletRequest request, HttpServletResponse response)throws IOException{
 		System.out.println("接收到打开监控台的请求");
 		request.setCharacterEncoding("utf-8");
 		response.setCharacterEncoding("utf-8");
 		Map<String, Object> ans_map = new HashMap<>();
 		String ans_str = invoiceService.openConsole();
-		PrintWriter writer = response.getWriter();
-		writer.write(ans_str);
-		writer.flush();
-		writer.close();
+		return ans_str;
 	}
 	
 	// 接口9：获取缓冲队列

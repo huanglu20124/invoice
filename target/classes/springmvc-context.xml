@@ -3,8 +3,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
 	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:mvc="http://www.springframework.org/schema/mvc"
-	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:aop="http://www.springframework.org/schema/aop"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
         http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
         http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
@@ -13,10 +12,10 @@
 	<mvc:annotation-driven />
 	<!--扫描Controller -->
 	<context:component-scan base-package="com.hl.controller" />
-	
+
 	<!-- 开启aop，对类代理 -->
 	<aop:config proxy-target-class="true"></aop:config>
-		<!-- 开启shiro注解支持 -->
+	<!-- 开启shiro注解支持 -->
 	<bean
 		class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
 		<property name="securityManager" ref="securityManager" />
@@ -32,7 +31,7 @@
 
 	<!-- 配置视图解析器 -->
 	<!-- 对资源放行 (因为过滤器只拦截带action的，故不用放行了) -->
-   <mvc:resources location="/" mapping="/*.html" />
+	<mvc:resources location="/" mapping="/*.html" />
 	<mvc:resources location="/" mapping="/*.bmp" />
 	<mvc:resources location="/" mapping="/*.xml" />
 	<mvc:resources location="/" mapping="/*.jpg" />
@@ -47,7 +46,7 @@
 	<bean
 		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
 		<!-- 前缀 为了前端方便，直接放行 -->
-             <property name="prefix" value="/WEB-INF/jsp/" />
+		<property name="prefix" value="/WEB-INF/jsp/" />
 		<!-- 后缀 -->
 		<property name="suffix" value=".jsp" />
 	</bean>
@@ -60,13 +59,18 @@
 
 	<!-- 定义统一异常处理器 -->
 	<bean class="com.hl.exception.InvoiceExceptionResolver"></bean>
-	
+
 	<!-- SPringmvc的拦截器 -->
-<!--     <mvc:interceptors>
-		<mvc:interceptor>
-			<mvc:mapping path="/*.action" />
-			<bean class="com.hl.intercepter.LoginInterceptor" />
-		</mvc:interceptor>
-	</mvc:interceptors> -->
-	
+	<!-- <mvc:interceptors> <mvc:interceptor> <mvc:mapping path="/*.action" 
+		/> <bean class="com.hl.intercepter.LoginInterceptor" /> </mvc:interceptor> 
+		</mvc:interceptors> -->
+		
+	<!-- 解决乱码问题 -->
+	<mvc:annotation-driven>
+		<mvc:message-converters register-defaults="true">
+			<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+				<property name="supportedMediaTypes" value="text/plain;charset=UTF-8" />
+			</bean>
+		</mvc:message-converters>
+	</mvc:annotation-driven>
 </beans>
