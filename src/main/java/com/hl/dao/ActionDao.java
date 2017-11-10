@@ -6,6 +6,6 @@ import com.hl.domain.Action;
 
 public interface ActionDao {
 
-	List<Action> getTwentyAction(Integer page);
+	List<Action> getTwentyAction(Integer page,String startTime,String endTime);
 
 }

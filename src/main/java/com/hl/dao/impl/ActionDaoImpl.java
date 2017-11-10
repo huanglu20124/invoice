@@ -2,6 +2,7 @@ package com.hl.dao.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.List;
 
 import org.apache.mahout.common.distance.CosineDistanceMeasure;
@@ -12,18 +13,27 @@ import com.hl.dao.ActionDao;
 import com.hl.domain.Action;
 import com.hl.domain.Model;
 import com.hl.util.Const;
+import com.hl.util.TimeUtil;
 
 public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 
 	@Override
-	public List<Action> getTwentyAction(Integer page) {
+	public List<Action> getTwentyAction(Integer page,String startTime,String endTime) {
 		//一次获取二十条日志
 		String sql = "select c.*, a.user_name, b.company_name "
 				+ " from user a, company b, action c "
 				+ " where a.user_id=c.user_id and b.company_id=c.company_id "
+				+ " and c.action_start_time >= ? and c.action_start_time <= ?"
 				+ " LIMIT ?,20";
 		int begin = page*20;
-		return getJdbcTemplate().query(sql, new ActionMapper(),begin);
+		Timestamp start = TimeUtil.StrToTimestamp(startTime);
+		Timestamp end = TimeUtil.StrToTimestamp(endTime);
+		if(start != null && end != null){
+			return getJdbcTemplate().query(sql, new ActionMapper(),start,end,begin);
+		}else {
+			return null;
+		}
+		
 	}
 	
 	class ActionMapper implements RowMapper<Action>{

@@ -18,10 +18,10 @@ public class ActionServiceImpl implements ActionService{
 	private ActionDao actionDao;
 	
 	@Override
-	public void getTwentyAction(Integer page, Map<String, Object> ans_map) {
+	public List<Action> getTwentyAction(Integer page,String startTime,String endTime) {
 		//一次获取二十条日志
-		List<Action>actions = actionDao.getTwentyAction(page);
-		ans_map.put("action_list", actions);
+		List<Action>actions = actionDao.getTwentyAction(page,startTime,endTime);
+		return actions;
 	}
 
 }
