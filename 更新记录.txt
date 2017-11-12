@@ -1,9 +1,9 @@
-仓库地址 cd  E:/study_and_work/android_and_java/Eclipse_JavaEE/invoice
+ cd  E:/study_and_work/android_and_java/Eclipse_JavaEE/invoice
 
 2017.11.9
 部分请求参数采用pojo参数重写,数据库时间类型采用时间戳重构
 
-2017.11.10
+2017.11.10下午
 清理了一波数据库和磁盘
 完善部分日志
 applicationContext.xml分文件

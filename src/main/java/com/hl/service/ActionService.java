@@ -7,6 +7,8 @@ import com.hl.domain.Action;
 
 public interface ActionService {
 
-	List<Action> getTwentyAction(Integer start,String startTime,String endTime);
+	List<Action> getTwentyActionByTime(Integer start,String startTime,String endTime);
+
+	List<Action> getTwentyActionByKeywords(Integer page, String startTime, String endTime, String keywrods);
 
 }

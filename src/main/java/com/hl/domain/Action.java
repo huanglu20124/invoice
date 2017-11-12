@@ -11,7 +11,15 @@ public class Action {
 	private String action_start_time;
 	private String action_run_time;
 	private String action_end_time;
+	//作为索引数据库的主键
+	private String action_uuid;
 	
+	public String getAction_uuid() {
+		return action_uuid;
+	}
+	public void setAction_uuid(String action_uuid) {
+		this.action_uuid = action_uuid;
+	}
 	public Integer getAction_id() {
 		return action_id;
 	}

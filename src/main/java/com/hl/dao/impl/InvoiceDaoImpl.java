@@ -33,27 +33,6 @@ import com.sun.istack.FinalArrayList;
 public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 
 	@Override
-	public Integer addAction(final Action action) {
-		//生成一条行为，插入action表，并获取返回的action_id(主键) 
-		final String sql = "insert into invoice.action values(null,?,?,0,?,null,null,?)";
-		final String action_start_time = com.hl.util.TimeUtil.getCurrentTime();
-		KeyHolder keyHolder = new GeneratedKeyHolder();
-		//返回主键
-		getJdbcTemplate().update(new PreparedStatementCreator() {
-			@Override
-			public java.sql.PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
-				java.sql.PreparedStatement psm =  connection.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
-				psm.setInt(1,action.getUser_id());
-				psm.setInt(2, action.getMsg_id());
-				psm.setString(3, action_start_time);
-				psm.setInt(4, action.getCompany_id());
-				return psm;
-			}
-		},keyHolder);
-		return keyHolder.getKey().intValue();
-	}
-
-	@Override
 	public Integer addNewModelAction(final Integer user_id) {
 		//增加一条增加发票模板的操作,返回主键
 		final String sql = "insert into invoice.action values(null,?,2,0,null,null,?,null,null)";
@@ -297,19 +276,8 @@ public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 		return getJdbcTemplate().queryForObject(sql, String.class,model_id);
 	}
 
-	@Override
-	public void runAction(Integer action_id) {
-		//更新action开始跑的时间
-		String sql = "update action set action_run_time = ? where action_id = ?";
-		getJdbcTemplate().update(sql,com.hl.util.TimeUtil.getCurrentTime(),action_id);	
-	}
+	
 
-	@Override
-	public void finishAction(Integer action_id, int status) {
-		//更新action完成的时间
-		String sql = "update action set action_end_time = ?, status = ? where action_id = ?";
-		getJdbcTemplate().update(sql,com.hl.util.TimeUtil.getCurrentTime(),status,action_id);	
-	}
 
 
 

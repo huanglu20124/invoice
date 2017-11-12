@@ -10,10 +10,7 @@ import com.hl.domain.RecognizeAction;
 
 public interface InvoiceDao {
 
-	Integer addAction(Action action);
-	void runAction(Integer action_id);
-	void finishAction(Integer action_id, int status);
-	
+
 	Integer addNewModelAction(final Integer user_id);
 
 	int addRecognizeInvoice(Map<String, Object> invoice_data,Invoice invoice);

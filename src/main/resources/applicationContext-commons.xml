@@ -24,7 +24,6 @@
 		</property>
 	</bean>
 
-
 	<!-- 特殊bean，初始化后从配置文件加载到内存中 localConfig -->
 	<bean name="localConfig" class="com.hl.domain.LocalConfig">
 		<property name="ip" value="${local.ip}"></property>
@@ -33,5 +32,9 @@
 		<property name="customerHost" value="${local.customerHost}"></property>
 		<property name="customerPort" value="${local.customerPort}"></property>
 	</bean>
-
+	
+	<!-- solr专用 -->
+	<bean name="solrServer" class="org.apache.solr.client.solrj.impl.HttpSolrServer">
+	    <constructor-arg value="${local.solrUrl}"></constructor-arg>
+	</bean>
 </beans>

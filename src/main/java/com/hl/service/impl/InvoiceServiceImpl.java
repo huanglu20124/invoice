@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.socket.TextMessage;
 import com.alibaba.fastjson.JSON;
+import com.hl.dao.ActionDao;
 import com.hl.dao.InvoiceDao;
 import com.hl.dao.RedisDao;
 import com.hl.dao.UserDao;
@@ -55,6 +56,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 	@Resource(name = "userDao")
 	private UserDao userDao;
 
+	@Resource(name = "actionDao")
+	private ActionDao actionDao;
+
 	@Resource(name = "systemWebSocketHandler")
 	private SystemWebSocketHandler systemWebSocketHandler;
 
@@ -76,7 +80,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 		Map<String, Object> broadcast_map = new HashMap<>();
 		//将该action加入到数据库中
 		recognizeAction.setMsg_id(1);
-		Integer action_id = invoiceDao.addAction(recognizeAction);
+		String action_uuid = UUID.randomUUID().toString();
+		recognizeAction.setAction_uuid(action_uuid);
+		Integer action_id = actionDao.addAction(recognizeAction);
 		// 发票全部加入到等待队列里,队列左进右出
 		int k = 0;
 		for (Invoice invoice : invoice_list) {
@@ -137,7 +143,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 		// 添加新的发票模型
 		// 1生成一条行为，插入action表，并获取返回的action_id
 		Integer action_id = null;
-		action_id = invoiceDao.addAction(modelAction);
+		String action_uuid = UUID.randomUUID().toString();
+		modelAction.setAction_uuid(action_uuid);
+		action_id = actionDao.addAction(modelAction);
 		//补全modelAction的一些参数
 		modelAction.setAction_id(action_id);
 		modelAction.setAction_start_time(TimeUtil.getCurrentTime());
@@ -206,7 +214,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 		Integer action_id = invoice.getAction_id();
 		// 如果是属于一次action里的第一张，更新action相关信息
 		if(invoice.getOrder() == 1){
-			invoiceDao.runAction(action_id);
+			actionDao.runAction(action_id);
 		}
 		//补充，将当前要跑的发票的url等信息发给前端
 		broadcastNextRecognize(invoice);
@@ -256,7 +264,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 						}
 						// 如果是最后一张的话，更新action表的一些信息
 						if(invoice.getOrder() == invoice.getRecognize_num()){
-							invoiceDao.finishAction(action_id,1);//1代表成功
+							actionDao.finishAction(action_id,1);//1代表成功
 							System.out.println("成功更新该action,action_id=" + action_id);
 						}
 						// 该模板的成功识别次数加一
@@ -316,7 +324,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 	public void broadcastAddNewModel(InputStream inputStream, int action_id, Map<String, Object> json_model_map,
 			String url_suffix) {
 		// 首先，更新action开始跑算法的时间
-		invoiceDao.runAction(action_id);
+		actionDao.runAction(action_id);
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
 		String url = ImageUtil.suffixToJpg(localConfig.getIp() + url_suffix);// 变为网络url
 		// 处理增加模板的结果
@@ -343,7 +351,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 				invoiceDao.addModel(model_id, json_model_map, TimeUtil.getCurrentTime(), url_suffix, image_size);
 			}
 			// 3.更新数据库的model表,model_id，跑完的时间
-			invoiceDao.finishAction(action_id, status);;
+			actionDao.finishAction(action_id, status);;
 			// 4. 弹出队列头，删除key
 			redisDao.pop(Const.MANAGE_WAIT);
 			System.out.println(action_id + "弹出操作队列");
@@ -367,7 +375,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 	public void broadcastUpdateModel(InputStream inputStream, Integer action_id, Map<String, Object> json_model_map,
 			String url_suffix, int model_id) {
 		// 首先，更新action开始跑算法的时间
-		invoiceDao.runAction(action_id);
+		actionDao.runAction(action_id);
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
 		String url = ImageUtil.suffixToJpg(localConfig.getIp() + url_suffix);// 将后缀变为网络url
 		// 处理增加模板的结果
@@ -387,7 +395,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 				invoiceDao.updateModel(model_id, JSON.toJSONString(json_model_map), url_suffix,action_id);
 			}
 			// 3.更新数据库的action表,model_id，跑完的时间
-			invoiceDao.finishAction(action_id, status);;
+			actionDao.finishAction(action_id, status);;
 			// 4. 弹出队列头，删除key
 			redisDao.pop(Const.MANAGE_WAIT);
 			System.out.println(action_id + "弹出操作队列");
@@ -417,7 +425,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 	@Override
 	public void broadcastDeleteModel(InputStream inputStream, Integer action_id, int model_id) {
 		// 首先，更新action开始跑算法的时间
-		invoiceDao.runAction(action_id);
+		actionDao.runAction(action_id);
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
 		// 处理增加模板的结果
 		try {
@@ -468,7 +476,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 	@Override
 	public void broadcastClearModel(InputStream inputStream, Integer action_id) {
 		// 一键清空所有模板
-		invoiceDao.runAction(action_id);
+		actionDao.runAction(action_id);
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
 		// 处理增加模板的结果
 		try {

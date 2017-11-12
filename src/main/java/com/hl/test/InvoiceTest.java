@@ -2,6 +2,9 @@ package com.hl.test;
 
 import static org.junit.Assert.*;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
 import javax.annotation.Resource;
 
 import org.apache.shiro.crypto.hash.Md5Hash;
@@ -12,7 +15,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.hl.dao.InvoiceDao;
 import com.hl.util.IOUtil;
+import com.hl.util.JDBCUtil;
 import com.hl.util.TimeUtil;
+import com.mysql.jdbc.Connection;
 
 //@RunWith(SpringJUnit4ClassRunner.class)
 //@ContextConfiguration("classpath:applicationContext.xml")
