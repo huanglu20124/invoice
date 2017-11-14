@@ -4,11 +4,12 @@ import java.util.List;
 import java.util.Map;
 
 import com.hl.domain.Action;
+import com.hl.domain.ActionQuery;
 
 public interface ActionService {
 
-	List<Action> getTwentyActionByTime(Integer start,String startTime,String endTime);
+	ActionQuery getTwentyActionByTime(Integer start,String startTime,String endTime);
 
-	List<Action> getTwentyActionByKeywords(Integer page, String startTime, String endTime, String keywrods);
+	ActionQuery getTwentyActionByKeyword(Integer page, String startTime, String endTime, String keywrods);
 
 }

@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.alibaba.fastjson.JSON;
 import com.hl.domain.Action;
+import com.hl.domain.ActionQuery;
+import com.hl.domain.SimpleResponse;
 import com.hl.service.ActionService;
 import com.hl.util.Const;
 import com.mysql.fabric.xmlrpc.base.Array;
@@ -33,20 +35,28 @@ public class ActionController {
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/getTwentyAction.action", method = RequestMethod.POST)
 	@ResponseBody
-	public String getTwentyAction(Integer page,String startTime,String endTime,String keywrods) throws IOException{
+	public String getTwentyAction(Integer page,String startTime,String endTime,String keyword) throws IOException{
 		System.out.println("接收到查询操作日志的请求");
-		System.out.println(page + "  " + startTime + "  " + endTime + "   " + keywrods);
-		List<Action> action_list = null;
-		if(keywrods == null){
-			action_list = actionService.getTwentyActionByTime(page,startTime,endTime);
+		System.out.println(page + "  " + startTime + "  " + endTime + "   " + keyword);
+		if(startTime == null || endTime == null){
+			SimpleResponse simpleResponse = new SimpleResponse();
+			simpleResponse.setErr("请输入开始时间和结束时间");
+			return JSON.toJSONString(simpleResponse);
+		}		
+		ActionQuery actionQuery = null;
+		if(keyword == null){
+			actionQuery = actionService.getTwentyActionByTime(page,startTime,endTime);
 		}else {
-			action_list = actionService.getTwentyActionByKeywords(page,startTime,endTime,keywrods);
+			actionQuery = actionService.getTwentyActionByKeyword(page,startTime,endTime,keyword);
 		}
-		if(action_list == null){
-			action_list = new ArrayList<>();
+		if(actionQuery != null){
+			System.out.println(JSON.toJSONString(actionQuery));
+			return JSON.toJSONString(actionQuery);
+		}else {
+			return "{}";
 		}
-		System.out.println(JSON.toJSONString(action_list));
-		return JSON.toJSONString(action_list);
+
 	}
+	
 	
 }

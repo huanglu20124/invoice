@@ -10,6 +10,8 @@ public class RecognizeConsole {
 	private String img_str;
 	private List<String>region_list;
 	private String action_start_time;
+	private Integer msg_id;
+	
 	public Integer getUser_id() {
 		return user_id;
 	}
@@ -51,6 +53,12 @@ public class RecognizeConsole {
 	}
 	public void setAction_start_time(String action_start_time) {
 		this.action_start_time = action_start_time;
+	}
+	public Integer getMsg_id() {
+		return msg_id;
+	}
+	public void setMsg_id(Integer msg_id) {
+		this.msg_id = msg_id;
 	}
 	
 }

@@ -1,6 +1,7 @@
 package com.hl.websocket;
 
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.http.HttpSession;
 

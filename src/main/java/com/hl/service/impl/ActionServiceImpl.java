@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.hl.dao.ActionDao;
 import com.hl.domain.Action;
+import com.hl.domain.ActionQuery;
 import com.hl.service.ActionService;
 
 @Service("actionService")
@@ -19,28 +20,33 @@ public class ActionServiceImpl implements ActionService{
 	private ActionDao actionDao;
 	
 	@Override
-	public List<Action> getTwentyActionByTime(Integer page,String startTime,String endTime) {
+	public ActionQuery getTwentyActionByTime(Integer page,String startTime,String endTime) {
+		ActionQuery actionQuery = new ActionQuery();
 		//一次获取二十条日志
 		List<Action>actions = actionDao.getTwentyActionByTime(page,startTime,endTime);
-		return actions;
+		//获取总页数
+		Integer sum = actionDao.getActionSumByTime(startTime,endTime);
+		Integer page_sum = sum/20 +1;
+		actionQuery.setPage_sum(page_sum);
+		return actionQuery;
 	}
 
 	@Override
-	public List<Action> getTwentyActionByKeywords(Integer page, String startTime, String endTime, String keywrods) {
+	public ActionQuery getTwentyActionByKeyword(Integer page, String startTime, String endTime, String keyword) {
 		//日期结合关键字查询
 		//先找到最大和最小的action_id范围
 		Map<String,Object>id_map = actionDao.getMaxAndMin(startTime,endTime);
 		Integer max_id = (Integer) id_map.get("max");
 		Integer min_id = (Integer) id_map.get("min");
 		
-		List<Action> action_list;
+		ActionQuery actionQuery = null;;
 		try {
-			action_list = actionDao.getTwentyActionByKeywords(page,max_id,min_id,keywrods);
+			actionQuery = actionDao.solrGetTwentyActionByKeyword(page,max_id,min_id,keyword);
 		} catch (SolrServerException e) {
 			e.printStackTrace();
 			return null;
 		}
-		return action_list;
+		return actionQuery;
 	}
 
 }

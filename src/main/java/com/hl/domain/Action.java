@@ -11,6 +11,7 @@ public class Action {
 	private String action_start_time;
 	private String action_run_time;
 	private String action_end_time;
+	private Integer status;
 	//作为索引数据库的主键
 	private String action_uuid;
 	
@@ -73,6 +74,12 @@ public class Action {
 	}
 	public void setAction_end_time(String action_end_time) {
 		this.action_end_time = action_end_time;
+	}
+	public Integer getStatus() {
+		return status;
+	}
+	public void setStatus(Integer status) {
+		this.status = status;
 	}
 	
 	

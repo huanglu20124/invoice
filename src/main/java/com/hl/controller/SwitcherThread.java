@@ -24,6 +24,7 @@ import com.hl.domain.LocalConfig;
 import com.hl.domain.ModelAction;
 import com.hl.domain.RecognizeAction;
 import com.hl.service.InvoiceService;
+import com.hl.service.ModelService;
 import com.hl.util.Const;
 import com.hl.util.ImageUtil;
 import com.hl.util.MessageUtil;
@@ -37,7 +38,10 @@ public class SwitcherThread implements Runnable {
 	private ServletContext servletContext;
 
 	private RedisDao redisDao;
+	
 	private InvoiceService invoiceService;
+	
+	private ModelService modelService;
 	
 	private SystemWebSocketHandler systemWebSocketHandler;
 
@@ -67,6 +71,7 @@ public class SwitcherThread implements Runnable {
 		this.redisDao = (RedisDao) applicationContext.getBean("redisDao");
 		this.systemWebSocketHandler = (SystemWebSocketHandler) applicationContext.getBean("systemWebSocketHandler");
 		this.invoiceService = (InvoiceService) applicationContext.getBean("invoiceService");
+		this.modelService = (ModelService) applicationContext.getBean("modelService");
 		this.localConfig = (LocalConfig) applicationContext.getBean("localConfig");
 		
 		this.thread_msg = thread_msg;
@@ -161,7 +166,7 @@ public class SwitcherThread implements Runnable {
 			MessageUtil.sendMessage(outputStream, 2, JSON.toJSONString(temp),systemWebSocketHandler);
 			System.out.println(action_id + "发送了新增发票类型请求");
 			//调用service层的方法处理增加模板的结果
-			invoiceService.broadcastAddNewModel(inputStream,new Integer(action_id),json_model_map,url_suffix);
+			modelService.broadcastAddNewModel(inputStream,modelAction);
 		}
 		break;
 		
@@ -176,7 +181,7 @@ public class SwitcherThread implements Runnable {
 			MessageUtil.sendMessage(outputStream, 3, JSON.toJSONString(temp),systemWebSocketHandler);
 			System.out.println(action_id + "发送了删除发票模板请求");
 			//调用service层的方法处理删除模板的结果
-			invoiceService.broadcastDeleteModel(inputStream,new Integer(action_id),model_id);
+			modelService.broadcastDeleteModel(inputStream,modelAction);
 		}
 		break;
 		
@@ -202,14 +207,14 @@ public class SwitcherThread implements Runnable {
 			temp.put(Const.JSON_MODEL, json_model_map);
 			MessageUtil.sendMessage(outputStream, 4, JSON.toJSONString(temp),systemWebSocketHandler);
 			System.out.println(action_id + "发送了修改发票模板请求");
-			invoiceService.broadcastUpdateModel(inputStream,new Integer(action_id),json_model_map,url_suffix,model_id);
+			modelService.broadcastUpdateModel(inputStream,modelAction);
 		}
 		break;
 		
 		case 5://清空
 			MessageUtil.sendMessage(outputStream, 5, null, systemWebSocketHandler);
 			System.out.println(action_id + "发送了清空发票模板请求");
-			invoiceService.broadcastClearModel(inputStream,new Integer(action_id));
+			modelService.broadcastClearModel(inputStream,new Integer(action_id));
 			break;
 			
 		default:

@@ -13,7 +13,9 @@ import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import com.alibaba.fastjson.JSON;
 import com.hl.dao.InvoiceDao;
+import com.hl.domain.TestCase;
 import com.hl.util.IOUtil;
 import com.hl.util.JDBCUtil;
 import com.hl.util.TimeUtil;
@@ -55,5 +57,6 @@ public class InvoiceTest {
 		String password_md5 =  md5Hash.toString();
 		System.out.println(password_md5);
 	}
+
 
 }

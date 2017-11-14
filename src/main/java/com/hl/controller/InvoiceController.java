@@ -34,9 +34,11 @@ import com.alibaba.fastjson.JSON;
 import com.hl.domain.LocalConfig;
 import com.hl.domain.ModelAction;
 import com.hl.domain.RecognizeAction;
+import com.hl.domain.TestCase;
 import com.hl.domain.User;
 import com.hl.service.InvoiceService;
 import com.hl.util.ImageUtil;
+import com.hl.util.CheckUtil;
 import com.hl.util.Const;
 import com.hl.util.IOUtil;
 import com.hl.websocket.SystemWebSocketHandler;
@@ -66,7 +68,7 @@ public class InvoiceController {
 		logger.error("error测试");
 	}
 
-	// 接口1：用户上传一张或多张图片，加入识别发票的请求队列，表单格式上传(请求enctype必须为multiple，可上传一张或多组)
+	//用户上传一张或多张图片，加入识别发票的请求队列，表单格式上传(请求enctype必须为multiple，可上传一张或多组)
 	//参数为 user_id ,company_id, invoice_image_id, invoice_note
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/recognizeImage.action", method = RequestMethod.POST)
@@ -109,7 +111,7 @@ public class InvoiceController {
 			}
 			System.out.println("图片上传完毕");
 			//图片全部上传完毕才调用service层
-			invoiceService.addRecognizeInvoice(ans_map,recognizeAction, url_suffixs,thread_msg);
+			invoiceService.addRecognizeInvoice(ans_map,recognizeAction,null, url_suffixs,thread_msg);
 			
 		} else {
 			ans_map.put(Const.ERR, "请求格式有错误");
@@ -117,192 +119,7 @@ public class InvoiceController {
 		response.getWriter().write(JSON.toJSONString(ans_map));;
 	}
 
-	// 接口2：增加发票模板，ajax上传，图片为Base64，
-	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
-	@RequestMapping(value = "/addModel.action", method = RequestMethod.POST)
-	public void addNewModel(HttpServletRequest request, HttpServletResponse response,String img_str,Integer type) throws IOException {
-		System.out.println("接收到来自web端的新增模板或修改模板的请求");
-		String action_str = request.getParameter("modelAction");
-		System.out.println("modelAction = " + action_str);
-		ModelAction modelAction = JSON.parseObject(action_str,ModelAction.class); 
-		Map<String, Object> ans_map = new HashMap<>();
-		// 用于工作人员的接口，上传处理过的图片
-		IOUtil.writeToLocal(img_str);
-		//System.out.println("file_name "+ request.getParameter("file_name"));
-		//名字来自客户端返回的
-		String file_name = ImageUtil.getFileName(request.getParameter("file_name"));
-		//String url_suffix = "image/model/handle/" + TimeUtil.getYearMonthDir() + "/" + file_name;
-		String url_suffix = "image/model/handle/" + "201710" + "/" + file_name;
-		//设置给modelAction
-		modelAction.setUrl_suffix(url_suffix);
-		if (ImageUtil.generateImage(img_str, localConfig.getImagePath() + "image/model/handle/"+"201710",
-				file_name) == true) {
-			System.out.println("上传文件成功");
-			modelAction.setImage_size(ImageUtil.getImageSize(localConfig.getImagePath() + url_suffix));
-		} else {
-			ans_map.put(Const.ERR, "上传文件失败");
-			System.out.println("上传文件失败");
-		}
-		Integer thread_msg = (Integer) request.getServletContext().getAttribute(Const.THREAD_MSG);//获取上锁对象
-		if(type == 0){
-			//增加模板
-			modelAction.setMsg_id(2);
-		}else {
-			//修改模板
-			modelAction.setMsg_id(4);
-		}
-		invoiceService.addOrUpdateInvoiceModel(ans_map,modelAction,thread_msg);
-		 response.getWriter().write(JSON.toJSONString(ans_map));
-	}
-
-	// 接口3：删除发票模板，ajax上传
-	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
-	@RequestMapping(value = "/deleteModel.action", method = RequestMethod.POST)
-	public void deleteModel(HttpServletRequest request, HttpServletResponse response) throws IOException{
-		System.out.println("接收到删除单张模板的请求");
-		Map<String, Object> ans_map = new HashMap<>();
-		Integer user_id = new Integer(request.getParameter(Const.USER_ID));
-		Integer model_id = new Integer(request.getParameter(Const.MODEL_ID));
-		Integer thread_msg = (Integer) request.getServletContext().getAttribute(Const.THREAD_MSG);//获取上锁对象
-		System.out.println("model_id = " + model_id);
-		invoiceService.deleteInvoiceModel(ans_map,user_id,model_id,thread_msg);
-		PrintWriter writer = response.getWriter();
-		writer.write(JSON.toJSONString(ans_map));
-		writer.flush();
-		writer.close();
-	}
-
-	// 接口4：返回当前模板库全部信息,一次12条
-	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
-	@RequestMapping(value = "/getAllModel.action", method = RequestMethod.POST)
-	public void getAllModel(HttpServletRequest request, HttpServletResponse response)throws IOException{
-		System.out.println("接收到来自web端的返回当前模板库全部信息的请求");
-		request.setCharacterEncoding("utf-8");
-		response.setCharacterEncoding("utf-8");
-		Map<String, Object> ans_map = new HashMap<>();
-		Integer user_id = new Integer(request.getParameter(Const.USER_ID));
-		Integer page = new Integer(request.getParameter("page"));
-		invoiceService.getAllModel(ans_map,user_id,page);
-		response.getWriter().write(JSON.toJSONString(ans_map));
-	}
-
-	// 接口5：上传发票模板原图
-	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
-	@RequestMapping(value = "/uploadModelOrigin.action", method = RequestMethod.POST)
-	public void uploadModelOrigin(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		request.setCharacterEncoding("utf-8");
-		response.setCharacterEncoding("utf-8");
-		System.out.println("接收到来自web端的上传发票原图请求");
-		final Map<String, Object> ans_map = new HashMap<>();
-		// 建立文件夹,子目录为年+月
-		File save_folder = new File(localConfig.getImagePath() + "image/model/original/" + "201710");
-		if (save_folder.exists() == false) {
-			save_folder.mkdirs();
-		}
-		// 获取全部文件
-		CommonsMultipartResolver cmr = new CommonsMultipartResolver(request.getServletContext());
-		if (cmr.isMultipart(request)) {
-			MultipartHttpServletRequest request2 = (MultipartHttpServletRequest) request;
-			Iterator<String> files = request2.getFileNames();
-			// 获取其他参数
-			while (files.hasNext()) {
-				MultipartFile file = request2.getFile(files.next());
-				String origin_file_name = file.getOriginalFilename();
-				//保存的文件名由uuid生成
-				String save_file_name = UUID.randomUUID().toString() + ".bmp";//暂时 保存的文件名=原始文件名
-				//生成后缀
-				String url_suffix = "image/model/original/"+"201710"+"/"+save_file_name;
-				try {
-					//先保存bmp
-					File bmp_file = new File(save_folder, save_file_name);
-					FileOutputStream fos = new FileOutputStream(bmp_file);
-					InputStream ins = file.getInputStream();
-					IOUtil.inToOut(ins, fos);
-					IOUtil.close(ins, fos);
-					System.out.println("上传文件成功;");
-					//再保存jpg
-					ImageUtil.bmpTojpg(localConfig.getImagePath() + url_suffix);
-					//重要！将文件url返回给web端
-					ans_map.put("file_name", ImageUtil.suffixToJpg(localConfig.getIp() + url_suffix));
-					String local_jpg = ImageUtil.suffixToJpg(localConfig.getImagePath() + url_suffix);
-					ans_map.put("img_str", "data:image/jpg;base64," + ImageUtil.GetImageStr(local_jpg));
-				} catch (Exception e) {
-					e.printStackTrace();
-					ans_map.put(Const.ERR, "上传文件失败");
-				}
-			}
-		} else {
-			ans_map.put(Const.ERR, "请求格式有错误");
-		}
-		PrintWriter writer = response.getWriter();
-		writer.write(JSON.toJSONString(ans_map));
-		writer.flush();
-		writer.close();
-	}
-
-	// 接口6：一键清空模板
-	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
-	@RequestMapping(value = "/deleteAllModel.action", method = RequestMethod.POST)
-	public void deleteAllModel(HttpServletRequest request, HttpServletResponse response) throws IOException{
-		System.out.println("接收到清空模板的请求");
-		Integer user_id = new Integer(request.getParameter(Const.USER_ID));
-		Map<String, Object> ans_map = new HashMap<>();
-		Integer thread_msg = (Integer) request.getServletContext().getAttribute(Const.THREAD_MSG);//获取上锁对象
-		invoiceService.deleteAllModel(ans_map,user_id,thread_msg);
-		PrintWriter writer = response.getWriter();
-		writer.write(JSON.toJSONString(ans_map));
-		writer.flush();
-		writer.close();	
-	}
-	
-	// 接口7：点击一张图片，获得它的imgStr
-	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
-	@RequestMapping(value = "/getImgStr.action", method = RequestMethod.POST)
-	public void getImgStr(HttpServletRequest request, HttpServletResponse response)throws IOException{
-		System.out.println("接收到发送模板图片imgStr的请求");
-		Map<String, Object> ans_map = new HashMap<>();
-		String url = request.getParameter(Const.URL);
-		System.out.println(url);
-		String url_suffix = ImageUtil.getUrlSuffix(url);
-		String local_path = localConfig.getImagePath() + url_suffix;
-		//获得原图
-		String original_path = local_path.replace("handle", "original");
-		String img_str = ImageUtil.GetImageStr(original_path);
-		ans_map.put(Const.IMG_STR, "data:image/jpg;base64,"+ img_str);
-		PrintWriter writer = response.getWriter();
-		writer.write(JSON.toJSONString(ans_map));
-		writer.flush();
-		writer.close();
-	}
-
-	// 接口8：打开监控台，发送一些重要的信息给前端
-	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
-	@RequestMapping(value = "/openConsole.action", method = RequestMethod.POST)
-	@ResponseBody
-	public String openConsole(HttpServletRequest request, HttpServletResponse response)throws IOException{
-		System.out.println("接收到打开监控台的请求");
-		request.setCharacterEncoding("utf-8");
-		response.setCharacterEncoding("utf-8");
-		Map<String, Object> ans_map = new HashMap<>();
-		String ans_str = invoiceService.openConsole();
-		return ans_str;
-	}
-	
-	// 接口9：获取缓冲队列
-	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
-	@RequestMapping(value = "/recognizeWait.action", method = RequestMethod.POST)
-	public void recognizeWait(HttpServletRequest request, HttpServletResponse response)throws IOException{
-		System.out.println("接收到获取缓冲队列的请求");
-		request.setCharacterEncoding("utf-8");
-		response.setCharacterEncoding("utf-8");
-        String ans_str = invoiceService.broadcastRecognizeWaitFirst();
-		PrintWriter writer = response.getWriter();
-		writer.write(ans_str);
-		writer.flush();
-		writer.close();
-	}
-	
-	// 接口10：ajax json  接收imgStr作为图片保存，POST请求
+	//ajax json  接收imgStr作为图片保存，POST请求
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/recognizeImgStr.customer", method = RequestMethod.POST)
 	public void  recognizeImgStr(HttpServletRequest request, HttpServletResponse response,String img_str_list)throws IOException{
@@ -316,6 +133,7 @@ public class InvoiceController {
 		String dir = "image/data";
 		List<String>url_suffixs = new ArrayList<>();
 		RecognizeAction recognizeAction = JSON.parseObject(request.getParameter("recognizeAction"), RecognizeAction.class);
+		TestCase testCase = JSON.parseObject(request.getParameter("testCase"),TestCase.class);
 		List<String>img_strs = (List<String>) JSON.parse(img_str_list);
 		if(img_str_list != null){
 			System.out.println("收到" + img_strs.size() + "张图片" );
@@ -345,12 +163,60 @@ public class InvoiceController {
 				}
 			}
 			//图片全部上传完毕才调用service层
-			invoiceService.addRecognizeInvoice(ans_map,recognizeAction,url_suffixs,thread_msg);
+			invoiceService.addRecognizeInvoice(ans_map,recognizeAction,testCase,url_suffixs,thread_msg);
+			
 		}
 		response.getWriter().write(JSON.toJSONString(ans_map));
 	}
 
-	// 接口11 ：调整发票识别速度的请求
+	//点击一张图片，获得它的imgStr
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/getImgStr.action", method = RequestMethod.POST)
+	public void getImgStr(HttpServletRequest request, HttpServletResponse response)throws IOException{
+		System.out.println("接收到发送模板图片imgStr的请求");
+		Map<String, Object> ans_map = new HashMap<>();
+		String url = request.getParameter(Const.URL);
+		System.out.println(url);
+		String url_suffix = ImageUtil.getUrlSuffix(url);
+		String local_path = localConfig.getImagePath() + url_suffix;
+		//获得原图
+		String original_path = local_path.replace("handle", "original");
+		String img_str = ImageUtil.GetImageStr(original_path);
+		ans_map.put(Const.IMG_STR, "data:image/jpg;base64,"+ img_str);
+		PrintWriter writer = response.getWriter();
+		writer.write(JSON.toJSONString(ans_map));
+		writer.flush();
+		writer.close();
+	}
+
+	//打开监控台，发送一些重要的信息给前端
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/openConsole.action", method = RequestMethod.POST)
+	@ResponseBody
+	public String openConsole(HttpServletRequest request, HttpServletResponse response)throws IOException{
+		System.out.println("接收到打开监控台的请求");
+		request.setCharacterEncoding("utf-8");
+		response.setCharacterEncoding("utf-8");
+		Map<String, Object> ans_map = new HashMap<>();
+		String ans_str = invoiceService.openConsole();
+		return ans_str;
+	}
+	
+	//获取缓冲队列
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/recognizeWait.action", method = RequestMethod.POST)
+	public void recognizeWait(HttpServletRequest request, HttpServletResponse response)throws IOException{
+		System.out.println("接收到获取缓冲队列的请求");
+		request.setCharacterEncoding("utf-8");
+		response.setCharacterEncoding("utf-8");
+        String ans_str = invoiceService.broadcastRecognizeWaitFirst();
+		PrintWriter writer = response.getWriter();
+		writer.write(ans_str);
+		writer.flush();
+		writer.close();
+	}
+	
+	//调整发票识别速度的请求
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/changeSpeed.action", method = RequestMethod.POST)
 	public void changeSpeed(HttpServletRequest request, HttpServletResponse response) throws IOException{
@@ -382,27 +248,7 @@ public class InvoiceController {
 		writer.close();
 	}
 
-	//特殊接口：将DataBase.xml文件里面的内容写入Mysql数据库，已经废弃
-	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
-	@RequestMapping(value = "/rewriteJsonModel.action", method = RequestMethod.POST)
-	public void rewriteJsonModel(HttpServletRequest request, HttpServletResponse response)throws IOException{
-		System.out.println("接收到将本地json_model写入Mysql数据库的请求");
-		PrintWriter writer = response.getWriter();
-		Map<String, Object> ans_map = new HashMap<>();
-		try {
-			invoiceService.rewriteJsonModel();
-			ans_map.put(Const.SUCCESS, "更新成功");
-			System.out.println("更新成功");
-		} catch (Exception e) {
-			e.printStackTrace();
-			ans_map.put(Const.SUCCESS, "更新失败");
-			System.out.println("更新失败");
-		}
-		writer.write(JSON.toJSONString(ans_map));
-		writer.flush();
-		writer.close();
-	}
-	
+
 	//jsp接口
 	@RequestMapping(value = "/paint.action", method = RequestMethod.GET)
 	public ModelAndView paintAction(){
