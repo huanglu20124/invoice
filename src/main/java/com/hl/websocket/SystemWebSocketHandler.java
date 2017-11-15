@@ -9,6 +9,7 @@ import javax.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -21,6 +22,7 @@ import com.hl.dao.RedisDao;
 import com.hl.service.InvoiceService;
 import com.hl.util.Const;
 import com.hl.util.SocketLoadTool;
+import com.sun.org.apache.bcel.internal.generic.NEW;
 
 @Component("systemWebSocketHandler")
 public class SystemWebSocketHandler implements WebSocketHandler {
@@ -41,44 +43,32 @@ public class SystemWebSocketHandler implements WebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-    	System.out.println("通过websocket与web前端建立连接");
+    	System.out.println("通过websocket与web前端建立连接,id为" + session.getId());
     	log.debug("ConnectionEstablished");
         users.add(session); //把当前会话添加到用户列表里
-        //连接建立后，立刻向用户返回识别队列的信息（头200个）
-//        String ans_str = invoiceService.broadcastRecognizeWaitFirst();
-//        session.sendMessage(new TextMessage(ans_str.getBytes("utf-8")));
     }
     //接收消息，（可选）返回消息
     @Override
     public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
-    	System.out.println("接收到消息" + message.toString());
-//    	Object object = message.getPayload();
-//    	if(object instanceof String){
-//         	String message_str = (String) message.getPayload();
-//        	System.out.println(message_str);
-//        	if(!message_str.startsWith("java")){
-//            	String json_str = (String) message.getPayload();
-//            	Map<String, Object>client_map = JSON.parseObject(json_str);
-//            	Integer code = (Integer) client_map.get(Const.CODE);
-//            	System.out.println("来自客户端的code为" + code);
-//            	session.sendMessage(new TextMessage("测试用，服务器已收到code=0"));
-//            	sendMessageToUsers(new TextMessage("测试用，服务器已收到code=0"));
-//            	switch (code) {
-//        		case 0:
-//        			Map<String, Object> ans_map = new HashMap<>();
-//        			invoiceService.openConsole(ans_map);
-//        			System.out.println(ans_map);
-//        			session.sendMessage(new TextMessage(JSON.toJSONString(ans_map)));
-//        			System.out.println("websocekt推送code = 0消息完毕");
-//        			break;
-//    
-//        		default:
-//        			break;
-//        		}
-//        	}else {
-//				System.out.println("接收到心跳包");
-//			}
-//    	}
+    	System.out.println("接收到消息" + message.getPayload());
+    	String message_str = (String) message.getPayload();
+    	Map<String, Object>cus_map = JSON.parseObject(message_str);
+    	Map<String, Object>attibutes = session.getAttributes();
+    	String code = (String) cus_map.get("code");
+    	switch (code) {
+		case "001":{
+			//设置当前用户设置监控台状态
+			attibutes.put("console_status",cus_map.get("console_status"));
+			break;
+		}
+		case "002":{
+			//客户端告诉服务端监控台图片加载完成，返回region_list
+			invoiceService.broadcastRegionList();
+			break;
+		}	
+		default:
+			break;
+		}
     }
  
     @Override
@@ -108,13 +98,20 @@ public class SystemWebSocketHandler implements WebSocketHandler {
      *
      * @param message
      */
-    public void sendMessageToUsers(TextMessage message) {
+    public void sendMessageToUsers(TextMessage message, int[] console_status_mul) {
     	try {
             for (WebSocketSession user : users) {
                 try {
                     if (user.isOpen()) {
-                        user.sendMessage(message);
-                        System.out.println("成功群发消息");
+                    	Integer user_status = (Integer) user.getAttributes().get("console_status");
+                    	System.out.println("user_status=" + user_status);
+                    	for(int console_status : console_status_mul){
+                        	if(user_status != null && user_status == console_status){
+                                user.sendMessage(message);
+                                System.out.println("成功群发消息");
+                                break;
+                        	}
+                    	}
                     }
                 } catch (IOException e) {
                     e.printStackTrace();

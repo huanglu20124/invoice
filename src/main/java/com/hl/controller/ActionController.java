@@ -37,14 +37,14 @@ public class ActionController {
 	@ResponseBody
 	public String getTwentyAction(Integer page,String startTime,String endTime,String keyword) throws IOException{
 		System.out.println("接收到查询操作日志的请求");
-		System.out.println(page + "  " + startTime + "  " + endTime + "   " + keyword);
+		System.out.println(page + "  " + startTime + "  " + endTime + "   " + keyword + "。");
 		if(startTime == null || endTime == null){
 			SimpleResponse simpleResponse = new SimpleResponse();
 			simpleResponse.setErr("请输入开始时间和结束时间");
 			return JSON.toJSONString(simpleResponse);
 		}		
 		ActionQuery actionQuery = null;
-		if(keyword == null){
+		if(keyword == null || keyword.equals("")){
 			actionQuery = actionService.getTwentyActionByTime(page,startTime,endTime);
 		}else {
 			actionQuery = actionService.getTwentyActionByKeyword(page,startTime,endTime,keyword);

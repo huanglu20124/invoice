@@ -14,8 +14,9 @@ public interface InvoiceService {
 	public void addRecognizeInvoice(Map<String, Object> ans_map, RecognizeAction action,TestCase testCase,List<String>url_suffixs,Integer thread_msg);
 	public void broadcastRecognizeProcess(InputStream inputStream,OutputStream outputStream,Integer delay);
 	public String broadcastRecognizeWaitFirst();
-	public String openConsole();
+	public String openConsole(Integer delay);
 	public void broadcastNextRecognize(Invoice invoice);
 	public void changeImageUrlIp();
 	public void UpdateRecognizeSpeed(Map<String, Object> ans_map, Integer user_id,Integer delay,ServletContext servletContext);
+	public void broadcastRegionList();
 }

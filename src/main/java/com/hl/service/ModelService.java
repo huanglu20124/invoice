@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.hl.domain.Model;
 import com.hl.domain.ModelAction;
+import com.hl.domain.ModelQuery;
 
 public interface ModelService {
 	public void addOrUpdateInvoiceModel(Map<String, Object>ans_map, ModelAction modelAction,Integer thread_msg);
@@ -17,5 +18,5 @@ public interface ModelService {
 	public void deleteAllModel(Map<String, Object> ans_map, Integer user_id, Integer thread_msg);
 	public void broadcastClearModel(InputStream inputStream, Integer integer);
 	public void rewriteJsonModel()throws Exception;
-	public List<Model> searchModelLabel(Integer page,Integer user_id, String keywords);
+	public ModelQuery searchModelLabel(Integer page,Integer user_id, String keyword);
 }

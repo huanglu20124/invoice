@@ -26,9 +26,11 @@ import com.hl.dao.ModelDao;
 import com.hl.dao.RedisDao;
 import com.hl.dao.UserDao;
 import com.hl.domain.Action;
+import com.hl.domain.ActionQuery;
 import com.hl.domain.LocalConfig;
 import com.hl.domain.Model;
 import com.hl.domain.ModelAction;
+import com.hl.domain.ModelQuery;
 import com.hl.domain.ResponseMessage;
 import com.hl.domain.User;
 import com.hl.service.ModelService;
@@ -166,7 +168,7 @@ public class ModelServiceImpl implements ModelService{
 			temp_map.put(Const.URL, url);
 			String str = JSON.toJSONString(temp_map);
 			System.out.println(str);
-			systemWebSocketHandler.sendMessageToUsers(new TextMessage(str));
+			systemWebSocketHandler.sendMessageToUsers(new TextMessage(str),new int[]{3});
 			// 同时得到model_id
 			Integer model_id = null;
 			// 2.成功的话，model表加入一个新model,model_id主键由算法端决定
@@ -197,7 +199,7 @@ public class ModelServiceImpl implements ModelService{
 		} catch (IOException e) {
 			e.printStackTrace();
 			err_map.put(Const.ERR, "接受算法服务器数据异常");
-			systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(err_map)));
+			systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(err_map)),new int[]{3});
 		}
 
 	}
@@ -249,7 +251,7 @@ public class ModelServiceImpl implements ModelService{
 			}
 			//延时一秒，将结果推送给前端
 			try {
-				systemWebSocketHandler.sendMessageToUsers(new TextMessage(str.getBytes("utf-8")));
+				systemWebSocketHandler.sendMessageToUsers(new TextMessage(str.getBytes("utf-8")),new int[]{3});
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
@@ -258,7 +260,7 @@ public class ModelServiceImpl implements ModelService{
 		} catch (IOException e) {
 			e.printStackTrace();
 			err_map.put(Const.ERR, "接受算法服务器数据异常");
-			systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(err_map)));
+			systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(err_map)),new int[]{3});
 		}
 
 	}
@@ -282,7 +284,7 @@ public class ModelServiceImpl implements ModelService{
 			// 1.解析json，先将结果直接返回给web端
 			Map<String, Object> response_map = JSON.parseObject(json_str);
 			int status = (int) response_map.get("status");
-			systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)));
+			systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)),new int[]{3});
 			// 2.model表删除该model,其他携带该外键的行全部更新
 			String url_suffix = null;
 			// 这个url用来后面删除图片文件
@@ -320,7 +322,7 @@ public class ModelServiceImpl implements ModelService{
 		} catch (IOException e) {
 			e.printStackTrace();
 			err_map.put(Const.ERR, "接受算法服务器数据异常");
-			systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(err_map)));
+			systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(err_map)),new int[]{3});
 		}
 	}
 
@@ -337,7 +339,7 @@ public class ModelServiceImpl implements ModelService{
 			// 1.解析json，先将结果直接返回给web端
 			Map<String, Object> response_map = JSON.parseObject(json_str);
 			int status = (int) response_map.get("status");
-			systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)));
+			systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)),new int[]{3});
 			// 2.model表删除该model,其他携带该外键的行全部更新
 			if (status == 0) {
 				// 全部model_id!=null 的invoice，设置外键为null
@@ -364,7 +366,7 @@ public class ModelServiceImpl implements ModelService{
 		} catch (IOException e) {
 			e.printStackTrace();
 			err_map.put(Const.ERR, "接受算法服务器数据异常");
-			systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(err_map)));
+			systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(err_map)),new int[]{3});
 		}
 	}
 
@@ -500,11 +502,12 @@ public class ModelServiceImpl implements ModelService{
 
 	//通过label模糊查询发票
 	@Override
-	public List<Model> searchModelLabel(Integer page,Integer user_id, String keywords) {
-		if(keywords == null){
-			return null;
-		}else {
-			return modelDao.searchModelLabel(page,keywords);
+	public ModelQuery searchModelLabel(Integer page,Integer user_id, String keyword) {
+		ModelQuery modelQuery = new ModelQuery();
+		if(keyword != null){
+			List<Model>model_list = modelDao.searchModelLabel(page, keyword); 
+			modelQuery.setModel_list(model_list);
 		}
+		return modelQuery;	
 	}
 }

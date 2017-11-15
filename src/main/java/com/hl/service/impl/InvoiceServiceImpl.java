@@ -46,6 +46,7 @@ import com.hl.util.MessageUtil;
 import com.hl.util.SocketLoadTool;
 import com.hl.util.TimeUtil;
 import com.hl.websocket.SystemWebSocketHandler;
+import com.sun.org.apache.bcel.internal.generic.NEW;
 
 @Service("invoiceService")
 public class InvoiceServiceImpl implements InvoiceService {
@@ -129,7 +130,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 		// 将增加的通知给全体用户
 		broadcast_map.put(Const.MSG_ID, 201);
 		broadcast_map.put(Const.NEW_RECOGNIZE, invoice_list);
-		systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(broadcast_map)));
+		systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(broadcast_map)),
+				new int[]{1});
 
 		Long recognize_size = redisDao.getWaitSize(); // 识别队列
 		Long manage_size = redisDao.getManageSize();// 操作队列
@@ -246,7 +248,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 						// 最后，清除识别的过程队列
 						redisDao.deleteKey(Const.RECOGNIZE_PROCESS);
 						// 所得json字符串直接广播发给用户
-						systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)));
+						systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)),new int[]{2});
 						// 结束循环监听
 						break;
 					} else if (message.getMsg_id() == 100) {
@@ -266,20 +268,20 @@ public class InvoiceServiceImpl implements InvoiceService {
 						redisDao.leftPush(Const.RECOGNIZE_PROCESS, JSON.toJSONString(json_map));
 						message.setJson_str(JSON.toJSONString(json_map));
 						// 过程信息，直接转交给前端
-						systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)));
+						systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)),new int[]{2});
 						System.out.println("model_id为" + model_id);
 					} else if (message.getMsg_id() == 101 || message.getMsg_id() == 102) {
 						// 同时，加入到redis队列里记录
 						redisDao.leftPush(Const.RECOGNIZE_PROCESS, message.getFinalMessage(action_id));
 						// 过程信息，直接转交给前端
-						systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)));
+						systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)),new int[]{2});
 					}
 				}
 
 			} catch (IOException e) {
 				e.printStackTrace();
 				err_map.put(Const.ERR, "接收算法服务器数据异常");
-				systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(err_map)));
+				systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(err_map)),new int[]{2});
 			}
 		}
 
@@ -310,7 +312,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
 	// ajax处理web请求 msg_id = 202
 	@Override
-	public String openConsole() {
+	public String openConsole(Integer delay) {
 		// 打开监控台，返回当前图片的url，action_id,img_str
 		String uuid = redisDao.getRight(Const.RECOGNIZE_WAIT, 0l);
 		if (uuid != null) {
@@ -327,6 +329,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 			console.setAction_start_time(invoice.getAction_start_time());
 			console.setImg_str("data:image/jpg;base64," + img_str);
 			console.setMsg_id(202);
+			//获取发票识别延时
+			console.setDelay(delay);
 			return JSON.toJSONString(console);
 		}else {
 			return "{}";
@@ -352,10 +356,11 @@ public class InvoiceServiceImpl implements InvoiceService {
 		start_map.put(Const.USER_NAME, invoice.getUser_name());
 		start_map.put(Const.ACTION_START_TIME, invoice.getAction_start_time());
 		start_map.put(Const.COMPANY_NAME, invoice.getCompany_name());
-		systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(start_map)));
+		systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(start_map)),new int[]{2});
 	}
 
 	// websocket返回处理结果 msg_id = 204
+	@Override
 	public void broadcastRegionList(){
 		List<Object> region_list_origin = redisDao.getRangeId(Const.RECOGNIZE_PROCESS);
 		List<String> region_list = new ArrayList<>();
@@ -365,7 +370,10 @@ public class InvoiceServiceImpl implements InvoiceService {
 		}
 		Collections.reverse(region_list);
 		System.out.println("region_list = " + region_list);
-		
+		Map<String, Object>temp = new HashMap<>();
+		temp.put("region_list", region_list);
+		temp.put("msg_id", 204);
+		systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(temp)), new int[]{2});
 	}
 	
 	// ajax处理web请求，已经废弃

@@ -10,6 +10,7 @@ public class ResponseMessage {
 	private int msg_id;
 	private int msg_len;
 	private String json_str;
+	
 	public int getMsg_id() {
 		return msg_id;
 	}

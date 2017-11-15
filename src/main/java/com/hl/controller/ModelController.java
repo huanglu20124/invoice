@@ -28,6 +28,7 @@ import com.alibaba.fastjson.JSON;
 import com.hl.domain.LocalConfig;
 import com.hl.domain.Model;
 import com.hl.domain.ModelAction;
+import com.hl.domain.ModelQuery;
 import com.hl.domain.SimpleResponse;
 import com.hl.service.InvoiceService;
 import com.hl.service.ModelService;
@@ -190,9 +191,9 @@ public class ModelController {
 	@RequestMapping(value = "/searchModelLabel.action", method = RequestMethod.POST)
 	@ResponseBody
 	public String searchModelLabel(Integer page,Integer user_id, String keyword){
-		List<Model> model_list = modelService.searchModelLabel(page,user_id,keyword);
-		if(model_list != null){
-			return JSON.toJSONString(model_list);
+		ModelQuery modelQuery = modelService.searchModelLabel(page,user_id,keyword);
+		if(modelQuery != null){
+			return JSON.toJSONString(modelQuery);
 		}else {
 			SimpleResponse simpleResponse = new SimpleResponse();
 			simpleResponse.setErr("请输入查询关键字");

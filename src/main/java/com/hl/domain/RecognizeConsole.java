@@ -12,6 +12,15 @@ public class RecognizeConsole {
 	private String action_start_time;
 	private Integer msg_id;
 	
+	//发票识别速度
+	private Integer delay;
+	
+	public Integer getDelay() {
+		return delay;
+	}
+	public void setDelay(Integer delay) {
+		this.delay = delay;
+	}
 	public Integer getUser_id() {
 		return user_id;
 	}

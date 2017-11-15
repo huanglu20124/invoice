@@ -198,7 +198,11 @@ public class InvoiceController {
 		request.setCharacterEncoding("utf-8");
 		response.setCharacterEncoding("utf-8");
 		Map<String, Object> ans_map = new HashMap<>();
-		String ans_str = invoiceService.openConsole();
+		Integer delay = (Integer) request.getServletContext().getAttribute("delay");
+		if(delay == null){
+			delay = 0;
+		}
+		String ans_str = invoiceService.openConsole(delay);
 		return ans_str;
 	}
 	

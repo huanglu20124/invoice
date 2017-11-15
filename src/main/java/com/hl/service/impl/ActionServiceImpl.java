@@ -28,6 +28,7 @@ public class ActionServiceImpl implements ActionService{
 		Integer sum = actionDao.getActionSumByTime(startTime,endTime);
 		Integer page_sum = sum/20 +1;
 		actionQuery.setPage_sum(page_sum);
+		actionQuery.setAction_list(actions);
 		return actionQuery;
 	}
 

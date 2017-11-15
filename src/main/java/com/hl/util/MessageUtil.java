@@ -50,8 +50,6 @@ public class MessageUtil {
 			System.out.println("发送消息异常");
 			Map<String,Object>err_map = new HashMap<>();
 			err_map.put(Const.ERR, "向服务器发送消息异常");
-			if(systemWebSocketHandler != null)//吧错误信息发给控制台前端
-			  systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(err_map)));
 		}
 
 	}

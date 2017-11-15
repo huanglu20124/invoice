@@ -106,10 +106,8 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 				+ " and c.action_start_time >= ? and c.action_start_time <= ?"
 				+ " LIMIT ?,20";
 		int begin = page*20;
-		Timestamp start = TimeUtil.StrToTimestamp(startTime);
-		Timestamp end = TimeUtil.StrToTimestamp(endTime);
-		if(start != null && end != null){
-			return getJdbcTemplate().query(sql, new ActionMapper(),start,end,begin);
+		if(startTime != null && endTime != null){
+			return getJdbcTemplate().query(sql, new ActionMapper(),startTime,endTime,begin);
 		}else {
 			return null;
 		}
@@ -219,11 +217,10 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 		return getJdbcTemplate().queryForObject(sql, new ActionMapper(),action_id);
 	}
 
-	
 	@Override
 	public Integer getActionSumByTime(String startTime, String endTime) {
 		String sql = "select count(*) from action where action_start_time >= ? and action_start_time <= ?";
-		return getJdbcTemplate().queryForObject(sql, Integer.class);
+		return getJdbcTemplate().queryForObject(sql, Integer.class,startTime,endTime);
 	}
 
 
