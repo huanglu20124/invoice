@@ -19,4 +19,5 @@ public interface InvoiceService {
 	public void changeImageUrlIp();
 	public void UpdateRecognizeSpeed(Map<String, Object> ans_map, Integer user_id,Integer delay,ServletContext servletContext);
 	public void broadcastRegionList();
+	public List<Invoice> getTwentyFaultQueue(Integer page);
 }

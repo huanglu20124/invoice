@@ -19,7 +19,7 @@ public class ModelDaoImpl extends JdbcDaoSupport implements ModelDao {
 	@Override
 	public void addModel(ModelAction modelAction) {
 		//增加一个新模板
-		String sql = "insert into model values(?,?,?,0,?,?,?);";
+		String sql = "insert into model values(?,?,?,0,?,?,?,?);";
 		String json_model = modelAction.getJson_model();
 		Map<String, Object>json_map = JSON.parseObject(json_model);
 		//获得json_model里的model_label
@@ -27,7 +27,7 @@ public class ModelDaoImpl extends JdbcDaoSupport implements ModelDao {
 		String model_label = (String) global_setting_map.get("label");
 		getJdbcTemplate().update(sql,modelAction.getModel_id(),
 				json_model,modelAction.getAction_end_time(),
-				modelAction.getUrl_suffix(),model_label,modelAction.getImage_size());
+				modelAction.getUrl_suffix(),model_label,modelAction.getImage_size(),modelAction.getAction_id());
 	}
 
 	@Override

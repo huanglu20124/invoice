@@ -1,3 +1,5 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8" import="com.alibaba.fastjson.JSON"%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -14,45 +16,68 @@
 	<link rel="stylesheet" type="text/css" href="style/layout.css">
 </head>
 <body>
-	<header>
-		<img src="pic/zhongda.jpg" style="height: 100%;" />
-        <span style="display: inline-block; float: right; margin-right: 10px; line-height: 60px;">
-            <i class="fa fa-user-circle" style="font-size: 30px"></i>
-            <span style="margin-left: 10px; font-size: 16px;"><a href="">个人设置</a></span>
-            <span style="margin-left: 10px; font-size: 16px;"><a href="login.html">退出登录</a></span>
+	<header class="flex flex-align-center">
+        <img src="pic/logo.png" style="height: 100%; vertical-align: middle;" class="flex-none" />
+        <span style="margin-left: 0.5em; font-size: 18px; padding-left: 1em; border-left: 2px solid rgba(200,200,200,0.5); color: #6a6e76;" class="flex-1">智能发票识别监控平台</span>
+        <span class="flex-none own_user_name" style="margin-right: 1.5em; font-size: 16px; color: #6a6e76;"></span>
+        <span class="btn-group flex-none" style="margin-right: 20px;">
+            <span type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" style="border:none;">
+                <img src="pic/头像.png" style="height: 30px; margin-right: 1em;">
+                <span class="caret"></span>
+            </span>
+            <ul class="dropdown-menu" style="min-width: 100px; margin-top: 5px;">
+                <li><a href="">个人设置</a></li>
+                <li><a href="${pageContext.request.contextPath}/logout.action">退出登录</a></li>
+            </ul>
         </span>
-	</header>
+    </header>
 	<main>
-		<aside class="col-lg-2" style="margin-top: 20px;">
-			<div class="aside_nav_list">
-				<a href="queue.html" class="aside_nav_list-item">
+		<aside>
+            <div class="aside_nav_list">
+                <a href="" class="aside_nav_list-item nav_disabled" data-permission="queue">
                     <i class="fa fa-bar-chart aside_nav_list-item-icon"></i>
                     <span>缓冲队列</span>
                 </a>
-				<a href="show.html"  class="aside_nav_list-item selected">
-                    <i class="fa fa-cog aside_nav_list-item-icon"></i>
+                <a href="${pageContext.request.contextPath}/console.action"  class="aside_nav_list-item selected" data-permission="console">
+                    <i class="fa fa-television aside_nav_list-item-icon"></i>
                     <span>监控显示</span>
                 </a>
-				<a href="paint.html" class="aside_nav_list-item">
+                <a href="" class="aside_nav_list-item nav_disabled" data-permission="model">
                     <i class="fa fa-clipboard aside_nav_list-item-icon"></i>
                     <span>模板库</span>
                 </a>
-				<a href="fault.html" class="aside_nav_list-item">
+                <a href="" class="aside_nav_list-item nav_disabled" data-permission="fault">
                     <i class="fa fa-times-circle-o aside_nav_list-item-icon"></i>
-                    <span>报错发票</span>
+                    <span>报错发票
+                        <span class="badge fault_num" style="margin-left: 10px;"></span>
+                    </span>
                 </a>
-			</div>
-		</aside>
-		<div class="col-lg-10 main_content">
-			<div class="col-lg-8">
+                <a href="" class="aside_nav_list-item nav_disabled" data-permission="log">
+                    <i class="fa fa-tasks aside_nav_list-item-icon" aria-hidden="true"></i>
+                    <span>日志查询</span>
+                </a>
+                <a href="" class="aside_nav_list-item nav_disabled" data-permission="user">
+                    <i class="fa fa-user-o aside_nav_list-item-icon" aria-hidden="true"></i>
+                    <span>用户管理</span>
+                </a>
+                <a href="${pageContext.request.contextPath}/ownedit.action" class="aside_nav_list-item">
+                    <i class="fa fa-cog aside_nav_list-item-icon" aria-hidden="true"></i>
+                    <span>个人设置</span>
+                </a>
+            </div>
+        </aside>
+		<div class="main_content">
+            <div class="main_content_hd flex flex-align-end">
+                <span class="flex-1">监控显示</span>
+            </div>
+			<div style="display: inline-block; width: 64%; vertical-align: top; margin-right: 2%;">
 				<div class="panel panel-default">
 				    <div class="panel-heading">
-				        <h2 class="panel-title" style="font-size: 18px;">正在识别的图片</h2>
-				        <p class="help-block" style="margin: 1em 0 0; font-size: 14px;"><span id="user_name">发送者：</span><span style="margin-left: 3em;" id="action_start_time">发送时间：</span><span id="company_name" style="margin-left: 3em;">责任单位：</span></p>
+				        <p class="help-block" style="margin: 0; font-size: 14px;"><span id="user_name">发送者：</span><span style="margin-left: 3em;" id="action_start_time">发送时间：</span><span id="company_name" style="margin-left: 3em;">责任单位：</span></p>
 				    </div>
 				    <div class="panel-body" style="padding: 0px;">
 						<div style="width: 100%; height:auto; overflow: hidden; border-radius: 4px; position: relative;" id="canvas_panel_body">
-							<canvas style="background: url('pic/shibie_placehold.png')  no-repeat center; background-color: rgba(255,255,255,0); background-size: cover; position:relative; z-index: 2;" id="show_fapiao"></canvas>
+							<canvas style="background-color: transparent; background-size: cover; position:relative; z-index: 2;" id="show_fapiao"></canvas>
 							<!-- 用于备份图片的画布 -->
 							<canvas id="copy_fapiao" style="z-index: 1; position: absolute; background: url('pic/shibie_placehold.png') no-repeat center; background-size: cover;"></canvas>
 						</div>
@@ -63,7 +88,7 @@
                     <div id="slider" data-toggle="tooltip"></div>
                 </div>
 			</div>
-			<div class="col-lg-4">
+			<div style="display: inline-block; width: 33%; vertical-align: top;">
 				<div class="panel panel-default">
 				    <div class="panel-heading">
 				        <h3 class="panel-title">区域信息<span class="title_load"></span></h3>
@@ -102,6 +127,8 @@
     <script type="text/javascript" src="script/common.js"></script>
 	<script type="text/javascript">
         // var ws = null;
+        //jsp加入
+        var user_json = <%=JSON.toJSONString(request.getAttribute("user"))%>
 
         function resetImgLine(jq_ele, img_list) {
         	jq_ele.each(function(index, e){
@@ -140,7 +167,7 @@
                         url: "http://" + ip2 + "/invoice/changeSpeed.action",
                         data: {
                             delay: ui.value,
-                            user_id: "1"
+                            user_id: user_id
                         }
                     })
                 },
@@ -183,6 +210,10 @@
         }
 
         $(document).ready(function(){
+
+            // 判断权限
+            justifyUserGrant(user_json);
+
         	initCanvasPhoto();
         
         	cxt = c.getContext("2d");
@@ -197,31 +228,32 @@
                 success: function(res) {
                     tellConsole(res, 2);
                     var data = JSON.parse(res);
-                    $("#copy_fapiao").css("backgroundImage", "url(" + data.img_str + ")");
-                    var temp_img = new Image();
-                    temp_img.onload = function(){
-                        cxt.clearRect(0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
-                        cxt.drawImage(temp_img, 0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));   
+                    if(data.img_str != undefined) {
+                        $("#copy_fapiao").css("backgroundImage", "url(" + data.img_str + ")");
+                        $("#show_fapiao").css("backgroundImage", "url('')");
+                        $( "#slider" ).slider({value: data.delay});
+                        $("#slide_tooltip").text(data.delay.toString());
+
+                        var temp_img = new Image();
+                        temp_img.onload = function(){
+                            cxt.clearRect(0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
+                            cxt.drawImage(temp_img, 0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
+
+                            //console.log("here" + data.region_list);
+                            ws.send(JSON.stringify({
+                                code: "002"
+                            }));
+                            
+                        }
+                        temp_img.src = data.img_str;
+                        //temp_img.src = data.url;
+                        if(data.user_name != undefined) {
+                            $("#user_name").text($("#user_name").text().split("：")[0] + "：" + data.user_name);
+                            $("#action_start_time").text($("#action_start_time").text().split("：")[0] + "：" + data.action_start_time);
+                            $("#company_name").text($("#company_name").text().split("：")[0] + "：" + data.company_name);   
+                        }    
                     }
-                    temp_img.src = data.img_str;
-                    //temp_img.src = data.url;
-                    if(data.user_name != undefined) {
-                        console.log(data.user_name);
-                        $("#user_name").text($("#user_name").text() + data.user_name);
-                        $("#action_start_time").text($("#action_start_time").text() + data.action_start_time);
-                        $("#company_name").text($("#company_name").text() + data.company_name);    
-                    }
-                
-                    tellConsole(data.region_list, 3);
-                    for(var i = 0; i < data.region_list.length; i++) {
-                        var data1 = JSON.parse(data.region_list[i]);
-                        $("td.area_hd").each(function() {
-                            if($(this).text() == data1.pos_id) {
-                                $(this).next().text(data1.ocr_result);
-                                $(this).next().next().text(data1.probability);
-                            }
-                        });
-                    }
+                    
                 },
                 error: function(e) {
                     tellConsole(e, 1);

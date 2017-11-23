@@ -113,20 +113,19 @@ public class ModelServiceImpl implements ModelService{
 		User user = userDao.getUserById(user_id);
 		// 删除发票模板
 		// 1生成一条行为，插入action表，并获取返回的action_id
-		Action action = new Action();
+		ModelAction action = new ModelAction();
 		action.setUser_id(user.getUser_id());
 		action.setAction_start_time(TimeUtil.getCurrentTime());
 		action.setUser_name(user.getUser_name());
 		action.setCompany_id(user.getCompany_id());
 		action.setCompany_name(user.getCompany_name());
 		action.setMsg_id(3);
+		action.setAction_uuid(UUID.randomUUID().toString());
+		action.setModel_id(model_id);
 		Integer action_id = actionDao.addAction(action);
 		redisDao.leftPush(Const.MANAGE_WAIT, action_id.toString());// 加入到操作队列
 		// key为action_id，value为图片url以及msg_id=2,还有json_model
-		Map<String, Object> msg_map = new HashMap<>();
-		msg_map.put(Const.MODEL_ID, model_id);
-		msg_map.put(Const.MSG_ID, 3);
-		redisDao.addKey(action_id.toString(), JSON.toJSONString(msg_map));
+		redisDao.addKey(action_id.toString(), JSON.toJSONString(action));
 		// 3.获取两个队列长度
 		Long recognize_size = redisDao.getWaitSize(); // 识别队列
 		Long manage_size = redisDao.getManageSize();// 操作队列
@@ -506,6 +505,11 @@ public class ModelServiceImpl implements ModelService{
 		ModelQuery modelQuery = new ModelQuery();
 		if(keyword != null){
 			List<Model>model_list = modelDao.searchModelLabel(page, keyword); 
+			// 将url_suffix转为网络url
+			for (Model model : model_list) {
+				String url_suffix = model.getModel_url();
+				model.setModel_url(localConfig.getIp() + url_suffix);
+			}
 			modelQuery.setModel_list(model_list);
 		}
 		return modelQuery;	

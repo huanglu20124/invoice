@@ -4,7 +4,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>错误信息</title>
+<title>草死你妈</title>
 </head>
 <body>
 ${message}!

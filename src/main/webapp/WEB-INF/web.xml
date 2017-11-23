@@ -23,6 +23,11 @@
 		<param-value>classpath:applicationContext-*.xml</param-value>
 	</context-param>
 
+	<context-param>
+		<param-name>webAppRootKey</param-name>
+		<param-value> app.root </param-value>
+	</context-param>
+
 	<listener>
 		<listener-class>com.hl.listener.StartListener</listener-class>
 	</listener>
@@ -45,8 +50,8 @@
 
 	<servlet-mapping>
 		<servlet-name>dispatcher</servlet-name>
-        <url-pattern>/</url-pattern>
-<!-- 		<url-pattern>*.action</url-pattern> -->
+		<url-pattern>/</url-pattern>
+		<!-- <url-pattern>*.action</url-pattern> -->
 	</servlet-mapping>
 
 
@@ -69,7 +74,7 @@
 	<filter-mapping>
 		<filter-name>shiroFilter</filter-name>
 		<url-pattern>*.action</url-pattern>
-		<!--这里配置为对所有action结尾的url进行拦截-->
+		<!--这里配置为对所有action结尾的url进行拦截 -->
 	</filter-mapping>
 
 	<!-- 配置过滤器，解决post的乱码问题 -->
@@ -85,8 +90,8 @@
 		<filter-name>encoding</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
-	
-     <!-- 欢迎界面 -->
+
+	<!-- 欢迎界面 -->
 	<welcome-file-list>
 		<welcome-file>login.jsp</welcome-file>
 	</welcome-file-list>

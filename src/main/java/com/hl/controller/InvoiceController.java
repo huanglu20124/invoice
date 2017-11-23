@@ -17,6 +17,9 @@ import java.util.UUID;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.hadoop.mapred.gethistory_jsp;
 import org.apache.log4j.Logger;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
@@ -31,6 +34,8 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.alibaba.fastjson.JSON;
+import com.hl.dao.RedisDao;
+import com.hl.domain.Invoice;
 import com.hl.domain.LocalConfig;
 import com.hl.domain.ModelAction;
 import com.hl.domain.RecognizeAction;
@@ -42,6 +47,7 @@ import com.hl.util.CheckUtil;
 import com.hl.util.Const;
 import com.hl.util.IOUtil;
 import com.hl.websocket.SystemWebSocketHandler;
+import com.sun.org.apache.regexp.internal.recompile;
 
 /**
  * 发票系统控制器
@@ -59,6 +65,8 @@ public class InvoiceController {
 	@Resource(name = "localConfig")
 	private LocalConfig localConfig;
 	
+	@Resource(name="redisDao")
+	private RedisDao redisDao;
 	@RequestMapping(value = "/test", method = RequestMethod.GET)
 	public void test(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		// 测试专用
@@ -220,6 +228,19 @@ public class InvoiceController {
 		writer.close();
 	}
 	
+	//获取20张报错发票队列
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/getFaultQueue.action", method = RequestMethod.POST)
+	public void getFaultQueue(Integer page,HttpServletResponse response) throws IOException{
+		System.out.println("接收到获取错误发票队列的请求");
+		response.setCharacterEncoding("utf-8");
+		List<Invoice>list = invoiceService.getTwentyFaultQueue(page);
+		Map<String, Object>map = new HashMap<>();
+		map.put("fault_num", new Integer((String)redisDao.getValue("fault_num")));
+		map.put("fault_list", list);
+		response.getWriter().write(JSON.toJSONString(map));;
+	}
+	
 	//调整发票识别速度的请求
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/changeSpeed.action", method = RequestMethod.POST)
@@ -254,30 +275,30 @@ public class InvoiceController {
 
 
 	//jsp接口
-	@RequestMapping(value = "/paint.action", method = RequestMethod.GET)
+	@RequestMapping(value = "/model.action", method = RequestMethod.GET)
 	public ModelAndView paintAction(){
 		System.out.println("准备渲染paint界面");
 		Subject subject = SecurityUtils.getSubject();
 		User user = (User) subject.getPrincipal();
 		ModelAndView modelAndView = new ModelAndView();
 		if(user != null){
-			modelAndView.addObject(user);
+			modelAndView.addObject("user",user);
 		}
-		modelAndView.setViewName("paint");
+		modelAndView.setViewName("model");
 		return modelAndView;
 	}
 	
 	//jsp接口
-	@RequestMapping(value = "/show.action", method = RequestMethod.GET)
+	@RequestMapping(value = "/console.action", method = RequestMethod.GET)
 	public ModelAndView showAction(){
 		System.out.println("准备渲染show界面");
 		Subject subject = SecurityUtils.getSubject();
 		User user = (User) subject.getPrincipal();
 		ModelAndView modelAndView = new ModelAndView();
 		if(user != null){
-			modelAndView.addObject(user);
+			modelAndView.addObject("user",user);
 		}
-		modelAndView.setViewName("show");
+		modelAndView.setViewName("console");
 		return modelAndView;
 	}
 	
@@ -289,7 +310,7 @@ public class InvoiceController {
 		User user = (User) subject.getPrincipal();
 		ModelAndView modelAndView = new ModelAndView();
 		if(user != null){
-			modelAndView.addObject(user);
+			modelAndView.addObject("user",user);
 		}
 		modelAndView.setViewName("queue");
 		return modelAndView;
@@ -299,14 +320,57 @@ public class InvoiceController {
 	@RequestMapping(value = "/fault.action", method = RequestMethod.GET)
 	public ModelAndView faultAction(){
 		System.out.println("准备渲染fault界面");
-		System.out.println("准备渲染show界面");
 		Subject subject = SecurityUtils.getSubject();
 		User user = (User) subject.getPrincipal();
 		ModelAndView modelAndView = new ModelAndView();
 		if(user != null){
-			modelAndView.addObject(user);
+			modelAndView.addObject("user",user);
 		}
 		modelAndView.setViewName("fault");
 		return modelAndView;
 	}
+	
+	//jsp接口
+	@RequestMapping(value = "/log.action", method = RequestMethod.GET)
+	public ModelAndView queryLogAction(){
+		System.out.println("准备渲染log界面");
+		Subject subject = SecurityUtils.getSubject();
+		User user = (User) subject.getPrincipal();
+		ModelAndView modelAndView = new ModelAndView();
+		if(user != null){
+			modelAndView.addObject("user",user);
+		}
+		modelAndView.setViewName("log");
+		return modelAndView;
+	}
+	
+	//jsp接口
+	@RequestMapping(value = "/user.action", method = RequestMethod.GET)
+	public ModelAndView grantAction(){
+		System.out.println("准备渲染grant界面");
+		Subject subject = SecurityUtils.getSubject();
+		User user = (User) subject.getPrincipal();
+		ModelAndView modelAndView = new ModelAndView();
+		if(user != null){
+			modelAndView.addObject("user",user);
+		}
+		modelAndView.setViewName("user");
+		return modelAndView;
+	}
+	
+	//jsp接口
+	@RequestMapping(value = "/ownedit.action", method = RequestMethod.GET)
+	public ModelAndView owneditAction(){
+		System.out.println("准备渲染ownedit界面");
+		Subject subject = SecurityUtils.getSubject();
+		User user = (User) subject.getPrincipal();
+		ModelAndView modelAndView = new ModelAndView();
+		if(user != null){
+			modelAndView.addObject("user",user);
+		}
+		modelAndView.setViewName("ownedit");
+		return modelAndView;
+	}
+	
+	
 }

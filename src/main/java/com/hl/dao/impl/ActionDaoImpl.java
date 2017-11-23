@@ -133,7 +133,6 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 		solrQuery.set("fq", "action_id:["+ min_id + " TO " +max_id +"]");
 		solrQuery.setStart(page * 20);
 		solrQuery.setRows(20);
-		
 		//得到结果
 		QueryResponse response = solrServer.query(solrQuery);
 		// 文档结果集

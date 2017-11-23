@@ -46,7 +46,7 @@ public class InvoiceTest {
 		//原始 密码 
 		String source = "123";
 		//盐
-		String salt = "asdre";
+		String salt = "eyerh";
 		//散列次数
 		int hashIterations = 1;
 		//构造方法中：

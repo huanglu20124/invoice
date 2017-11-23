@@ -31,7 +31,7 @@
 			        </div>
 			        <div class="input-group">
 			            <span class="input-group-addon"><i class="fa fa-lock"></i></span>
-			            <input type="text" class="form-control" placeholder="请输入密码" name="user_password">
+			            <input type="password" class="form-control" placeholder="请输入密码" name="user_password">
 			        </div>
 			        <button type="sumbit" class="btn btn-primary">登录</button>
 			        <button type="sumbit" class="btn btn-default">注册</button>
@@ -45,7 +45,7 @@
 			        </div>
 			        <div class="input-group">
 			            <span class="input-group-addon"><i class="fa fa-lock"></i></span>
-			            <input type="text" class="form-control" placeholder="请输入密码" name="user_password">
+			            <input type="password" class="form-control" placeholder="请输入密码" name="user_password">
 			        </div>
 			        <button type="sumbit" class="btn btn-primary">登录</button>
 			        <button type="sumbit" class="btn btn-default">注册</button>
@@ -55,24 +55,6 @@
 	</main>
 
 	<script type="text/javascript">
-		var ip2; //host_ip
-	    //读取config.xml配置ip等信息
-	    function loadxml(fileName) {
-	    	$.ajax({
-	    		async : false,
-	    		url : fileName,
-	    		dataType : "xml",
-	    		type : "GET",
-	    		success : function(res, status) {
-	    			var xml_data = res;
-	    			ip2 = xml_data.getElementsByTagName("connect_ip")[0].innerHTML;
-	    			console.log(ip2);
-	    		},
-	    		error : function() {
-	    			alert("读取配置文件失败，稍后重试");
-	    		}
-	    	})
-	    }
 		$(document).ready(function(){
 			var height = parseFloat($(".login_hd").get(0).offsetHeight);
 			$(".login_hd").css("marginTop", -height/2 + "px");
@@ -80,7 +62,6 @@
 			var width_ = parseFloat($("main").get(0).offsetWidth);
 			$("main").css("marginTop", -height_/2 + "px");
 			$("main").css("marginLeft", -width_/2 + "px");
-			loadxml("config.xml");
 			
 			var options = { 
 		        // target:        '#output1',   // target element(s) to be updated with server response 

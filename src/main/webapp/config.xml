@@ -2,12 +2,17 @@
 <configuration>
 	<!--
 		websocket
-		实验室2.4G_plus "192.168.1.36:8080";
+		实验室2.4G_plus "192.168.1.30:8080";
 		宿舍 "172.18.92.209:8080"
-		实验室secure "172.19.82.51:8080" 
+		实验室secure "172.19.82.151:8080" 
+		热点 "192.168.137.221:8080"
 	-->
-    <connect_ip>172.18.92.209:8080</connect_ip>
-    <invoice_width>1160</invoice_width>
+    <connect_ip>172.19.83.215:8080</connect_ip>
+	<root_host>invoice</root_host>
+	<invoice_width>1160</invoice_width>
 	<invoice_height>817</invoice_height>
-	<console_level>3</console_level>
+	<invoice_width_ver>350</invoice_width_ver>
+	<invoice_height_ver>700</invoice_height_ver>
+	<console_level>1</console_level>
+	<relatvie_image_size>400</relatvie_image_size>
 </configuration>

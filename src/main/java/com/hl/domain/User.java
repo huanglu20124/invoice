@@ -4,17 +4,24 @@ import java.util.List;
 
 public class User {
 	//user表内容
-	private Integer user_id;
-	private String user_name;
-	private String user_password;
-	private Integer company_id;
-	private String  company_name;
-	private String user_register_time;
-	private String salt;
-	private Integer locked;
+	private Integer user_id;      //用户id
+	private String user_name;     //用户名字
+	private String user_password; //用户密码
+	private Integer company_id;   //公司id
+	private String  company_name; //公司名字
+	private String user_register_time;//用户注册时间
+	private String salt;     //盐（密码加密用的）
+	private Integer locked;  //是否被上锁
+	private Integer manager; //是否是管理员  0：非管理员     1：普通管理员（）     2：超级管理员（可以对所有用户更改）
+	private Integer group_id;//用户组编号
+	private List<Permission>permissions;//权限数组
 	
-	//表以外的内容
-	private List<Permission>permissions;
+	public Integer getGroup_id() {
+		return group_id;
+	}
+	public void setGroup_id(Integer group_id) {
+		this.group_id = group_id;
+	}
 	
 	public Integer getCompany_id() {
 		return company_id;
@@ -70,6 +77,12 @@ public class User {
 	}
 	public void setPermissions(List<Permission> permissions) {
 		this.permissions = permissions;
+	}
+	public Integer getManager() {
+		return manager;
+	}
+	public void setManager(Integer manager) {
+		this.manager = manager;
 	}
 
 	

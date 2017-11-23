@@ -46,6 +46,11 @@ public class SystemWebSocketHandler implements WebSocketHandler {
     	System.out.println("通过websocket与web前端建立连接,id为" + session.getId());
     	log.debug("ConnectionEstablished");
         users.add(session); //把当前会话添加到用户列表里
+		//返回最新的报错发票数量
+		Map<String, Object>map = new HashMap<>();
+		map.put("msg_id", 205);
+		map.put("fault_num", new Integer((String)redisDao.getValue("fault_num")));
+		session.sendMessage(new TextMessage(JSON.toJSONString(map)));
     }
     //接收消息，（可选）返回消息
     @Override

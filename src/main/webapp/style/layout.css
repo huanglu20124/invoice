@@ -1,10 +1,12 @@
 * {
 	margin: 0;
 	padding: 0;
+	font-family: "HeiTi";
 }
 
 body {
 	width: 100%;
+	background-color: #f8f9fb;
 }
 
 a:link, a:visited {
@@ -12,6 +14,10 @@ a:link, a:visited {
 	color: #000000;
 }
 
+.aside_nav_list a:link, .aside_nav_list a:visited {
+	text-decoration: none;
+	color: #565961;
+}
 
 #myCanvas {
 	border: 1px solid #000; 
@@ -67,20 +73,39 @@ a:link, a:visited {
 
 header {
 	width: 100%;
-	padding: 20px;
-	height: 100px;
+	padding: 15px 20px;
+	height: 80px;
+	background-color: #ffffff;
+	border-bottom: 1px rgba(200, 200, 200, 0.5) solid;
+	color: #363636;
 }
 
 main{
-	background-color: #f8f9fb;
-	overflow: hidden;
+	/*overflow: hidden;*/
 	/*padding-top: 20px;*/
 }
 
+
+aside {
+	color: #6a6e76;
+	display: inline-block;
+	vertical-align: top;
+	width: 15%;
+	/*min-width: 210px;*/
+	margin-top: 20px;
+}
+
 .main_content {
+	display: inline-block;
+	vertical-align: top;
+	overflow: hidden;
+	width: 84%;
+	padding: 0px 60px;
 	border-left: 1px solid rgba(200, 200, 200, 0.5);
 	margin-top: 20px;
 	margin-bottom: 20px;
+
+	min-height: 600px;
 }
 
 .aside_nav {
@@ -100,13 +125,22 @@ main{
 	padding: 5px 0px;
 	padding-left: 2em;
 	display: block;
-	margin: 10px 0px;
+	margin: 15px 0px;
 	font-size: 16px;
+}
+
+.aside_nav_list-item:first-child {
+	margin-top: 0px;
 }
 
 .aside_nav_list-item-icon {
 	font-size: 16px;
-	margin-right: 1.5em;
+	margin-right: 15%;
+
+	/*使其固定宽度*/
+	display: inline-block;
+	/*width: 25px;*/
+	width: 15%;
 }
 
 .aside_nav_list-item:hover {
@@ -117,6 +151,11 @@ main{
 	border-left: #337ab7 3px solid;
 	color: #337ab7 !important;
 	background-color: transparent !important; 
+}
+
+.selected .badge {
+	color: #ffffff;
+	background-color: #337ab7 !important;
 }
 
 .first_line, .second_line {
@@ -244,10 +283,11 @@ main{
 }
 
 .rect_img {
-	width: 8.5%;
-	margin-right: 1%;
+	/*width: 8.5%;*/
+	/*margin-right: 1%;*/
+	margin-right: 30px;
 	display: inline-block;
-	margin-bottom: 10px;
+	margin-bottom: 20px;
 }
 
 .select_image {
@@ -382,10 +422,6 @@ main{
 	background-color: #e9edf3 !important;
 }
 
-header {
-	overflow: hidden;
-}
-
 .ui-slider-handle:active {
 	background-color: #aaaaaa !important;
 	border: 0.5px solid rgba(200, 200, 200, 1) !important;
@@ -426,4 +462,237 @@ header {
     border-width: 5px;
     border-style: solid;
     border-color: black transparent transparent transparent;
+}
+
+.waiting_list_item {
+	font-size: 60px;
+	color: rgba(100, 100, 100, 0.5);
+}
+
+.waiting_list {
+	padding: 30px 40px;
+}
+
+
+.flex {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+}
+
+.flex-v {
+    -webkit-box-orient: vertical;
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+}
+
+.flex-h {
+    -webkit-box-orient: horizontal;
+    -webkit-flex-direction: row;
+    -ms-flex-direction: row;
+    flex-direction: row;
+}
+
+.flex-1 {
+    -webkit-box-flex: 1;
+    -webkit-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+}
+
+.flex-none {
+    -webkit-box-flex: none;
+    -webkit-flex: none;
+    -ms-flex: none;
+    flex: none;
+}
+
+.flex-align-center {
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+}
+
+.flex-align-end {
+	-webkit-box-align: flex-end;
+    -webkit-align-items: flex-end;
+    -ms-flex-align: flex-end;
+    align-items: flex-end;
+}
+
+.aside_nav_list {
+	padding: 0px;
+}
+
+.main_content_hd {
+	font-size: 24px;
+	color: #363636;
+	margin-bottom: 1em;
+}
+
+.panel_hd_line {
+	margin-bottom: 0.5em;
+}
+
+.dateTime_select .form-control, .keyword_select .form-control {
+	width: auto;
+	display: inline-block;
+	height: auto;
+	padding: 0px 5px;
+	margin: 0px 5px;
+}
+
+.form_hd {
+	font-size: 16px;
+	width: 10%;
+	display: inline-block;
+}
+
+.panel-box-shadow {
+	/*border-style: solid;*/
+	border-style: none;
+	box-shadow: 1px 1px 3px rgba(30, 30, 30, 0.1), -0.5px 0.5px 1px rgba(30, 30, 30, 0.1);
+}
+
+.select_result {
+	margin-top: 30px;
+	padding-top: 30px;
+	border-top: 1px solid rgba(200, 200, 200, 0.5);
+}
+
+.select_result_hd {
+	font-size: 20px;
+	margin-bottom: 20px;
+}
+
+.text_describe {
+	margin-top: 10px;
+}
+
+.detect_div_container {
+	margin-top: 30px;
+}
+
+.detect_div_hd {
+	font-size: 20px;
+	margin-bottom: 1em;
+}
+
+.detect_div_hd span {
+	font-size: 14px;
+	color: gray;
+	margin-left: 2em;
+}
+
+.table_display_container {
+	display: table;
+	width: 100%;
+	border-spacing: 0px 0px;
+}
+
+.table_display_row {
+	display: table-row;
+	width: 100%;
+}
+
+.table_display_th {
+	display: table-cell;
+	padding: 20px 10px;
+	background-color: rgba(220, 220, 230, 0.3);
+	color: gray;
+}
+
+.table_display_td {
+	padding: 20px 10px;
+	display: table-cell;
+	border-bottom: 1px solid rgba(220, 220, 230, 0.6);
+}
+
+.table_display_td:first-child, .table_display_th:first-child {
+	width: 100px;
+}
+
+.ownedit_table .table_display_td:last-child a{
+	cursor: pointer;
+}
+
+.ownedit_table .table_display_td:last-child a:hover{
+	text-decoration: underline;
+}
+
+/*.grant_table {
+	overflow-x: scroll;
+}*/
+
+.grant_table .table_display_td, .grant_table .table_display_th, .edit_grant_table .table_display_td, .edit_grant_table .table_display_th{
+	text-align: center;
+	color: gray;
+	font-size: 16px;
+	min-width: 120px;
+}
+
+.grant_table .table_display_td:first-child, .grant_table .table_display_th:first-child {
+	min-width: 200px;
+	text-align: left;
+	color: black;
+}
+
+.text_right {
+	text-align: right;
+}
+
+.user_div {
+	padding: 10px 20px;
+	background-color: rgba(220, 220, 230, 0.3);
+	width: 250px;
+	border-radius: 3px;
+}
+
+.user_desc {
+	display: inline-block;
+	vertical-align: middle;
+	font-size: 14px;
+	width: 90px;
+	margin-left: 10px;
+}
+
+.user_desc p {
+	margin: 0px;
+	line-height: 2em;
+}
+
+.edit_name {
+	display: inline-block;
+	width: 80px;
+	margin-right: 10px;
+}
+
+#editModal {
+	width: 600px;
+}
+
+#editModal input {
+	display: inline-block;
+	width: 420px;
+}
+
+.display_table_hover .table_display_row:nth-child(n+2):hover {
+	background-color: rgba(220, 220, 230, 0.4);
+}
+
+.nav_disabled {
+	color: rgba(180, 180, 180, 0.5) !important;
+	cursor: default;
+}
+
+.nav_disabled:hover {
+	background-color: transparent !important;
+}
+
+#myMoldal .modal-content {
+	overflow: auto;
+	width: 100%;
 }

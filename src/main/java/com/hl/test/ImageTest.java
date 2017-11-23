@@ -13,6 +13,8 @@ import javax.annotation.Resource;
 import org.junit.Test;
 
 import com.hl.dao.RedisDao;
+import com.hl.domain.Invoice;
+import com.hl.domain.Permission;
 import com.hl.domain.User;
 import com.hl.util.ImageUtil;
 import com.sun.org.apache.bcel.internal.generic.NEW;
@@ -110,5 +112,11 @@ public class ImageTest {
 	
 	@Test
 	public void test10() throws Exception {
+		Permission permission1 = new Permission();
+		permission1.setPermission_id(1);
+		Permission permission2 = new Permission();
+		permission2.setPermission_id(1);
+		System.out.println(permission1.equals(permission2));
 	}
+	
 }

@@ -29,6 +29,11 @@ public class Invoice {
 	// 识别完成的时间
 	private String recognize_time;
 
+	//识别区域信息
+	private String region_list;
+	//是否报错
+	private Integer is_fault;
+	
 	// 前端需要的一些信息，后期补充
 	private String action_start_time;// 发送时间
 	private Integer user_id;
@@ -44,6 +49,22 @@ public class Invoice {
 
 	public Integer getAction_id() {
 		return action_id;
+	}
+
+	public String getRegion_list() {
+		return region_list;
+	}
+
+	public void setRegion_list(String region_list) {
+		this.region_list = region_list;
+	}
+
+	public Integer getIs_fault() {
+		return is_fault;
+	}
+
+	public void setIs_fault(Integer is_fault) {
+		this.is_fault = is_fault;
 	}
 
 	public void setAction_id(Integer action_id) {

@@ -185,7 +185,6 @@ public class ModelController {
 		writer.close();	
 	}
 
-	
 	//通过label模糊查询发票模板信息
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/searchModelLabel.action", method = RequestMethod.POST)

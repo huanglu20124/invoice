@@ -14,6 +14,8 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Resource;
+
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
@@ -24,6 +26,7 @@ import com.alibaba.fastjson.JSON;
 import com.hl.dao.InvoiceDao;
 import com.hl.domain.Action;
 import com.hl.domain.Invoice;
+import com.hl.domain.LocalConfig;
 import com.hl.domain.Model;
 import com.hl.domain.RecognizeAction;
 import com.hl.util.Const;
@@ -31,8 +34,25 @@ import com.mysql.jdbc.TimeUtil;
 import com.sun.istack.FinalArrayList;
 
 public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
-
-
+	
+	@Resource(name="localConfig")
+	private LocalConfig localConfig;
+	class FaultInvoiceRowmapper implements RowMapper<Invoice>{
+		//只取部分前端需要的信息（错误发票）
+		@Override
+		public Invoice mapRow(ResultSet rs, int rowNum) throws SQLException {
+			Invoice invoice = new Invoice();
+			invoice.setUser_name(rs.getString("user_name"));
+			invoice.setCompany_name(rs.getString("company_name"));
+			invoice.setInvoice_id(rs.getInt("invoice_id"));
+			invoice.setModel_id(rs.getInt("model_id"));
+			invoice.setInvoice_url(localConfig.getIp() + rs.getString("invoice_url"));
+			invoice.setRecognize_time(rs.getString("recognize_time"));
+			invoice.setRegion_list(rs.getString("region_list"));
+			return invoice;
+		}
+		
+	}
 	@Override
 	public int addRecognizeInvoice(Map<String, Object> invoice_data,final Invoice invoice) {
 		//添加一条发票信息
@@ -48,7 +68,8 @@ public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 		final String sql = "insert into invoice values(null,?,0,null,?,"
 				                                     + " ?,?,?,?,?,"
 				                                     + " ?,?,?,?,?,"
-				                                     + " ?,?,?,?,?);";
+				                                     + " ?,?,?,?,?,"
+				                                     + "?,?);";
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		//返回主键
 		getJdbcTemplate().update(new PreparedStatementCreator() {
@@ -72,6 +93,8 @@ public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 				psm.setInt(15, invoice.getImage_size());
 				psm.setInt(16, invoice.getInvoice_status());
 				psm.setString(17, invoice.getRecognize_time());
+				psm.setInt(18, invoice.getIs_fault());
+				psm.setString(19, invoice.getRegion_list());
 				return psm;
 			}
 		},keyHolder);
@@ -90,6 +113,19 @@ public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 		//全部model_id!=null 的invoice，设置外键为null
 		String sql = "update invoice set model_id = null";
 		getJdbcTemplate().update(sql);
+	}
+
+	
+	@Override
+	public List<Invoice> getTwentyFaultInvoice(Integer page) {
+		String sql = "select b.user_name, c.company_name, "
+				+ " a.invoice_id, a.model_id, a.invoice_url, "
+				+ " a.recognize_time, a.region_list "
+				+ " from invoice a, user b, company c, action d "
+				+ " where d.user_id=b.user_id and d.company_id=c.company_id and "
+				+ " a.action_id=d.action_id and is_fault=1"
+				+ " LIMIT ?,20";
+		return getJdbcTemplate().query(sql, new FaultInvoiceRowmapper(),page);
 	}
 
 

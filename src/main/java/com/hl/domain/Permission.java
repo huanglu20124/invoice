@@ -1,9 +1,8 @@
 package com.hl.domain;
 
 public class Permission {
-	private Integer permission_id;
-	private String  permission_name;
-	private String  permission_url;
+	private Integer permission_id; //权限id
+	private String  permission_name;//权限名称
 	public Integer getPermission_id() {
 		return permission_id;
 	}
@@ -16,11 +15,14 @@ public class Permission {
 	public void setPermission_name(String permission_name) {
 		this.permission_name = permission_name;
 	}
-	public String getPermission_url() {
-		return permission_url;
+
+	@Override
+	public boolean equals(Object obj) {
+		Permission permission = (Permission) obj;
+		if(this.permission_id == permission.permission_id){
+			return true;
+		}else {
+			return false;
+		}
 	}
-	public void setPermission_url(String permission_url) {
-		this.permission_url = permission_url;
-	}
-	
 }

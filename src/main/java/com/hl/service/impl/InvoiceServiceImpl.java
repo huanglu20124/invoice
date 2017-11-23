@@ -33,6 +33,7 @@ import com.hl.domain.Invoice;
 import com.hl.domain.LocalConfig;
 import com.hl.domain.Model;
 import com.hl.domain.ModelAction;
+import com.hl.domain.OcrResult;
 import com.hl.domain.RecognizeAction;
 import com.hl.domain.RecognizeConsole;
 import com.hl.domain.ResponseMessage;
@@ -186,7 +187,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 		Integer model_id = 0;// 模板编号
 		// 结果同时推送给模拟客户端
 		Socket customerSocket = socketLoadTool.getCustomerSocket();
-
+		//是否是报错发票
+		Boolean isWrong = false;
 		while (true) {
 			// 处理一次消息数据
 			try {
@@ -210,6 +212,37 @@ public class InvoiceServiceImpl implements InvoiceService {
 							//设置发票的识别状态为成功，以及识别时间
 							invoice.setInvoice_status(0);
 							invoice.setRecognize_time(TimeUtil.getCurrentTime());
+							//得到region_list
+							List<Object> region_list_origin = redisDao.getRangeId(Const.RECOGNIZE_PROCESS);
+							List<String> region_list = new ArrayList<>();
+							// 变成String。。
+							for (Object object : region_list_origin) {
+								region_list.add((String) object);
+							}
+							Collections.reverse(region_list);
+							invoice.setRegion_list(JSON.toJSONString(region_list));
+							if(isWrong) {
+								invoice.setIs_fault(1);//设置错误发票
+								//更新redis报错发票数量
+								redisDao.addSelf("fault_num");
+								//返回最新的报错发票数量
+								Map<String, Object>map = new HashMap<>();
+								map.put("msg_id", 205);
+								map.put("fault_num", new Integer((String)redisDao.getValue("fault_num")));
+								//告诉其他页面
+								System.out.println("发送更新错误发票数量的消息");
+								systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(map)),
+										new int[]{1,2,3,5,6,7});
+								//告诉错误发票页面
+								Map<String, Object>map2 = new HashMap<>();
+								map2.put("msg_id", 206);
+								map2.put("fault_invoice", JSON.toJSONString(invoice));
+								systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(map2)),
+										new int[]{4});
+							}
+							else {
+								invoice.setIs_fault(0);
+							}
 							invoice_id = invoiceDao.addRecognizeInvoice(invoice_data,invoice);
 							System.out.println("成功将该发票信息写入数据库,invoice_id=" + invoice_id);
 							//如果是测试集的话，准备统计识别结果、识别率
@@ -250,6 +283,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 						// 所得json字符串直接广播发给用户
 						systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)),new int[]{2});
 						// 结束循环监听
+						//恢复isWrong
+						isWrong = false;
 						break;
 					} else if (message.getMsg_id() == 100) {
 						// 同时，获得了model_id
@@ -271,6 +306,16 @@ public class InvoiceServiceImpl implements InvoiceService {
 						systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)),new int[]{2});
 						System.out.println("model_id为" + model_id);
 					} else if (message.getMsg_id() == 101 || message.getMsg_id() == 102) {
+						//加入可信度判断
+						if(message.getMsg_id() == 102){
+							OcrResult result = JSON.parseObject(message.getJson_str(),OcrResult.class);
+							//一旦某个区域可信度低于0.9，判定为报错发票，录到数据库fault_invoice表中
+							if(Double.valueOf(result.getProbability()) < 0.9){
+								if(isWrong == false){
+									isWrong = true;
+								}
+							}
+						}
 						// 同时，加入到redis队列里记录
 						redisDao.leftPush(Const.RECOGNIZE_PROCESS, message.getFinalMessage(action_id));
 						// 过程信息，直接转交给前端
@@ -397,6 +442,14 @@ public class InvoiceServiceImpl implements InvoiceService {
 		User user = userDao.getUserById(user_id);
 		servletContext.setAttribute(Const.DELAY, delay);
 		ans_map.put(Const.SUCCESS, "成功调整速度");
+	}
+
+	
+	//ajax，获取20张报错发票
+	@Override
+	public List<Invoice> getTwentyFaultQueue(Integer page) {
+		List<Invoice>list = invoiceDao.getTwentyFaultInvoice(page);
+		return list;
 	}
 
 	

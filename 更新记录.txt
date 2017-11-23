@@ -1,4 +1,6 @@
  cd  E:/study_and_work/android_and_java/Eclipse_JavaEE/invoice
+ git add src
+ git add pon.xml
  git push mayun master
 
 2017.11.9
@@ -21,8 +23,15 @@ dao层、service层按照invoice、model、action分模块
 driver测试集功能、统计识别率功能
 
 2017.11.14
+websocket整顿
 根据监控台处于哪部分发消息,console_status = 1，2，3，4
 打开控制台，客户端发送ajax，返回图片信息，客户端加载图片，加载完成之后客户端websocket发送finish_img=1,，然后服务器websocket再返回region_list(204)，
 清空当前队列，如果后续算法端再返回的话，就继续发给web端。
 
-建立websocket消息队列,
+2017.11.20、21、22、23
+权限管理，增加用户管理员，用户组、前端融入jsp
+用户名密码记录：
+manager  137137lu
+user* 123 
+
+
