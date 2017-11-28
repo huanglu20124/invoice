@@ -557,6 +557,18 @@ function adjustMainContent() {
     $(".main_content").css("width", main_content_width + "px");
 }
 
+//获取当前selected的页面
+function getSelectedPage() {
+    var href = window.location.href;
+    $(".aside_nav_list-item").each(function() {
+        console.log(href + " " + $(this).data("permission"));
+        if(href.indexOf($(this).data("permission")) != -1) {
+            $(this).removeClass("nav_disabled");
+            $(this).addClass("selected");
+        }
+    })
+}
+
 //判断用户权限
 function justifyUserGrant(user_json) {
     $(".own_user_name").text(user_json.user_name);
@@ -567,7 +579,6 @@ function justifyUserGrant(user_json) {
             for(var i = 0; i < permission_array.length; i++) {
                 if(permission_array[i].permission_name.split("-")[0] == $(this).data("permission")) {
                     $(this).attr("href", $(this).data("permission")+".action");
-                    console.log($(this).attr("href"));
                     $(this).css("cursor", "pointer");
                     $(this).removeClass("nav_disabled");
                 }
@@ -591,22 +602,29 @@ function toggleChecked(click_jq) {
 }
 
 //权限对应
-function grantSwitch(permissions, j) {
-//    console.log(table_jq);
-    $(".grant_table .table_display_row:last-child .table_display_td:last-child").prop("grant_type", j);
-    $(".edit_grant_table .table_display_row:last-child .table_display_td:last-child").prop("grant_type", j);
+function grantSwitch(table_jq, permissions, j) {
+    // console.log($(".grant_table .table_display_row:last-child .table_display_td:last-child"));
+    table_jq.prop("grant_type", j);
     for(var m = 0; m < permissions.length; m++) {
         var temp_permission = permissions[m];
         if(temp_permission.permission_id == j) {
-            toggleChecked($(".grant_table .table_display_row:last-child .table_display_td:last-child").children());
-            toggleChecked($(".edit_grant_table .table_display_row:last-child .table_display_td:last-child").children());
+            toggleChecked(table_jq.children());
             break;
         }
+    }
+}
+
+//模态框垂直居中
+function ModalVerticalAlign(modal_jq) {
+    if(modal_jq.offsetHeight < document.documentElement.clientHeight) {
+        var margin_top = parseFloat((document.documentElement.clientHeight - modal_jq.offsetHeight)/2);
+        $(modal_jq).css("marginTop", margin_top);
     }
 }
 
 $(document).ready(function() {
     // adjustMainContent();
     loadxml("config.xml");
+    getSelectedPage();
     connectEndpoint();
 })

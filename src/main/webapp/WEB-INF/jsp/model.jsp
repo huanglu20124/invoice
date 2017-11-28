@@ -17,56 +17,9 @@
 	<link rel="stylesheet" type="text/css" href="style/layout.css">
 </head>
 <body>
-	<header class="flex flex-align-center">
-        <img src="pic/logo.png" style="height: 100%; vertical-align: middle;" class="flex-none" />
-        <span style="margin-left: 0.5em; font-size: 18px; padding-left: 1em; border-left: 2px solid rgba(200,200,200,0.5); color: #6a6e76;" class="flex-1">智能发票识别监控平台</span>
-        <span class="flex-none own_user_name" style="margin-right: 1.5em; font-size: 16px; color: #6a6e76;"></span>
-        <span class="btn-group flex-none" style="margin-right: 20px;">
-            <span type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" style="border:none;">
-                <img src="pic/头像.png" style="height: 30px; margin-right: 1em;">
-                <span class="caret"></span>
-            </span>
-            <ul class="dropdown-menu" style="min-width: 100px; margin-top: 5px;">
-                <li><a href="">个人设置</a></li>
-                <li><a href="${pageContext.request.contextPath}/logout.action">退出登录</a></li>
-            </ul>
-        </span>
-    </header>
+	<jsp:include page="header.jsp" flush="true" />
 	<main>
-		<aside>
-			<div class="aside_nav_list">
-				<a href="" class="aside_nav_list-item nav_disabled" data-permission="queue">
-                    <i class="fa fa-bar-chart aside_nav_list-item-icon"></i>
-                    <span>缓冲队列</span>
-                </a>
-				<a href=""  class="aside_nav_list-item nav_disabled" data-permission="console">
-                    <i class="fa fa-television aside_nav_list-item-icon"></i>
-                    <span>监控显示</span>
-                </a>
-				<a href="${pageContext.request.contextPath}/model.action" class="aside_nav_list-item selected" data-permission="model">
-                    <i class="fa fa-clipboard aside_nav_list-item-icon"></i>
-                    <span>模板库</span>
-                </a>
-				<a href="" class="aside_nav_list-item nav_disabled" data-permission="fault">
-                    <i class="fa fa-times-circle-o aside_nav_list-item-icon"></i>
-                    <span>报错发票
-                    	<span class="badge fault_num" style="margin-left: 10px;"></span>
-                    </span>
-                </a>
-                <a href="" class="aside_nav_list-item nav_disabled" data-permission="log">
-                    <i class="fa fa-tasks aside_nav_list-item-icon" aria-hidden="true"></i>
-                    <span>日志查询</span>
-                </a>
-                <a href="" class="aside_nav_list-item nav_disabled" data-permission="user">
-                    <i class="fa fa-user-o aside_nav_list-item-icon" aria-hidden="true"></i>
-                    <span>用户管理</span>
-                </a>
-                <a href="${pageContext.request.contextPath}/ownedit.action" class="aside_nav_list-item">
-                    <i class="fa fa-cog aside_nav_list-item-icon" aria-hidden="true"></i>
-                    <span>个人设置</span>
-                </a>
-			</div>
-		</aside>		
+		<jsp:include page="aside_menu.jsp" flush="true" />
 		<div class="main_content">
 			<div class="main_content_hd flex flex-align-end">
 				<span class="flex-1">模板库</span>
@@ -214,7 +167,7 @@
 	        </div><!-- /.modal-content -->
 	    </div><!-- /.modal -->
 	</div>
-	<div class="modal fade col-lg-4" id="progressModal" tabindex="-1" aria-hidden="true" style="margin: 0px auto; margin-top: 200px;">
+	<div class="modal fade" id="progressModal" tabindex="-1" aria-hidden="true" style="margin: 0px auto; margin-top: 200px; width: 33%;">
 		<div>
 	        <div class="modal-content">
 	        	<div class="modal-header">
