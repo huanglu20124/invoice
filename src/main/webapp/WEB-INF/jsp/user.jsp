@@ -13,90 +13,61 @@
 	<link rel="stylesheet" type="text/css" href="style/layout.css">
 </head>
 <body>
-	<header class="flex flex-align-center">
-        <img src="pic/logo.png" style="height: 100%; vertical-align: middle;" class="flex-none" />
-        <span style="margin-left: 0.5em; font-size: 18px; padding-left: 1em; border-left: 2px solid rgba(200,200,200,0.5); color: #6a6e76;" class="flex-1">智能发票识别监控平台</span>
-        <span class="flex-none own_user_name" style="margin-right: 1.5em; font-size: 16px; color: #6a6e76;"></span>
-        <span class="btn-group flex-none" style="margin-right: 20px;">
-            <span type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" style="border:none;">
-                <img src="pic/头像.png" style="height: 30px; margin-right: 1em;">
-                <span class="caret"></span>
-            </span>
-            <ul class="dropdown-menu" style="min-width: 100px; margin-top: 5px;">
-                <li><a href="">个人设置</a></li>
-                <li><a href="${pageContext.request.contextPath}/logout.action">退出登录</a></li>
-            </ul>
-        </span>
-    </header>
+	<jsp:include page="header.jsp" flush="true" />
 	<main>
-		<aside>
-			<div class="aside_nav_list">
-				<a href="" class="aside_nav_list-item nav_disabled" data-permission="queue">
-                    <i class="fa fa-bar-chart aside_nav_list-item-icon"></i>
-                    <span>缓冲队列</span>
-                </a>
-				<a href=""  class="aside_nav_list-item nav_disabled" data-permission="console">
-                    <i class="fa fa-television aside_nav_list-item-icon"></i>
-                    <span>监控显示</span>
-                </a>
-				<a href="" class="aside_nav_list-item nav_disabled" data-permission="model">
-                    <i class="fa fa-clipboard aside_nav_list-item-icon"></i>
-                    <span>模板库</span>
-                </a>
-				<a href="" class="aside_nav_list-item nav_disabled" data-permission="fault">
-                    <i class="fa fa-times-circle-o aside_nav_list-item-icon"></i>
-                    <span>报错发票
-                    	<span class="badge fault_num" style="margin-left: 10px;"></span>
-                    </span>
-                </a>
-                <a href="" class="aside_nav_list-item nav_disabled" data-permission="log">
-                    <i class="fa fa-tasks aside_nav_list-item-icon" aria-hidden="true"></i>
-                    <span>日志查询</span>
-                </a>
-                <a href="${pageContext.request.contextPath}/user.action" class="aside_nav_list-item selected" data-permission="user">
-                    <i class="fa fa-user-o aside_nav_list-item-icon" aria-hidden="true"></i>
-                    <span>用户管理</span>
-                </a>
-                <a href="${pageContext.request.contextPath}/ownedit.action" class="aside_nav_list-item">
-                    <i class="fa fa-cog aside_nav_list-item-icon" aria-hidden="true"></i>
-                    <span>个人设置</span>
-                </a>
-			</div>
-		</aside>
+		<jsp:include page="aside_menu.jsp" flush="true" />
 		<div class="main_content">
 
 			<div class="main_content_hd flex flex-align-end">
 				<span class="flex-1">用户管理</span>
 			</div>
 
-			<!-- <div class="panel panel-default panel-box-shadow detect_div_container" style="margin-top: 0px;">
+			<div class="panel panel-default panel-box-shadow detect_div_container" style="margin-top: 0px;">
 			    <div class="detect_div" style="padding: 30px 30px;">
-					<p class="detect_div_hd">管理员<span>可添加、设置其他成员的用户权限</span></p>
+					<p class="detect_div_hd">用户组管理<span>管理员可以编辑本单位的用户组权限</span></p>
 
-					<div class="user_div">
-						 <img src="pic/头像.png" style="width: 50px; margin-right: 10px;">
-						 <div class="user_desc">
-						 	<p>Eric Wong</p>
-							<p>wx3e4e1ddf8d7f6773</p>
+					<div class="users_div">
+						 <i class="fa fa-users" aria-hidden="true"></i>
+						 <div class="users_desc">
+						 	<p>用户组1</p>
+							<p>wx3e4e1</p>
+						 </div>
+						 <div class="modal_menu">
+						 	<p class="startUsersGrant">编辑权限</p>
+						 	<p class="startUsersMember">编辑用户组成员</p>
 						 </div>
 					</div>
 					
+					<div class="users_div">
+						 <i class="fa fa-users" aria-hidden="true"></i>
+						 <div class="users_desc">
+						 	<p>用户组2</p>
+							<p>wx3e4e2</p>
+						 </div>
+					</div>
+
 			    </div>
-			</div> -->
+			</div>
 
 			<div class="panel panel-default panel-box-shadow detect_div_container">
-			    <div class="detect_div" style="padding: 30px 30px;">
+			    <div class="detect_div user_div_container" style="padding: 30px 30px;">
 					<p class="detect_div_hd flex flex-align-center">
 						<span class="flex-none" style="color: inherit; font-size: inherit; margin-left: 0px;">成员管理</span>
-						<span class="flex-1">管理员可以配置成员的权限</span>
-						<span class="flex-none success_info" style="margin-right: 10px; display: none;">权限编辑成功</span>
+						<span class="flex-1">管理员可以配置成员的特定权限</span>
+						<!-- <span class="flex-none success_info" style="margin-right: 10px; display: none;">权限编辑成功</span>
 						<span class="flex-none fail_info" style="margin-right: 10px; display: none;">权限编辑失败</span>
-						<button class="btn btn-primary flex-none" style="padding: 5px 15px;" id="edit_grant">编辑</button>
-						<button class="btn btn-primary flex-none" style="padding: 5px 15px; margin-right: 10px; display: none;" id="save_grant">保存</button>
-						<button class="btn btn-default flex-none" style="padding: 5px 15px; display: none;" id="cancel_edit">取消</button>
+						 -->
 					</p>
 					
-					<div style="overflow-x: auto;">
+					<div class="user_div">
+						 <img src="pic/头像.png" style="width: 40px; margin-right: 10px;">
+						 <div class="user_desc">
+						 	<p>Eric Wong</p>
+							<p>中山大学</p>
+						 </div>
+					</div>
+
+					<!-- <div style="overflow-x: auto;">
 						<div class="table_display_container grant_table">
 							<div class="table_display_row">
 								<div class="table_display_th">成员</div>
@@ -114,11 +85,177 @@
 								<div class="table_display_th">删除用户</div>
 							</div>
 						</div>
-					</div>
+					</div> -->
 				</div>
 			</div>
 		</div>
 	</main>
+
+	<!-- 模态框（Modal） -->
+	<div class="modal fade" id="userGrantModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="width: 980px; margin: 0 auto;">
+	    <div style="display: table-cell; vertical-align: middle;">
+	        <div class="modal-content">
+	            <div class="modal-header">
+	                <button type="button" class="close" data-dismiss="modal" aria-hidden="true" id="close_modal">&times;</button>
+	                <h4 class="modal-title" id="myModalLabel" style="display: inline-block; vertical-align: middle; width: auto; margin-right: 10px;">成员权限</h4>
+	            </div>
+	            <div class="modal-body" style="padding: 0px;">
+	            	<div style="overflow-x: auto;">
+						<div class="table_display_container user_grant_table">
+							<div class="table_display_row">
+								<div class="table_display_th">权限对象</div>
+								<div class="table_display_th">继承用户组</div>
+								<div class="table_display_th">（继承）可读</div>
+								<div class="table_display_th">（继承）可写</div>
+								<div class="table_display_th">（私有）可读</div>
+								<div class="table_display_th">（私有）可写</div>
+								<div class="table_display_th">（汇总）可读</div>
+								<div class="table_display_th">（汇总）可写</div>
+							</div>
+							<div class="table_display_row">
+								<div class="table_display_td">缓冲队列</div>
+								<div class="table_display_td">无</div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+							</div>
+							<div class="table_display_row">
+								<div class="table_display_td">算法可视</div>
+								<div class="table_display_td">无</div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+							</div>
+							<div class="table_display_row">
+								<div class="table_display_td">发票模板</div>
+								<div class="table_display_td">无</div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+							</div>
+							<div class="table_display_row">
+								<div class="table_display_td">错误发票</div>
+								<div class="table_display_td">无</div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+							</div>
+							<div class="table_display_row">
+								<div class="table_display_td">日志查询</div>
+								<div class="table_display_td">无</div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+							</div>
+							<div class="table_display_row">
+								<div class="table_display_td">用户管理</div>
+								<div class="table_display_td">无</div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+							</div>
+							<div class="table_display_row">
+								<div class="table_display_td">单位管理</div>
+								<div class="table_display_td">无</div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+							</div>
+						</div>
+					</div>
+	            </div>
+	            <div class="modal-footer">
+	            	<button type="button" class="btn btn-primary flex-none" style="padding: 5px 15px;" id="edit_grant">编辑</button>
+					<button type="button" class="btn btn-primary flex-none" style="padding: 5px 15px; margin-right: 10px; display: none;" id="save_grant" data-dismiss="modal">保存</button>
+					<button type="button" class="btn btn-default flex-none" style="padding: 5px 15px; display: none;" id="cancel_edit" data-dismiss="modal">取消</button>
+	            </div>
+	        </div><!-- /.modal-content -->
+	    </div><!-- /.modal -->
+	</div>
+
+	<div class="modal fade" id="usersGrantModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="width: 980px; margin: 0 auto;">
+	    <div style="display: table-cell; vertical-align: middle;">
+	        <div class="modal-content">
+	            <div class="modal-header">
+	                <button type="button" class="close" data-dismiss="modal" aria-hidden="true" id="close_modal">&times;</button>
+	                <h4 class="modal-title" style="display: inline-block; vertical-align: middle; width: auto; margin-right: 10px;">用户组管理</h4>
+	            </div>
+	            <div class="modal-body" style="padding: 0px;">
+	            	<div style="overflow: auto;">
+						<div class="table_display_container user_grant_table">
+							<div class="table_display_row">
+								<div class="table_display_th">权限对象</div>
+								<div class="table_display_th">可读</div>
+								<div class="table_display_th">可写</div>
+							</div>
+							<div class="table_display_row">
+								<div class="table_display_td">缓冲队列</div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+							</div>
+							<div class="table_display_row">
+								<div class="table_display_td">算法可视</div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+							</div>
+							<div class="table_display_row">
+								<div class="table_display_td">发票模板</div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+							</div>
+							<div class="table_display_row">
+								<div class="table_display_td">错误发票</div>
+								<div class="table_display_td">无</div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+							</div>
+							<div class="table_display_row">
+								<div class="table_display_td">日志查询</div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+							</div>
+							<div class="table_display_row">
+								<div class="table_display_td">用户管理</div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+							</div>
+							<div class="table_display_row">
+								<div class="table_display_td">单位管理</div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+							</div>
+						</div>
+					</div>
+	            </div>
+	            <div class="modal-footer">
+	            	<button type="button" class="btn btn-primary flex-none" style="padding: 5px 15px;" id="edit_grant">编辑</button>
+					<button type="button" class="btn btn-primary flex-none" style="padding: 5px 15px; margin-right: 10px; display: none;" id="save_grant" data-dismiss="modal">保存</button>
+					<button type="button" class="btn btn-default flex-none" style="padding: 5px 15px; display: none;" id="cancel_edit" data-dismiss="modal">取消</button>
+	            </div>
+	        </div><!-- /.modal-content -->
+	    </div><!-- /.modal -->
+	</div>
 
 	<script type="text/javascript" src="script/common.js"></script>
 	<script type="text/javascript">
@@ -137,11 +274,11 @@
 				$("#save_grant").css("display", "inline-block");
 				$("#cancel_edit").css("display", "inline-block");
 
-				$(".grant_table i").css("cursor", "pointer");
-				$(".grant_table i").each(function() {
+				$(".user_grant_table .table_display_td[data-write='true'] i").css("cursor", "pointer");
+				$(".user_grant_table .table_display_td[data-write='true'] i").each(function() {
 					$(this).click(function(){clickIcon($(this))});
 				})
-				$(".grant_table").addClass("display_table_hover");
+				$(".user_grant_table").addClass("display_table_hover");
 			})
 		}
 
@@ -268,19 +405,12 @@
 
 		//将array中的用户对象放入视图
 		function addUserGrant(temp_user) {
-			$(".grant_table").append("<div class=\"table_display_row\"><div class=\"table_display_td\"><img src=\"pic/头像.png\" style=\"width: 40px; margin-right: 10px;\"><div class=\"user_desc\"><p class=\"user_name\">"+temp_user.user_name+"</p><p class=\"company_name\">"+temp_user.company_name+"</p></div></div></div>");
-			$(".grant_table .table_display_row:last-child").get(0).user_id = temp_user.user_id;
-			$(".grant_table .table_display_row:last-child").get(0).group_id = temp_user.group_id;
 
-			//添加权限选取框
-			for(var j = 1; j <= 14; j++) {
-				if(j == 5) {
-					j ++;
-					continue;
-				}
-				$(".grant_table .table_display_row:last-child").append("<div class=\"table_display_td\"><i class=\"fa fa-square-o\" aria-hidden=\"true\"></i></div>");
-				grantSwitch(temp_user.permissions, j);
-			}
+			$(".user_div_container").append("<div class=\"user_div\"><img src=\"pic/头像.png\" style=\"width: 40px; margin-right: 10px;\"><div class=\"user_desc\"><p>"+temp_user.user_name+"</p><p>"+temp_user.company_name+"</p></div></div>");
+
+			$(".user_div_container .user_div:last-child").get(0).user_id = temp_user.user_id;
+			$(".user_div_container .user_div:last-child").get(0).group_id = temp_user.group_id;
+			clickUser($(".user_div_container .user_div:last-child"));
 		}
 
 		//获取用户及其权限
@@ -300,7 +430,7 @@
 						addUserGrant(temp_user);
 						// console.log(data.length);
 					}
-					edit_grant_array = user_grant_array;
+					// edit_grant_array = user_grant_array;
 				},
 				error: function() {
 					console.log("error");
@@ -308,15 +438,34 @@
 			})
 		}
 
+		//点击成员头像
+		function clickUser(user_jq) {
+			user_jq.click(function() {
+				$("#userGrantModal").modal('show');
+				$("#userGrantModal").css("display", "table");
+				ModalVerticalAlign($("#userGrantModal").get(0));
+			})
+		}
+
+		//点击用户组头像
+		function clickUsers(users_jq) {
+			users_jq.click(function() {
+				$("#usersGrantModal").modal('show');
+				$("#usersGrantModal").css("display", "table");
+				ModalVerticalAlign($("#usersGrantModal").get(0));
+			})
+		}
+
         $(document).ready(function(){
-        	// console.log(document.documentElement.clientHeight);
+        	console.log(document.documentElement.clientHeight);
+        	console.log($("#userGrantModal").get(0).offsetHeight);
         	// 判断权限
         	justifyUserGrant(user_json);
 
         	getUserGrant();
         	beginEdit();
-        	clickCancel();
-        	clickSave();
+        	// clickCancel();
+        	// clickSave();
 
         })
 	</script>

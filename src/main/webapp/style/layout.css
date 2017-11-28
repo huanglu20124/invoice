@@ -627,39 +627,56 @@ aside {
 	overflow-x: scroll;
 }*/
 
-.grant_table .table_display_td, .grant_table .table_display_th, .edit_grant_table .table_display_td, .edit_grant_table .table_display_th{
+.user_grant_table .table_display_td, .user_grant_table .table_display_th, .edit_grant_table .table_display_td, .edit_grant_table .table_display_th{
 	text-align: center;
 	color: gray;
 	font-size: 16px;
 	min-width: 120px;
 }
 
-.grant_table .table_display_td:first-child, .grant_table .table_display_th:first-child {
-	min-width: 200px;
+.user_grant_table .table_display_td:first-child, .user_grant_table .table_display_th:first-child {
+	/*min-width: 200px;*/
 	text-align: left;
 	color: black;
+}
+
+.user_grant_table .table_display_td:nth-child(5), .user_grant_table .table_display_td:nth-child(6), .user_grant_table .table_display_th:nth-child(5), .user_grant_table .table_display_th:nth-child(6){
+	color: rgb(51,122,183);
 }
 
 .text_right {
 	text-align: right;
 }
 
-.user_div {
+.user_div, .users_div {
 	padding: 10px 20px;
 	background-color: rgba(220, 220, 230, 0.3);
-	width: 250px;
-	border-radius: 3px;
+	min-width: 200px;
+	border-radius: 5px;
+	cursor: pointer;
+	display: inline-block;
+	margin-right: 40px;
+	margin-bottom: 20px;
+	position: relative;
 }
 
-.user_desc {
+.users_div i {
+	display: inline-block; 
+	font-size: 40px; 
+	margin-right: 10px; 
+	vertical-align: middle;
+	color: rgb(79, 93,115);
+}
+
+.user_desc, .users_desc {
 	display: inline-block;
 	vertical-align: middle;
 	font-size: 14px;
-	width: 90px;
+	min-width: 60px;
 	margin-left: 10px;
 }
 
-.user_desc p {
+.user_desc p, .users_desc p {
 	margin: 0px;
 	line-height: 2em;
 }
@@ -679,8 +696,8 @@ aside {
 	width: 420px;
 }
 
-.display_table_hover .table_display_row:nth-child(n+2):hover {
-	background-color: rgba(220, 220, 230, 0.4);
+.display_table_hover  .table_display_td[data-write='true']{
+	background-color: rgba(220, 220, 230, 0.3);
 }
 
 .nav_disabled {
@@ -696,3 +713,30 @@ aside {
 	overflow: auto;
 	width: 100%;
 }
+
+.modal_menu {
+	opacity: 0;
+	transition: opacity 0.4s;
+	width: 150px;
+	padding: 10px 15px;
+	position: absolute;
+	z-index: 2;
+	bottom: 100%;
+	left: 50%;
+	margin-left: -75px;
+	border-radius: 6px;
+	font-size: 14px;
+}
+
+.modal_menu:after {
+	content: " ";
+	position: absolute;
+    top: 100%; 
+    left: 50%;
+	width: 0px;
+    margin-left: -5px;
+	border-width: 5px;
+	border-style: solid;
+    border-color: black transparent transparent transparent; 
+}
+
