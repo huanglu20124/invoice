@@ -3,6 +3,8 @@ package com.hl.domain;
 public class Permission {
 	private Integer permission_id; //权限id
 	private String  permission_name;//权限名称
+	private Integer isPrivate; //0位公有，1为私有
+	
 	public Integer getPermission_id() {
 		return permission_id;
 	}
@@ -15,7 +17,6 @@ public class Permission {
 	public void setPermission_name(String permission_name) {
 		this.permission_name = permission_name;
 	}
-
 	@Override
 	public boolean equals(Object obj) {
 		Permission permission = (Permission) obj;
@@ -25,4 +26,11 @@ public class Permission {
 			return false;
 		}
 	}
+	public Integer getIsPrivate() {
+		return isPrivate;
+	}
+	public void setIsPrivate(Integer isPrivate) {
+		this.isPrivate = isPrivate;
+	}
+
 }

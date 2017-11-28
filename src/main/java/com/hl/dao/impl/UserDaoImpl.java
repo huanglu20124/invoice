@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 
 import com.alibaba.fastjson.JSON;
 import com.hl.dao.UserDao;
+import com.hl.domain.Group;
 import com.hl.domain.Permission;
 import com.hl.domain.User;
 import com.hl.util.Const;
@@ -27,12 +28,25 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 			user.setSalt(rs.getString(Const.SALT));
 			user.setLocked(rs.getInt(Const.LOCKED));
 			user.setCompany_name(rs.getString(Const.COMPANY_NAME));
-			user.setManager(rs.getInt("manager"));
 			user.setGroup_id(rs.getInt("group_id"));
 			return user;
+		}		
+	}
+	
+	class GroupRowMapper implements RowMapper<Group>{
+		@Override
+		public Group mapRow(ResultSet rs, int rowNum) throws SQLException {
+			Group group = new Group();
+			group.setGroup_id(rs.getInt("group_id"));
+			group.setCompany_id(rs.getInt("company_id"));
+			group.setCompany_name(rs.getString("company_name"));
+			group.setGroup_name(rs.getString("group_name"));
+			group.setGroup_register_time(rs.getString("group_register_time"));
+			return group;
 		}
 		
 	}
+	
 	@Override
 	public User getUserByNamePwd(String user_name, String user_password) {
 		//简单的用户名密码登录
@@ -115,15 +129,15 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 
 	@Override
 	public List<User> getManagerUsers(Integer user_id) {
-		//获取所属单位全部非管理员
-		String sql = "select a.*,b.company_name from user a, company b where a.manager=0 "
-				+ "and a.company_id=b.company_id  and a.company_id= "
+		//获取所属单位全部用户
+		String sql = "select a.*,b.company_name from user a, company b  "
+				+ " where a.company_id=b.company_id  and a.company_id= "
 				+ "(select b.company_id from user b where b.user_id=?)";
 		return getJdbcTemplate().query(sql, new UserRowmapper(),user_id);
 	}
 
 	@Override
-	public boolean getIsPermission(Integer user_id, Integer permission_id) {
+	public boolean getIsUserPermission(Integer user_id, Integer permission_id) {
 		String sql = "select permission_id from user_permission where user_id=? and permission_id=?";
 		try {
 			Integer temp = getJdbcTemplate().queryForObject(sql, Integer.class,user_id,permission_id);
@@ -146,4 +160,51 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 		getJdbcTemplate().update(sql,permission_id,user_id);
 	}
 
+	
+	
+	@Override
+	public List<Group> getManagerGroups(Integer user_id) {
+		String sql = "select b*,c.company_name from user a, user_group b, company c "
+				+ " where a.group_id=b.group_id and c.company_id=b.company_id and a.user_id=?";
+		return getJdbcTemplate().query(sql, new GroupRowMapper(),user_id);
+	}
+
+	@Override
+	public boolean getIsGroupPermission(Integer permission_id, Integer group_id) {
+		String sql = "select permission_id from group_permission where group_id=? and permission_id=?";
+		try {
+			Integer temp = getJdbcTemplate().queryForObject(sql, Integer.class,group_id,permission_id);
+			if(temp != null) return true;
+		} catch (Exception e) {
+			return false;
+		}
+		return false;
+	}
+
+	@Override
+	public void deleteGroupPermission(Integer group_id, Integer permission_id) {
+		String sql = "delete from group_permission where group_id=? and permission_id=?";
+		getJdbcTemplate().update(sql,group_id,permission_id);
+	}
+
+	@Override
+	public void addGroupPermission(Integer group_id, Integer permission_id) {
+		String sql = "insert into group_permission values(?,?);";
+		getJdbcTemplate().update(sql,group_id,permission_id);
+	}
+
+	
+	@Override
+	public void addGroupUser(Integer user_id, Integer group_id) {
+		String sql = "update user set user_id=? and group_id=?";
+		getJdbcTemplate().update(sql,user_id,group_id);
+	}
+
+	@Override
+	public void removeGroupUser(Integer user_id) {
+		String sql = "update user set group_id=null where user_id=?";
+		getJdbcTemplate().update(sql,user_id);	
+	}
+
+	
 }

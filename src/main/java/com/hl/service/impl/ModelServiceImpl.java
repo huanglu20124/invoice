@@ -283,6 +283,7 @@ public class ModelServiceImpl implements ModelService{
 			// 1.解析json，先将结果直接返回给web端
 			Map<String, Object> response_map = JSON.parseObject(json_str);
 			int status = (int) response_map.get("status");
+			System.out.println(message + "---" + systemWebSocketHandler);
 			systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)),new int[]{3});
 			// 2.model表删除该model,其他携带该外键的行全部更新
 			String url_suffix = null;

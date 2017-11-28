@@ -21,6 +21,7 @@ import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -30,7 +31,10 @@ import org.springframework.web.servlet.ModelAndView;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.hl.domain.Group;
+import com.hl.domain.Permission;
 import com.hl.domain.SimpleResponse;
+import com.hl.domain.UpdatePermission;
 import com.hl.domain.UpdateUser;
 import com.hl.domain.User;
 import com.hl.exception.InvoiceException;
@@ -48,7 +52,7 @@ public class UserController {
 	private UserService userService;
 
 	private static Logger logger = Logger.getLogger(UserController.class);
-	//接口1，用户登录,和shiro中的配置文件一致
+	//用户登录,和shiro中的配置文件一致
 	@RequestMapping(value = "/login.action")
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	public String userLogin(HttpServletRequest request) throws Exception {
@@ -74,8 +78,7 @@ public class UserController {
 		//登录失败返回到login界面
 		return "login";
 	}
-	
-	
+
 	//用户退出
 	@RequestMapping("/logout.action")
 	public String logout(HttpSession session)throws Exception{
@@ -90,6 +93,19 @@ public class UserController {
 		
 	}
 	
+	//管理员获取他管理的单位的用户组信息
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/getManagerGroups.action", method = RequestMethod.POST)
+	public void getManagerGroups(Integer user_id, HttpServletRequest request,HttpServletResponse response) throws IOException{
+		request.setCharacterEncoding("utf-8");
+		response.setCharacterEncoding("utf-8");
+		System.out.println("接收到获取管理的用户组的请求");
+		Map<String, Object>map = new HashMap<>();
+		List<Group>list = userService.getManagerGroups(user_id);
+		map.put("group_list", list);
+		response.getWriter().write(JSON.toJSONString(map));
+	}	
+	
 	//管理员查询他管理的单位所有用户信息
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/getManagerUsers.action", method = RequestMethod.POST)
@@ -103,19 +119,58 @@ public class UserController {
 		response.getWriter().write(JSON.toJSONString(map));
 	}
 	
-
-	//修改一组用户的权限
+	//修改一组用户的私有 权限（用户组）
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/updateUsersPermission.action", method = RequestMethod.POST)
 	public void updateUsersPermission(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		request.setCharacterEncoding("utf-8");
 		response.setCharacterEncoding("utf-8");
 		System.out.println("接收到修改用户权限的请求");
-		String list_str = request.getParameter("user_list");
+		String list_str = request.getParameter("user_list"); 
 		System.out.println(list_str);
 		JSONArray array = JSON.parseArray(list_str);
 		List<UpdateUser>users = array.toJavaList(UpdateUser.class);
 		SimpleResponse simpleResponse = userService.updateUsersPermission(users);
 		response.getWriter().write(JSON.toJSONString(simpleResponse));
 	}
+	
+	//修改用户组的公有权限(用户组)
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/updateGroupPermission.action", method = RequestMethod.POST)
+	public void updateGroupPermission(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		request.setCharacterEncoding("utf-8");
+		response.setCharacterEncoding("utf-8");
+		System.out.println("接收到修改用户组权限的请求");
+		Integer group_id = new Integer(request.getParameter("group_id"));
+		String list_str = request.getParameter("permission_list");
+		JSONArray array = JSON.parseArray(list_str);
+		List<UpdatePermission>list = array.toJavaList(UpdatePermission.class);
+		SimpleResponse simpleResponse = userService.updateGroupPermission(list,group_id);
+		response.getWriter().write(JSON.toJSONString(simpleResponse));
+	}
+
+	//用户注册，刚注册的时候只有查看控制台的权限
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/registerUser.action", method = RequestMethod.POST)
+	public void registerUser(HttpServletRequest request,HttpServletResponse response){
+		String user_str = request.getParameter("user");
+		User user = JSON.parseObject(user_str,User.class);
+		//以后再写
+	}
+	
+	//将某个用户添加到一个用户组里
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/addGroupUser.action", method = RequestMethod.POST)
+	public void addGroupUser(Integer user_id,Integer group_id,HttpServletResponse response)throws IOException{
+		SimpleResponse simpleResponse = userService.addGroupUser(user_id,group_id);
+		response.getWriter().write(JSON.toJSONString(simpleResponse));
+	}	
+
+	//将某个用户移出所属用户组里
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/removeGroupUser.action", method = RequestMethod.POST)
+	public void removeGroupUser(Integer user_id,HttpServletResponse response)throws IOException{
+		SimpleResponse simpleResponse = userService.removeGroupUser(user_id);
+		response.getWriter().write(JSON.toJSONString(simpleResponse));
+	}	
 }

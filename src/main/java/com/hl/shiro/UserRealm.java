@@ -74,18 +74,11 @@ public class UserRealm extends AuthorizingRealm {
 		String salt = user.getSalt();
 		//权限集合
 		//根据身份信息获取用户权限信息
-		Set<Permission>permissions = new HashSet<>();
+		List<Permission>list = new ArrayList<>();
 		//取交集
-		permissions.addAll(userDao.getUserPermission(user.getUser_id()));
-		permissions.addAll(userDao.getGroupPermission(user.getGroup_id()));
-		//放到下面的数组中
-		List<Permission>list_permissions = new ArrayList<>();
-		Iterator<Permission>iterator = permissions.iterator();
-		while(iterator.hasNext()){
-			Permission permission = iterator.next();
-			list_permissions.add(permission);
-		}
-		user.setPermissions(list_permissions);
+		list.addAll(userDao.getUserPermission(user.getUser_id()));
+		list.addAll(userDao.getGroupPermission(user.getGroup_id()));
+		user.setPermissions(list);
 		//将User设置simpleAuthenticationInfo
 		SimpleAuthenticationInfo authenticationInfo = new SimpleAuthenticationInfo(user, password,ByteSource.Util.bytes(salt), this.getName());
 		return authenticationInfo;

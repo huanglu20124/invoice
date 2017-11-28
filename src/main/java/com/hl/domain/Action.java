@@ -1,7 +1,7 @@
 package com.hl.domain;
 
 public class Action {
-	//基于日志的操作行为类，对应数据库表,user_name和company_name要连接查询一波
+	//与发票有关的操作行为类，对应数据库表,user_name和company_name要连接查询一波，记录这个的目的是为了后期统计
 	private Integer action_id;
 	private Integer  user_id;
 	private String user_name;

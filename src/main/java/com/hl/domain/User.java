@@ -12,7 +12,6 @@ public class User {
 	private String user_register_time;//用户注册时间
 	private String salt;     //盐（密码加密用的）
 	private Integer locked;  //是否被上锁
-	private Integer manager; //是否是管理员  0：非管理员     1：普通管理员（）     2：超级管理员（可以对所有用户更改）
 	private Integer group_id;//用户组编号
 	private List<Permission>permissions;//权限数组
 	
@@ -78,12 +77,7 @@ public class User {
 	public void setPermissions(List<Permission> permissions) {
 		this.permissions = permissions;
 	}
-	public Integer getManager() {
-		return manager;
-	}
-	public void setManager(Integer manager) {
-		this.manager = manager;
-	}
+
 
 	
 }
