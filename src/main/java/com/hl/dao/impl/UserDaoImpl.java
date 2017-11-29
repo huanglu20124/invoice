@@ -164,8 +164,9 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 	
 	@Override
 	public List<Group> getManagerGroups(Integer user_id) {
-		String sql = "select b*,c.company_name from user a, user_group b, company c "
-				+ " where a.group_id=b.group_id and c.company_id=b.company_id and a.user_id=?";
+		String sql = "select b.*,c.company_name from user a, user_group b, company c "
+				+ " where a.company_id=b.company_id and a.company_id=c.company_id "
+				+ " and  a.user_id=?";
 		return getJdbcTemplate().query(sql, new GroupRowMapper(),user_id);
 	}
 

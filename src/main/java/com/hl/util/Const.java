@@ -104,4 +104,5 @@ public class Const {
 	
 	//识别延时
 	public static final String DELAY               = "delay";
+	
 }

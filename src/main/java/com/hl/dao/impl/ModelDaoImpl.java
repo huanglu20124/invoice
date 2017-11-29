@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
@@ -26,20 +27,19 @@ public class ModelDaoImpl extends JdbcDaoSupport implements ModelDao {
 		Map<String, Object>global_setting_map = (Map<String, Object>) json_map.get("global_setting");
 		String model_label = (String) global_setting_map.get("label");
 		getJdbcTemplate().update(sql,modelAction.getModel_id(),
-				json_model,modelAction.getAction_end_time(),
-				modelAction.getUrl_suffix(),model_label,modelAction.getImage_size(),modelAction.getAction_id());
+				json_model,modelAction.getAction_time(),
+				modelAction.getUrl_suffix(),model_label,modelAction.getImage_size(),UUID.randomUUID().toString());
 	}
 
 	@Override
 	public void updateModel(ModelAction modelAction) {
-		String sql = "update model set json_model=?, model_url=?, model_label=?, model_register_time=?, action_id = ? where model_id=?";
+		String sql = "update model set json_model=?, model_url=?, model_label=?, model_register_time=?, where model_id=?";
 		//获得json_model里的model_label
 		Map<String, Object>json_map = JSON.parseObject(modelAction.getJson_model());
 		Map<String, Object>global_setting_map = (Map<String, Object>) json_map.get("global_setting");
 		String model_label = (String) global_setting_map.get("label");
 		getJdbcTemplate().update(sql,modelAction.getJson_model(),modelAction.getUrl_suffix(),
-				model_label,com.hl.util.TimeUtil.getCurrentTime(),modelAction.getAction_id(),modelAction.getModel_id());
-		
+				model_label,com.hl.util.TimeUtil.getCurrentTime(),modelAction.getModel_id());	
 	}
 	
 	@Override
@@ -132,7 +132,7 @@ public class ModelDaoImpl extends JdbcDaoSupport implements ModelDao {
 			model.setModel_url(rs.getString(Const.MODEL_URL));
 			model.setModel_label(rs.getString(Const.MODEL_LABEL));
 			model.setImage_size(rs.getInt(Const.IMAGE_SIZE));
-			model.setAction_id(rs.getInt(Const.ACTION_ID));
+			model.setModel_uuid("model_uuid");
 			return model;
 		}
 		

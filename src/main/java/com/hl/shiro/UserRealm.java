@@ -50,6 +50,7 @@ public class UserRealm extends AuthorizingRealm {
 		}
 		SimpleAuthorizationInfo simpleAuthorizationInfo = new SimpleAuthorizationInfo();
 		simpleAuthorizationInfo.addStringPermissions(permission_strs);
+		System.out.println("UserRealm授权结束");
 		return simpleAuthorizationInfo;
 	}
 
@@ -81,12 +82,13 @@ public class UserRealm extends AuthorizingRealm {
 		user.setPermissions(list);
 		//将User设置simpleAuthenticationInfo
 		SimpleAuthenticationInfo authenticationInfo = new SimpleAuthenticationInfo(user, password,ByteSource.Util.bytes(salt), this.getName());
+		System.out.println("UserRealm认证结束");
 		return authenticationInfo;
 	}
 	
 	@Override
 	public void setName(String name) {
-		super.setName("customRealm");
+		super.setName("userRealm");
 	}
 
 }

@@ -157,5 +157,16 @@ public class UserServiceImpl implements UserService{
 		return simpleResponse;
 	}
 
+	
+	@Override
+	public List<Permission> getUserPermission(Integer user_id) {
+		User user = userDao.getUserById(user_id);
+		if(user != null){
+			return getUserPermission(user);
+		}else {
+			return new ArrayList<>();
+		}
+	}
+
 
 }

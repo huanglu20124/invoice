@@ -43,6 +43,7 @@ import com.hl.domain.TestCase;
 import com.hl.domain.User;
 import com.hl.service.InvoiceService;
 import com.hl.util.ImageUtil;
+import com.hl.util.IpUtil;
 import com.hl.util.CheckUtil;
 import com.hl.util.Const;
 import com.hl.util.IOUtil;
@@ -119,6 +120,8 @@ public class InvoiceController {
 			}
 			System.out.println("图片上传完毕");
 			//图片全部上传完毕才调用service层
+			//设置ip
+			recognizeAction.setUser_ip(IpUtil.getIpAddr(request));
 			invoiceService.addRecognizeInvoice(ans_map,recognizeAction,null, url_suffixs,thread_msg);
 			
 		} else {
@@ -171,6 +174,7 @@ public class InvoiceController {
 				}
 			}
 			//图片全部上传完毕才调用service层
+			recognizeAction.setUser_ip(IpUtil.getIpAddr(request));
 			invoiceService.addRecognizeInvoice(ans_map,recognizeAction,testCase,url_suffixs,thread_msg);
 			
 		}

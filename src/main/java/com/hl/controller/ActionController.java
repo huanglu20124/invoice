@@ -32,10 +32,11 @@ public class ActionController {
 	private ActionService actionService;
 	//日志action类控制器
 	// ajax接口：按时间排序 + 关键词，一次获取20条日志，
+	//type= 0:用户ip， 1：用户名字， 2：单位名字， 3：操作类型
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/getTwentyAction.action", method = RequestMethod.POST)
 	@ResponseBody
-	public String getTwentyAction(Integer page,String startTime,String endTime,String keyword) throws IOException{
+	public String getTwentyAction(Integer page,String startTime,String endTime,String keyword,Integer type) throws IOException{
 		System.out.println("接收到查询操作日志的请求");
 		System.out.println(page + "  " + startTime + "  " + endTime + "   " + keyword + "。");
 		if(startTime == null || endTime == null){
@@ -47,7 +48,7 @@ public class ActionController {
 		if(keyword == null || keyword.equals("")){
 			actionQuery = actionService.getTwentyActionByTime(page,startTime,endTime);
 		}else {
-			actionQuery = actionService.getTwentyActionByKeyword(page,startTime,endTime,keyword);
+			actionQuery = actionService.getTwentyActionByKeyword(page,startTime,endTime,keyword,type);
 		}
 		if(actionQuery != null){
 			System.out.println(JSON.toJSONString(actionQuery));

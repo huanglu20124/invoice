@@ -9,7 +9,7 @@ public class RecognizeConsole {
 	private String company_name;
 	private String img_str;
 	private List<String>region_list;
-	private String action_start_time;
+	private String action_time;
 	private Integer msg_id;
 	
 	//发票识别速度
@@ -57,17 +57,17 @@ public class RecognizeConsole {
 	public void setRegion_list(List<String> region_list) {
 		this.region_list = region_list;
 	}
-	public String getAction_start_time() {
-		return action_start_time;
-	}
-	public void setAction_start_time(String action_start_time) {
-		this.action_start_time = action_start_time;
-	}
 	public Integer getMsg_id() {
 		return msg_id;
 	}
 	public void setMsg_id(Integer msg_id) {
 		this.msg_id = msg_id;
+	}
+	public String getAction_time() {
+		return action_time;
+	}
+	public void setAction_time(String action_time) {
+		this.action_time = action_time;
 	}
 	
 }
