@@ -174,40 +174,40 @@
 								<div class="table_display_th">可读</div>
 								<div class="table_display_th">可写</div>
 							</div>
-							<div class="table_display_row">
+							<div class="table_display_row" grant_type="queue">
 								<div class="table_display_td">缓冲队列</div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
-							<div class="table_display_row">
+							<div class="table_display_row" grant_type="console">
 								<div class="table_display_td">算法可视</div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
-							<div class="table_display_row">
+							<div class="table_display_row" grant_type="model">
 								<div class="table_display_td">发票模板</div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
-							<div class="table_display_row">
+							<div class="table_display_row" grant_type="fault">
 								<div class="table_display_td">错误发票</div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
-							<div class="table_display_row">
+							<div class="table_display_row" grant_type="log">
 								<div class="table_display_td">日志查询</div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
-							<div class="table_display_row">
+							<div class="table_display_row" grant_type="user">
 								<div class="table_display_td">用户管理</div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
 							<div class="table_display_row">
 								<div class="table_display_td">单位管理</div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
 						</div>
 					</div>
@@ -503,8 +503,16 @@
 
 		//根据permission_list来绘制user_modal表格
 		function flushUserGrantTable(permissions) {
+			$("")
 			for(var i = 0; i < permissions.length; i++) {
 
+			}
+		}
+
+		//根据users_permission_list来绘制Users_grant_modal的表格
+		function flushUsersGrantTable(permissions) {
+			for(var i = 0; i < permissions.length; i++) {
+				
 			}
 		}
 
@@ -537,8 +545,9 @@
 				$("#usersGrantModal").css("display", "table");
 				ModalVerticalAlign($("#usersGrantModal").get(0));
 
+				//获取权限填写表格
 				users_grant_array = users_object.permissions;
-				
+
 			})
 		}
 
