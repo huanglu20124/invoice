@@ -133,7 +133,7 @@
 		                        var temp_json = $(this).get(0).base_json;
 		                        tellConsole($(this).get(0).base_json, 3);
 		                        $("#user_info").text(temp_json.user_name);
-		                        $("#time_info").text(temp_json.action_start_time);
+		                        $("#time_info").text(temp_json.action_time);
 		                        $("#detail_info").text(temp_json.invoice_note);
 		                        $("#img_info").get(0).src = temp_json.url;
 		                    })

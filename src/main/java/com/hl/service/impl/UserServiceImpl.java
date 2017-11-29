@@ -168,5 +168,14 @@ public class UserServiceImpl implements UserService{
 		}
 	}
 
+	@Override
+	public List<User> getGroupUser(Integer group_id, Integer company_id) {
+		List<User> user_list = userDao.getGroupUser(group_id, company_id);
+		for(User user : user_list){
+			user.setPermissions(getUserPermission(user.getUser_id()));
+		}
+		return user_list;
+	}
+
 
 }

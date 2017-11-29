@@ -147,7 +147,7 @@
 	        					console.log(data.action_list[i]);
 	        					var temp_data = data.action_list[i];
 								// var data = res[i];
-								$(".select_result table tbody").append("<tr><td>"+temp_data.user_name+"</td><td>"+temp_data.company_name+"</td><td>"+temp_data.msg_id+"</td><td>"+temp_data.action_start_time+"</td><td>"+temp_data.action_run_time+"</td><td>"+temp_data.action_end_time+"</td></tr>");
+								$(".select_result table tbody").append("<tr><td>"+temp_data.user_name+"</td><td>"+temp_data.company_name+"</td><td>"+temp_data.msg_id+"</td><td>"+temp_data.action_time+"</td><td>"+temp_data.action_run_time+"</td><td>"+temp_data.action_end_time+"</td></tr>");
 	        				}	
         				}
         			},

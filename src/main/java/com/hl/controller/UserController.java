@@ -1,6 +1,7 @@
 package com.hl.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -184,6 +185,16 @@ public class UserController {
 		response.getWriter().write(JSON.toJSONString(map));
 	}
 	
-	
+	//获取当前一个用户组的所有用户
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/getGroupUsers.action", method = RequestMethod.POST)
+	@ResponseBody
+	public String getGroupUsers(Integer group_id,Integer comapny_id, HttpServletResponse response)throws IOException{
+		List<User>list = userService.getGroupUser(group_id,comapny_id);
+		if(list == null) list = new ArrayList<>();
+		Map<String, Object>map = new HashMap<>();
+		map.put("user_list", list);
+		return JSON.toJSONString(map);
+	}	
 
 }

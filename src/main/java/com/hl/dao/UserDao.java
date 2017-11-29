@@ -43,5 +43,7 @@ public interface UserDao {
 
 	void removeGroupUser(Integer user_id);
 
+	List<User> getGroupUser(Integer group_id, Integer comapny_id);
+
 
 }

@@ -285,6 +285,10 @@
 		var edit_grant_array = []; //记录正在修改的用户对象及其权限的数组
 		var send_grant_array = []; //将要发送给服务器的被修改的用户对象及其权限的数组
 
+		var users_grant_array = []; //记录当前的原本用户对象及其权限的数组
+		var users_edit_array = []; //记录正在修改的用户对象及其权限的数组
+		var users_send_array = []; //将要发送给服务器的被修改的用户对象及其权限的数组
+
 		//绑定编辑按钮，点击后开始编辑
 		function beginEdit(type) {
 			$(".edit_grant").each(function(){
@@ -445,7 +449,7 @@
 		function addUsersGroup(temp_group) {
 			$(".users_div_container").append("<div class=\"users_div\"><i class=\"fa fa-users\" aria-hidden=\"true\"></i><div class=\"users_desc\"><p>"+temp_group.group_name+"</p><p>"+temp_group.group_id+"</p></div><div class=\"modal_menu\"><p class=\"startUsersGrant\">编辑权限</p><p class=\"startUsersMember\">编辑用户组成员</p></div></div>");
 
-			$(".users_div_container .users_div:last-child").get(0).group_id = temp_group.group_id;
+			$(".users_div_container .users_div:last-child").get(0).users_object = temp_group;
 			hoverUsers($(".users_div_container .users_div:last-child"));
 		}
 
@@ -473,7 +477,7 @@
 			})
 		}
 
-		//获取用户组
+		//获取用户组及其权限
 		function getUsersGrant() {
 			$.ajax({
 				type: 'POST',
@@ -497,7 +501,6 @@
 			})
 		}
 
-
 		//根据permission_list来绘制user_modal表格
 		function flushUserGrantTable(permissions) {
 			for(var i = 0; i < permissions.length; i++) {
@@ -516,15 +519,11 @@
 
 		//悬浮用户组头像
 		function hoverUsers(users_jq) {
-			var users_id = 1;
-			clickStartUsersGrant(users_id);
-			clickStartUsersMember(users_id);
+			var users_object = users_jq.users_object;
+			clickStartUsersGrant(users_object);
+			clickStartUsersMember(users_object);
 			users_jq.mouseenter(function() {
 				$(this).children(".modal_menu").css("opacity", "1");
-
-				// $("#usersGrantModal").modal('show');
-				// $("#usersGrantModal").css("display", "table");
-				// ModalVerticalAlign($("#usersGrantModal").get(0));
 			})
 			users_jq.mouseleave(function() {
 				$(this).children(".modal_menu").css("opacity", "0");
@@ -532,16 +531,19 @@
 		}
 
 		//点击用户组编辑用户组权限按钮
-		function clickStartUsersGrant(users_id) {
+		function clickStartUsersGrant(users_object) {
 			$(".startUsersGrant").click(function() {
 				$("#usersGrantModal").modal('show');
 				$("#usersGrantModal").css("display", "table");
-				ModalVerticalAlign($("#usersGrantModal").get(0));	
+				ModalVerticalAlign($("#usersGrantModal").get(0));
+
+				users_grant_array = users_object.permissions;
+				
 			})
 		}
 
 		//点击用户组编辑成员权限按钮
-		function clickStartUsersMember(users_id) {
+		function clickStartUsersMember(users_object) {
 			$(".startUsersMember").click(function() {
 				$("#usersMemberModal").modal('show');
 				$("#usersMemberModal").css("display", "table");
