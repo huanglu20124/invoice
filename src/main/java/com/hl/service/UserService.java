@@ -27,4 +27,6 @@ public interface UserService {
 
 	List<Permission> getUserPermission(Integer user_id);
 
+	List<User> getGroupUser(Integer group_id,Integer company_id);
+
 }
