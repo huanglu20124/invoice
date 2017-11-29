@@ -173,4 +173,17 @@ public class UserController {
 		SimpleResponse simpleResponse = userService.removeGroupUser(user_id);
 		response.getWriter().write(JSON.toJSONString(simpleResponse));
 	}	
+
+	//获取当前用户的最新权限
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/getUserPermission.action", method = RequestMethod.POST)
+	public void getUserPermission(Integer user_id,HttpServletResponse response)throws IOException{
+		List<Permission>permissions = userService.getUserPermission(user_id);
+		Map<String, Object>map = new HashMap<>();
+		map.put("permission_list", permissions);
+		response.getWriter().write(JSON.toJSONString(map));
+	}
+	
+	
+
 }

@@ -23,10 +23,10 @@
 			</div>
 
 			<div class="panel panel-default panel-box-shadow detect_div_container" style="margin-top: 0px;">
-			    <div class="detect_div" style="padding: 30px 30px;">
+			    <div class="detect_div users_div_container" style="padding: 30px 30px;">
 					<p class="detect_div_hd">用户组管理<span>管理员可以编辑本单位的用户组权限</span></p>
 
-					<div class="users_div">
+					<!-- <div class="users_div">
 						 <i class="fa fa-users" aria-hidden="true"></i>
 						 <div class="users_desc">
 						 	<p>用户组1</p>
@@ -36,15 +36,7 @@
 						 	<p class="startUsersGrant">编辑权限</p>
 						 	<p class="startUsersMember">编辑用户组成员</p>
 						 </div>
-					</div>
-					
-					<div class="users_div">
-						 <i class="fa fa-users" aria-hidden="true"></i>
-						 <div class="users_desc">
-						 	<p>用户组2</p>
-							<p>wx3e4e2</p>
-						 </div>
-					</div>
+					</div> -->
 
 			    </div>
 			</div>
@@ -58,41 +50,14 @@
 						<span class="flex-none fail_info" style="margin-right: 10px; display: none;">权限编辑失败</span>
 						 -->
 					</p>
-					
-					<div class="user_div">
-						 <img src="pic/头像.png" style="width: 40px; margin-right: 10px;">
-						 <div class="user_desc">
-						 	<p>Eric Wong</p>
-							<p>中山大学</p>
-						 </div>
-					</div>
 
-					<!-- <div style="overflow-x: auto;">
-						<div class="table_display_container grant_table">
-							<div class="table_display_row">
-								<div class="table_display_th">成员</div>
-								<div class="table_display_th">修改模板</div>
-								<div class="table_display_th">增加模板</div>
-								<div class="table_display_th">查询模板</div>
-								<div class="table_display_th">删除模板</div>
-								<div class="table_display_th">监控识别</div>
-								<div class="table_display_th">日志查询</div>
-								<div class="table_display_th">缓冲队列查询</div>
-								<div class="table_display_th">错误发票查询</div>
-								<div class="table_display_th">增加用户</div>
-								<div class="table_display_th">编辑用户</div>
-								<div class="table_display_th">查询用户</div>
-								<div class="table_display_th">删除用户</div>
-							</div>
-						</div>
-					</div> -->
 				</div>
 			</div>
 		</div>
 	</main>
 
 	<!-- 模态框（Modal） -->
-	<div class="modal fade" id="userGrantModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="width: 980px; margin: 0 auto;">
+	<div class="modal fade" id="userGrantModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="width: 980px; margin: 0 auto; overflow: auto;">
 	    <div style="display: table-cell; vertical-align: middle;">
 	        <div class="modal-content">
 	            <div class="modal-header">
@@ -112,98 +77,98 @@
 								<div class="table_display_th">（汇总）可读</div>
 								<div class="table_display_th">（汇总）可写</div>
 							</div>
-							<div class="table_display_row">
+							<div class="table_display_row" grant_type="queue">
 								<div class="table_display_td">缓冲队列</div>
-								<div class="table_display_td">无</div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td users_group">无</div>
+								<div class="table_display_td inherit_read"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td inherit_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td private_read" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td private_write" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td gather_read"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td gather_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
-							<div class="table_display_row">
+							<div class="table_display_row" grant_type="console">
 								<div class="table_display_td">算法可视</div>
-								<div class="table_display_td">无</div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td users_group">无</div>
+								<div class="table_display_td inherit_read"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td inherit_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td private_read" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td private_write" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td gather_read"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td gather_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
-							<div class="table_display_row">
+							<div class="table_display_row" grant_type="model">
 								<div class="table_display_td">发票模板</div>
-								<div class="table_display_td">无</div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td users_group">无</div>
+								<div class="table_display_td inherit_read"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td inherit_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td private_read" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td private_write" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td gather_read"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td gather_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
-							<div class="table_display_row">
+							<div class="table_display_row" grant_type="fault">
 								<div class="table_display_td">错误发票</div>
-								<div class="table_display_td">无</div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td users_group">无</div>
+								<div class="table_display_td inherit_read"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td inherit_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td private_read" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td private_write" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td gather_read"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td gather_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
-							<div class="table_display_row">
+							<div class="table_display_row" grant_type="log">
 								<div class="table_display_td">日志查询</div>
-								<div class="table_display_td">无</div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td users_group">无</div>
+								<div class="table_display_td inherit_read"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td inherit_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td private_read" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td private_write" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td gather_read"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td gather_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
-							<div class="table_display_row">
+							<div class="table_display_row" grant_type="user">
 								<div class="table_display_td">用户管理</div>
-								<div class="table_display_td">无</div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td users_group">无</div>
+								<div class="table_display_td inherit_read"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td inherit_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td private_read" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td private_write" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td gather_read"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td gather_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
-							<div class="table_display_row">
+							<div class="table_display_row" grant_type="7">
 								<div class="table_display_td">单位管理</div>
-								<div class="table_display_td">无</div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
-								<div class="table_display_td"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td users_group">无</div>
+								<div class="table_display_td inherit_read"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td inherit_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td private_read" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td private_write" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td gather_read"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td gather_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
 						</div>
 					</div>
 	            </div>
 	            <div class="modal-footer">
-	            	<button type="button" class="btn btn-primary flex-none" style="padding: 5px 15px;" id="edit_grant">编辑</button>
-					<button type="button" class="btn btn-primary flex-none" style="padding: 5px 15px; margin-right: 10px; display: none;" id="save_grant" data-dismiss="modal">保存</button>
-					<button type="button" class="btn btn-default flex-none" style="padding: 5px 15px; display: none;" id="cancel_edit" data-dismiss="modal">取消</button>
+	            	<button type="button" class="btn btn-primary flex-none edit_grant" style="padding: 5px 15px;" data-write="true">编辑</button>
+					<button type="button" class="btn btn-primary flex-none save_grant" style="padding: 5px 15px; margin-right: 10px; display: none;" data-dismiss="modal">保存</button>
+					<button type="button" class="btn btn-default flex-none cancel_edit" style="padding: 5px 15px; display: none;" data-dismiss="modal">取消</button>
 	            </div>
 	        </div><!-- /.modal-content -->
 	    </div><!-- /.modal -->
 	</div>
 
-	<div class="modal fade" id="usersGrantModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="width: 980px; margin: 0 auto;">
+	<div class="modal fade" id="usersGrantModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="width: 980px; margin: 0 auto; overflow: auto;">
 	    <div style="display: table-cell; vertical-align: middle;">
 	        <div class="modal-content">
 	            <div class="modal-header">
 	                <button type="button" class="close" data-dismiss="modal" aria-hidden="true" id="close_modal">&times;</button>
-	                <h4 class="modal-title" style="display: inline-block; vertical-align: middle; width: auto; margin-right: 10px;">用户组管理</h4>
+	                <h4 class="modal-title" style="display: inline-block; vertical-align: middle; width: auto; margin-right: 10px;">用户组权限管理</h4>
 	            </div>
 	            <div class="modal-body" style="padding: 0px;">
 	            	<div style="overflow: auto;">
-						<div class="table_display_container user_grant_table">
+						<div class="table_display_container users_grant_table">
 							<div class="table_display_row">
 								<div class="table_display_th">权限对象</div>
 								<div class="table_display_th">可读</div>
@@ -226,7 +191,6 @@
 							</div>
 							<div class="table_display_row">
 								<div class="table_display_td">错误发票</div>
-								<div class="table_display_td">无</div>
 								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 								<div class="table_display_td" data-write="true"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
@@ -249,9 +213,63 @@
 					</div>
 	            </div>
 	            <div class="modal-footer">
-	            	<button type="button" class="btn btn-primary flex-none" style="padding: 5px 15px;" id="edit_grant">编辑</button>
-					<button type="button" class="btn btn-primary flex-none" style="padding: 5px 15px; margin-right: 10px; display: none;" id="save_grant" data-dismiss="modal">保存</button>
-					<button type="button" class="btn btn-default flex-none" style="padding: 5px 15px; display: none;" id="cancel_edit" data-dismiss="modal">取消</button>
+	            	<button type="button" class="btn btn-primary flex-none edit_grant" style="padding: 5px 15px;" data-write="true">编辑</button>
+					<button type="button" class="btn btn-primary flex-none save_grant" style="padding: 5px 15px; margin-right: 10px; display: none;" data-dismiss="modal">保存</button>
+					<button type="button" class="btn btn-default flex-none cancel_edit" style="padding: 5px 15px; display: none;" data-dismiss="modal">取消</button>
+	            </div>
+	        </div><!-- /.modal-content -->
+	    </div><!-- /.modal -->
+	</div>
+
+	<div class="modal fade" id="usersMemberModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="width: 1080px; margin: 0 auto; overflow: auto;">
+	    <div style="display: table-cell; vertical-align: middle;">
+	        <div class="modal-content">
+	            <div class="modal-header">
+	                <button type="button" class="close" data-dismiss="modal" aria-hidden="true" id="close_modal">&times;</button>
+	                <h4 class="modal-title" style="display: inline-block; vertical-align: middle; width: auto; margin-right: 10px;">用户组成员管理</h4>
+	            </div>
+	            <div class="modal-body" style="padding: 20px 0px 20px 20px; overflow: auto;">
+	            	<div style="float: right; width: 280px; min-height: 300px; padding: 0px 20px; height: 100%; border-left: 1px solid rgba(200, 200, 200, 0.4);">
+						<button type="button" class="btn btn-primary" style="width: 100%;" id="start_edit">启用编辑</button>
+
+						<input type="text" class="form-control" name="addUserId" placeholder="请输入要添加至本用户组的用户id" style="margin-top: 40px;" disabled="true" id="addUserId"/>
+						<button type="button" class="btn btn-primary" style="width: 100%; margin-top: 20px;" disabled="true" id="addUserBtn">添加用户</button>
+					</div>
+	            	<div style="margin-right: 300px;">
+						<div class="user_div users_member_div">
+							 <img src="pic/头像.png" style="width: 40px; margin-right: 10px;">
+							 <div class="user_desc">
+							 	<p>Eric Wong</p>
+								<p>中山大学</p>
+							 </div>
+							 <i class="fa fa-times-circle" aria-hidden="true"></i>
+						</div>
+
+						<div class="user_div users_member_div">
+							 <img src="pic/头像.png" style="width: 40px; margin-right: 10px;">
+							 <div class="user_desc">
+							 	<p>Eric Wong</p>
+								<p>中山大学</p>
+							 </div>
+						</div>
+
+						<div class="user_div users_member_div">
+							 <img src="pic/头像.png" style="width: 40px; margin-right: 10px;">
+							 <div class="user_desc">
+							 	<p>Eric Wong</p>
+								<p>中山大学</p>
+							 </div>
+						</div>
+
+						<div class="user_div users_member_div">
+							 <img src="pic/头像.png" style="width: 40px; margin-right: 10px;">
+							 <div class="user_desc">
+							 	<p>Eric Wong</p>
+								<p>中山大学</p>
+							 </div>
+						</div>
+					</div>
+					
 	            </div>
 	        </div><!-- /.modal-content -->
 	    </div><!-- /.modal -->
@@ -268,25 +286,35 @@
 		var send_grant_array = []; //将要发送给服务器的被修改的用户对象及其权限的数组
 
 		//绑定编辑按钮，点击后开始编辑
-		function beginEdit() {
-			$("#edit_grant").click(function() {
-				$(this).css("display", "none");
-				$("#save_grant").css("display", "inline-block");
-				$("#cancel_edit").css("display", "inline-block");
+		function beginEdit(type) {
+			$(".edit_grant").each(function(){
+				$(this).unbind("click").click(function() {
+					$(this).css("display", "none");
+					$(".save_grant").css("display", "inline-block");
+					$(".cancel_edit").css("display", "inline-block");
 
-				$(".user_grant_table .table_display_td[data-write='true'] i").css("cursor", "pointer");
-				$(".user_grant_table .table_display_td[data-write='true'] i").each(function() {
-					$(this).click(function(){clickIcon($(this))});
+					if(type == 0) { //代表user_modal
+						$(".user_grant_table .table_display_td[data-write='true'] i").css("cursor", "pointer");
+						$(".user_grant_table .table_display_td[data-write='true'] i").each(function() {
+							$(this).click(function(){clickIcon($(this))});
+						})
+						$(".user_grant_table").addClass("display_table_hover");
+					}
+					else if(type == 1) { //代表users_grant
+						$(".users_grant_table .table_display_td[data-write='true'] i").css("cursor", "pointer");
+						$(".users_grant_table .table_display_td[data-write='true'] i").each(function() {
+							$(this).click(function(){clickIcon($(this))});
+						})
+					}
 				})
-				$(".user_grant_table").addClass("display_table_hover");
 			})
 		}
 
 		//退出编辑界面
 		function exitEdit() {
-			$("#edit_grant").css("display", "inline-block");
-			$("#save_grant").css("display", "none");
-			$("#cancel_edit").css("display", "none");
+			$(".edit_grant").css("display", "inline-block");
+			$(".save_grant").css("display", "none");
+			$(".cancel_edit").css("display", "none");
 
 			$(".grant_table i").css("cursor", "default");
 			$(".grant_table i").unbind("click");
@@ -413,6 +441,14 @@
 			clickUser($(".user_div_container .user_div:last-child"));
 		}
 
+		//增加用户组
+		function addUsersGroup(temp_group) {
+			$(".users_div_container").append("<div class=\"users_div\"><i class=\"fa fa-users\" aria-hidden=\"true\"></i><div class=\"users_desc\"><p>"+temp_group.group_name+"</p><p>"+temp_group.group_id+"</p></div><div class=\"modal_menu\"><p class=\"startUsersGrant\">编辑权限</p><p class=\"startUsersMember\">编辑用户组成员</p></div></div>");
+
+			$(".users_div_container .users_div:last-child").get(0).group_id = temp_group.group_id;
+			hoverUsers($(".users_div_container .users_div:last-child"));
+		}
+
 		//获取用户及其权限
 		function getUserGrant() {
 			$.ajax({
@@ -423,7 +459,6 @@
 				},
 				success : function(res, status) {
 					var data = JSON.parse(res).user_list;
-					console.log(data);
 					for(var i = 0; i < data.length; i++) {
 						var temp_user = data[i];
 						user_grant_array.push(temp_user);
@@ -438,6 +473,38 @@
 			})
 		}
 
+		//获取用户组
+		function getUsersGrant() {
+			$.ajax({
+				type: 'POST',
+				url : "http://" + ip2 + "/invoice/getManagerGroups.action",
+				data : {
+					user_id : user_id
+				},
+				success : function(res, status) {
+					console.log(res);
+					var data = JSON.parse(res).group_list;
+					for(var i = 0; i < data.length; i++) {
+						var temp_group = data[i];
+						addUsersGroup(temp_group);
+						// console.log(data.length);
+					}
+					// edit_grant_array = user_grant_array;
+				},
+				error: function() {
+					console.log("error");
+				}
+			})
+		}
+
+
+		//根据permission_list来绘制user_modal表格
+		function flushUserGrantTable(permissions) {
+			for(var i = 0; i < permissions.length; i++) {
+
+			}
+		}
+
 		//点击成员头像
 		function clickUser(user_jq) {
 			user_jq.click(function() {
@@ -447,12 +514,88 @@
 			})
 		}
 
-		//点击用户组头像
-		function clickUsers(users_jq) {
-			users_jq.click(function() {
+		//悬浮用户组头像
+		function hoverUsers(users_jq) {
+			var users_id = 1;
+			clickStartUsersGrant(users_id);
+			clickStartUsersMember(users_id);
+			users_jq.mouseenter(function() {
+				$(this).children(".modal_menu").css("opacity", "1");
+
+				// $("#usersGrantModal").modal('show');
+				// $("#usersGrantModal").css("display", "table");
+				// ModalVerticalAlign($("#usersGrantModal").get(0));
+			})
+			users_jq.mouseleave(function() {
+				$(this).children(".modal_menu").css("opacity", "0");
+			})
+		}
+
+		//点击用户组编辑用户组权限按钮
+		function clickStartUsersGrant(users_id) {
+			$(".startUsersGrant").click(function() {
 				$("#usersGrantModal").modal('show');
 				$("#usersGrantModal").css("display", "table");
-				ModalVerticalAlign($("#usersGrantModal").get(0));
+				ModalVerticalAlign($("#usersGrantModal").get(0));	
+			})
+		}
+
+		//点击用户组编辑成员权限按钮
+		function clickStartUsersMember(users_id) {
+			$(".startUsersMember").click(function() {
+				$("#usersMemberModal").modal('show');
+				$("#usersMemberModal").css("display", "table");
+				ModalVerticalAlign($("#usersMemberModal").get(0));	
+			})
+		}
+
+		//初始化user_grant_modal模态框
+		function initUserGrantModal() {
+			$("#userGrantModal").on("show.bs.modal", function() {
+				$(".edit_grant").css("display", "inline-block");
+				$(".save_grant").css("display", "none");
+				$(".cancel_edit").css("display", "none");	
+
+				$(".user_grant_table .table_display_td[data-write='true'] i").css("cursor", "default");
+				$(".user_grant_table .table_display_td[data-write='true'] i").each(function() {
+					$(this).unbind("click");
+				})
+				$(".user_grant_table").removeClass("display_table_hover");
+
+				beginEdit(0);
+			})
+		}
+
+		//初始化users_grant_modal模态框
+		function initUsersGrantModal() {
+			$("#usersGrantModal").on("show.bs.modal", function() {
+				$(".edit_grant").css("display", "inline-block");
+				$(".save_grant").css("display", "none");
+				$(".cancel_edit").css("display", "none");	
+
+				$(".users_grant_table .table_display_td[data-write='true'] i").css("cursor", "default");
+				$(".users_grant_table .table_display_td[data-write='true'] i").each(function() {
+					$(this).unbind("click");
+				})
+				beginEdit(1);
+			})
+		}
+
+		//初始化users_member_modal模态框
+		function initUsersMemberModal() {
+			$("#start_edit").attr("disabled", false);
+			$("#addUserId").attr("disabled", true);
+			$("#addUserId").val("");
+			$("#addUserBtn").attr("disabled", true);
+
+			$(".users_member_div i").css("opacity", "0");
+			clickStartEdit();
+		}
+
+		//点击users_member模态框中的编辑按钮
+		function clickStartEdit() {
+			$("#start_edit").unbind('click').click(function() {
+				
 			})
 		}
 
@@ -462,11 +605,12 @@
         	// 判断权限
         	justifyUserGrant(user_json);
 
-        	getUserGrant();
-        	beginEdit();
-        	// clickCancel();
-        	// clickSave();
+        	initUserGrantModal();
+        	initUsersGrantModal();
+        	initUsersMemberModal();
 
+        	getUserGrant();
+        	getUsersGrant();
         })
 	</script>
 </body>

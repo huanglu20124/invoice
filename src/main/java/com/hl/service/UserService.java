@@ -3,6 +3,7 @@ package com.hl.service;
 import java.util.List;
 
 import com.hl.domain.Group;
+import com.hl.domain.Permission;
 import com.hl.domain.SimpleResponse;
 import com.hl.domain.UpdatePermission;
 import com.hl.domain.UpdateUser;
@@ -23,5 +24,7 @@ public interface UserService {
 	SimpleResponse addGroupUser(Integer user_id, Integer group_id);
 
 	SimpleResponse removeGroupUser(Integer user_id);
+
+	List<Permission> getUserPermission(Integer user_id);
 
 }
