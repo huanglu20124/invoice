@@ -8,8 +8,20 @@
         http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
         http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
         http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd ">
-	<!-- 注解驱动 -->
-	<mvc:annotation-driven />
+	    <!-- SpringMVC注解驱动，同时解决response乱码问题 -->
+    <mvc:annotation-driven>
+        <mvc:message-converters>
+            <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+                <property name="supportedMediaTypes">
+                    <list>
+                        <value>text/plain;charset=utf-8</value>
+                        <value>text/html;charset=UTF-8</value>
+                    </list>
+                </property>
+            </bean>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
+	
 	<!--扫描Controller -->
 	<context:component-scan base-package="com.hl.controller" />
 
@@ -65,12 +77,4 @@
 		/> <bean class="com.hl.intercepter.LoginInterceptor" /> </mvc:interceptor> 
 		</mvc:interceptors> -->
 		
-	<!-- 解决乱码问题 -->
-	<mvc:annotation-driven>
-		<mvc:message-converters register-defaults="true">
-			<bean class="org.springframework.http.converter.StringHttpMessageConverter">
-				<property name="supportedMediaTypes" value="text/plain;charset=UTF-8" />
-			</bean>
-		</mvc:message-converters>
-	</mvc:annotation-driven>
 </beans>
