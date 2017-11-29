@@ -11,7 +11,7 @@ import com.hl.domain.ModelQuery;
 public interface ModelService {
 	public void addOrUpdateInvoiceModel(Map<String, Object>ans_map, ModelAction modelAction,Integer thread_msg);
 	public void broadcastAddNewModel(InputStream inputStream, ModelAction modelAction);
-	public void deleteInvoiceModel(Map<String, Object> ans_map, Integer user_id, Integer model_id, Integer thread_msg);
+	public void deleteInvoiceModel(Map<String, Object> ans_map, Integer user_id, Integer model_id,String user_ip, Integer thread_msg);
 	public void broadcastUpdateModel(InputStream inputStream, ModelAction modelAction);
 	public void broadcastDeleteModel(InputStream inputStream, ModelAction modelAction);
 	public void getAllModel(Map<String, Object> ans_map, Integer user_id, Integer start);

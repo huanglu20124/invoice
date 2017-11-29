@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -112,11 +113,7 @@ public class ImageTest {
 	
 	@Test
 	public void test10() throws Exception {
-		Permission permission1 = new Permission();
-		permission1.setPermission_id(1);
-		Permission permission2 = new Permission();
-		permission2.setPermission_id(1);
-		System.out.println(permission1.equals(permission2));
+		System.out.println(UUID.randomUUID().toString());
 	}
 	
 }

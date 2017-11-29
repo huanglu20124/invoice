@@ -7,19 +7,21 @@ public class Action {
 	private String user_name;
 	private Integer company_id;
 	private String company_name;
-	private Integer msg_id;
-	private String action_start_time;
-	private String action_run_time;
-	private String action_end_time;
-	private Integer status;
-	//作为索引数据库的主键
-	private String action_uuid;
+	private String action_time;
+	private String user_ip;
+	private String description;
+	//作为索引数据库的主键(废弃)
+	//private String action_uuid;
 	
-	public String getAction_uuid() {
-		return action_uuid;
+	//用作判断操作类型，但是不存储在数据库中
+	private Integer msg_id;
+	
+	
+	public Integer getMsg_id() {
+		return msg_id;
 	}
-	public void setAction_uuid(String action_uuid) {
-		this.action_uuid = action_uuid;
+	public void setMsg_id(Integer msg_id) {
+		this.msg_id = msg_id;
 	}
 	public Integer getAction_id() {
 		return action_id;
@@ -51,36 +53,25 @@ public class Action {
 	public void setCompany_name(String company_name) {
 		this.company_name = company_name;
 	}
-	public Integer getMsg_id() {
-		return msg_id;
+	public String getAction_time() {
+		return action_time;
 	}
-	public void setMsg_id(Integer msg_id) {
-		this.msg_id = msg_id;
+	public void setAction_time(String action_time) {
+		this.action_time = action_time;
 	}
-	public String getAction_start_time() {
-		return action_start_time;
+	public String getUser_ip() {
+		return user_ip;
 	}
-	public void setAction_start_time(String action_start_time) {
-		this.action_start_time = action_start_time;
+	public void setUser_ip(String user_ip) {
+		this.user_ip = user_ip;
 	}
-	public String getAction_run_time() {
-		return action_run_time;
+	public String getDescription() {
+		return description;
 	}
-	public void setAction_run_time(String action_run_time) {
-		this.action_run_time = action_run_time;
+	public void setDescription(String description) {
+		this.description = description;
 	}
-	public String getAction_end_time() {
-		return action_end_time;
-	}
-	public void setAction_end_time(String action_end_time) {
-		this.action_end_time = action_end_time;
-	}
-	public Integer getStatus() {
-		return status;
-	}
-	public void setStatus(Integer status) {
-		this.status = status;
-	}
+
 	
 	
 }

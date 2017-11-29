@@ -10,6 +10,6 @@ public interface ActionService {
 
 	ActionQuery getTwentyActionByTime(Integer start,String startTime,String endTime);
 
-	ActionQuery getTwentyActionByKeyword(Integer page, String startTime, String endTime, String keywrods);
+	ActionQuery getTwentyActionByKeyword(Integer page, String startTime, String endTime, String keywrods,Integer type);
 
 }

@@ -13,7 +13,8 @@ public class Model {
 	private String model_url;
 	private String model_label;
 	private Integer image_size;
-	private Integer action_id;
+	private String model_uuid;//模板唯一id
+	
 	public String getModel_label() {
 		return model_label;
 	}
@@ -56,12 +57,13 @@ public class Model {
 	public void setImage_size(Integer image_size) {
 		this.image_size = image_size;
 	}
-	public Integer getAction_id() {
-		return action_id;
+	public String getModel_uuid() {
+		return model_uuid;
 	}
-	public void setAction_id(Integer action_id) {
-		this.action_id = action_id;
+	public void setModel_uuid(String model_uuid) {
+		this.model_uuid = model_uuid;
 	}
+
 
 	
 	

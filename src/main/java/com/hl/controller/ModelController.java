@@ -35,6 +35,7 @@ import com.hl.service.ModelService;
 import com.hl.util.Const;
 import com.hl.util.IOUtil;
 import com.hl.util.ImageUtil;
+import com.hl.util.IpUtil;
 import com.hl.websocket.SystemWebSocketHandler;
 
 @Controller
@@ -82,6 +83,7 @@ public class ModelController {
 			//修改模板
 			modelAction.setMsg_id(4);
 		}
+		modelAction.setUser_ip(IpUtil.getIpAddr(request));
 		modelService.addOrUpdateInvoiceModel(ans_map,modelAction,thread_msg);
 		 response.getWriter().write(JSON.toJSONString(ans_map));
 	}
@@ -96,7 +98,8 @@ public class ModelController {
 		Integer model_id = new Integer(request.getParameter(Const.MODEL_ID));
 		Integer thread_msg = (Integer) request.getServletContext().getAttribute(Const.THREAD_MSG);//获取上锁对象
 		System.out.println("model_id = " + model_id);
-		modelService.deleteInvoiceModel(ans_map,user_id,model_id,thread_msg);
+		String user_ip = IpUtil.getIpAddr(request);
+		modelService.deleteInvoiceModel(ans_map,user_id,model_id,user_ip,thread_msg);
 		PrintWriter writer = response.getWriter();
 		writer.write(JSON.toJSONString(ans_map));
 		writer.flush();

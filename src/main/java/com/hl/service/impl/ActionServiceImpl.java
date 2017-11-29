@@ -12,6 +12,7 @@ import com.hl.dao.ActionDao;
 import com.hl.domain.Action;
 import com.hl.domain.ActionQuery;
 import com.hl.service.ActionService;
+import com.sun.org.apache.bcel.internal.generic.I2F;
 
 @Service("actionService")
 public class ActionServiceImpl implements ActionService{
@@ -33,20 +34,27 @@ public class ActionServiceImpl implements ActionService{
 	}
 
 	@Override
-	public ActionQuery getTwentyActionByKeyword(Integer page, String startTime, String endTime, String keyword) {
-		//日期结合关键字查询
-		//先找到最大和最小的action_id范围
-		Map<String,Object>id_map = actionDao.getMaxAndMin(startTime,endTime);
-		Integer max_id = (Integer) id_map.get("max");
-		Integer min_id = (Integer) id_map.get("min");
-		
-		ActionQuery actionQuery = null;;
-		try {
-			actionQuery = actionDao.solrGetTwentyActionByKeyword(page,max_id,min_id,keyword);
-		} catch (SolrServerException e) {
-			e.printStackTrace();
-			return null;
+	public ActionQuery getTwentyActionByKeyword(Integer page, 
+			String startTime, String endTime, String keyword,Integer type) {
+		//如果page=0的话，同时返回总页数
+		ActionQuery actionQuery = null;
+		switch (type) {
+		case 0://根据user_ip进行查询
+			actionQuery = actionDao.getTwentyActionByKeywordIp(startTime,endTime,keyword,page);
+			break;
+		case 1://根据user_name查询
+			actionQuery = actionDao.getTwentyActionByKeywordUserName(startTime,endTime,keyword,page);
+			break;
+		case 2://根据company_name
+			actionQuery = actionDao.getTwentyActionByKeywordCompanyName(startTime,endTime,keyword,page);
+			break;
+		case 3://根据操作类型
+			actionQuery = actionDao.getTwentyActionByKeywordDescription(startTime,endTime,keyword,page);
+			break;
+		default:
+			break;
 		}
+		
 		return actionQuery;
 	}
 

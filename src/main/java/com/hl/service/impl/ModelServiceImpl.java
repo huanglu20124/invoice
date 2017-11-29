@@ -75,19 +75,22 @@ public class ModelServiceImpl implements ModelService{
 		// 添加新的发票模型
 		// 1生成一条行为，插入action表，并获取返回的action_id
 		Integer action_id = null;
-		String action_uuid = UUID.randomUUID().toString();
-		modelAction.setAction_uuid(action_uuid);
+		if(modelAction.getModel_id() == null){
+			modelAction.setDescription("增加模板[]");
+		}else {
+			modelAction.setDescription("修改模板["+modelAction.getModel_id()+"]");
+		}
 		action_id = actionDao.addAction(modelAction);
 		//补全modelAction的一些参数
 		modelAction.setAction_id(action_id);
-		modelAction.setAction_start_time(TimeUtil.getCurrentTime());
+		modelAction.setAction_time(TimeUtil.getCurrentTime());
 		modelAction.setUser_name(user.getUser_name());
 		modelAction.setCompany_name(user.getCompany_name());
 		redisDao.leftPush(Const.MANAGE_WAIT, action_id.toString());// 加入到操作队列
 		// key为action_id,value为modelAction
 		redisDao.addKey(action_id.toString(), JSON.toJSONString(modelAction));
 		//添加到索引库
-		actionDao.solrAddUpdateAction(modelAction);
+		//actionDao.solrAddUpdateAction(modelAction);
 		// 3.获取两个队列长度
 		Long recognize_size = redisDao.getWaitSize(); // 识别队列
 		Long manage_size = redisDao.getManageSize();// 操作队列
@@ -101,26 +104,26 @@ public class ModelServiceImpl implements ModelService{
 
 		}
 		ans_map.put(Const.SUCCESS, "已加入队列，等待算法服务器处理");
-		System.out.println("修改发票模板的请求已加入队列，等待算法服务器处理");
+		System.out.println("增加或修改发票模板的请求已加入队列，等待算法服务器处理");
 		ans_map.put("recognize_size", recognize_size);
 		ans_map.put("manage_size", manage_size);
 	}
 
 	// ajax处理web请求
 	@Override
-	public void deleteInvoiceModel(Map<String, Object> ans_map, Integer user_id, Integer model_id, Integer thread_msg) {
+	public void deleteInvoiceModel(Map<String, Object> ans_map, Integer user_id, Integer model_id, String user_ip,Integer thread_msg) {
 		// 首先进行权限判断
 		User user = userDao.getUserById(user_id);
 		// 删除发票模板
 		// 1生成一条行为，插入action表，并获取返回的action_id
 		ModelAction action = new ModelAction();
+		action.setMsg_id(3);
 		action.setUser_id(user.getUser_id());
-		action.setAction_start_time(TimeUtil.getCurrentTime());
+		action.setAction_time(TimeUtil.getCurrentTime());
 		action.setUser_name(user.getUser_name());
 		action.setCompany_id(user.getCompany_id());
 		action.setCompany_name(user.getCompany_name());
-		action.setMsg_id(3);
-		action.setAction_uuid(UUID.randomUUID().toString());
+		action.setDescription("删除模板["+model_id+"]");
 		action.setModel_id(model_id);
 		Integer action_id = actionDao.addAction(action);
 		redisDao.leftPush(Const.MANAGE_WAIT, action_id.toString());// 加入到操作队列
@@ -148,10 +151,9 @@ public class ModelServiceImpl implements ModelService{
 	public void broadcastAddNewModel(InputStream inputStream, ModelAction modelAction) {
 		Integer action_id = modelAction.getAction_id();
 		// 首先，更新action开始跑算法的时间
-		actionDao.runAction(action_id);
-		modelAction.setAction_run_time(TimeUtil.getCurrentTime());
+		modelAction.setAction_time(TimeUtil.getCurrentTime());
 		//更新到索引库
-		actionDao.solrAddUpdateAction(modelAction);
+		//actionDao.solrAddUpdateAction(modelAction);
 		
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
 		String url = ImageUtil.suffixToJpg(localConfig.getIp() + modelAction.getUrl_suffix());// 变为网络url
@@ -177,14 +179,11 @@ public class ModelServiceImpl implements ModelService{
 				//更新部分信息
 				modelAction.setModel_id(model_id);
 				modelAction.setImage_size(image_size);
-				modelAction.setAction_end_time(TimeUtil.getCurrentTime());
-				modelAction.setStatus(status);
+				modelAction.setDescription("增加模板["+modelAction.getModel_id()+"]");
 				modelDao.addModel(modelAction);
 				//更新到索引库
-				actionDao.solrAddUpdateAction(modelAction);
+				//actionDao.solrAddUpdateAction(modelAction);
 			}
-			// 3.更新数据库的model表,model_id，跑完的时间
-			actionDao.finishAction(action_id, status);;
 			// 4. 弹出队列头，删除key
 			redisDao.pop(Const.MANAGE_WAIT);
 			System.out.println(action_id + "弹出操作队列");
@@ -206,13 +205,7 @@ public class ModelServiceImpl implements ModelService{
 	// websocket返回处理结果 msg_id = 4
 	@Override
 	public void broadcastUpdateModel(InputStream inputStream, ModelAction modelAction) {
-		Integer action_id = modelAction.getAction_id();
-		// 首先，更新action开始跑算法的时间
-		actionDao.runAction(action_id);
-		//更新索引库
-		modelAction.setAction_run_time(TimeUtil.getCurrentTime());
-		actionDao.solrAddUpdateAction(modelAction);
-		
+		Integer action_id = modelAction.getAction_id();		
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
 		String url = ImageUtil.suffixToJpg(localConfig.getIp() + modelAction.getUrl_suffix());// 将后缀变为网络url
 		// 处理增加模板的结果
@@ -232,13 +225,10 @@ public class ModelServiceImpl implements ModelService{
 				// 2.model表更新该model
 				modelDao.updateModel(modelAction);
 			}
-			//更新索引库
-			modelAction.setAction_end_time(TimeUtil.getCurrentTime());
-			modelAction.setStatus(status);
-			actionDao.solrAddUpdateAction(modelAction);
-			
-			// 3.更新数据库的action表,model_id，跑完的时间
-			actionDao.finishAction(action_id, status);;
+			//更新数据库及索引库
+			modelAction.setDescription("修改模板["+modelAction.getModel_id()+"]");
+			actionDao.updateActionDescription(modelAction.getAction_id(), modelAction.getDescription());
+			//actionDao.solrAddUpdateAction(modelAction);
 			// 4. 弹出队列头，删除key
 			redisDao.pop(Const.MANAGE_WAIT);
 			System.out.println(action_id + "弹出操作队列");
@@ -270,10 +260,7 @@ public class ModelServiceImpl implements ModelService{
 		// 首先，更新action开始跑算法的时间
 		Integer action_id = modelAction.getAction_id();
 		Integer model_id = modelAction.getModel_id();
-		actionDao.runAction(action_id);
-		//添加到索引库
-		modelAction.setAction_run_time(TimeUtil.getCurrentTime());
-		actionDao.solrAddUpdateAction(modelAction);
+		//actionDao.solrAddUpdateAction(modelAction);
 		
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
 		// 处理增加模板的结果
@@ -303,14 +290,6 @@ public class ModelServiceImpl implements ModelService{
 					modelDao.minusModelId(id);
 				}
 			}
-			
-			//添加到索引库
-			modelAction.setAction_end_time(TimeUtil.getCurrentTime());
-			modelAction.setStatus(status);
-			actionDao.solrAddUpdateAction(modelAction);
-			
-			// 3.更新数据库的action表,model_id，跑完的时间
-			actionDao.finishAction(action_id, status);
 			// 4. 弹出队列头，删除key
 			redisDao.pop(Const.MANAGE_WAIT);
 			System.out.println(action_id + "弹出操作队列");
@@ -330,7 +309,6 @@ public class ModelServiceImpl implements ModelService{
 	@Override
 	public void broadcastClearModel(InputStream inputStream, Integer action_id) {
 		// 一键清空所有模板
-		actionDao.runAction(action_id);
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
 		// 处理增加模板的结果
 		try {
@@ -353,8 +331,6 @@ public class ModelServiceImpl implements ModelService{
 				// 删除全部model
 				modelDao.clearAllModel();
 			}
-			// 3.更新数据库的action表,model_id，跑完的时间
-			actionDao.finishAction(action_id, status);
 			// 4. 弹出队列头，删除key
 			redisDao.pop(Const.MANAGE_WAIT);
 			System.out.println(action_id + "弹出操作队列");
@@ -395,7 +371,7 @@ public class ModelServiceImpl implements ModelService{
 		// 1生成一条行为，插入action表，并获取返回的action_id
 		Action action = new Action();
 		action.setUser_id(user.getUser_id());
-		action.setAction_start_time(TimeUtil.getCurrentTime());
+		action.setAction_time(TimeUtil.getCurrentTime());
 		action.setUser_name(user.getUser_name());
 		action.setCompany_id(user.getCompany_id());
 		action.setCompany_name(user.getCompany_name());

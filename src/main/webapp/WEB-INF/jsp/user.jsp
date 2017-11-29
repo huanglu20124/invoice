@@ -583,13 +583,15 @@
 
 		//初始化users_member_modal模态框
 		function initUsersMemberModal() {
-			$("#start_edit").attr("disabled", false);
-			$("#addUserId").attr("disabled", true);
-			$("#addUserId").val("");
-			$("#addUserBtn").attr("disabled", true);
+			$("#usersMemberModal").on("show.bs.modal", function() {
+				$("#start_edit").attr("disabled", false);
+				$("#addUserId").attr("disabled", true);
+				$("#addUserId").val("");
+				$("#addUserBtn").attr("disabled", true);
 
-			$(".users_member_div i").css("opacity", "0");
-			clickStartEdit();
+				$(".users_member_div i").css("opacity", "0");
+				clickStartEdit();
+			})
 		}
 
 		//点击users_member模态框中的编辑按钮

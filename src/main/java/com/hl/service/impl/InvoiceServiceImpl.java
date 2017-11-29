@@ -87,13 +87,11 @@ public class InvoiceServiceImpl implements InvoiceService {
 		//websocket用的map
 		Map<String, Object> broadcast_map = new HashMap<>();
 		//将该action加入到数据库中
-		recognizeAction.setMsg_id(1);
-		String action_uuid = UUID.randomUUID().toString();
-		recognizeAction.setAction_uuid(action_uuid);
+		recognizeAction.setDescription("识别发票[]");
 		Integer action_id = actionDao.addAction(recognizeAction);
 		recognizeAction.setAction_id(action_id);
 		//然后加到索引库里
-		actionDao.solrAddUpdateAction(recognizeAction);
+		//actionDao.solrAddUpdateAction(recognizeAction);
 		//如果发过来的是一整套测试集，若是第一次发
 		if(testCase != null && testCase.getPage() == 0){
 			CheckUtil.initGlobal(redisDao, testCase);
@@ -108,7 +106,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 			invoice.setUuid(uuid);
 			//前端需要的一些信息，后期补充
 			invoice.setAction_id(action_id);
-			invoice.setAction_start_time(TimeUtil.getCurrentTime());
+			invoice.setAction_time(TimeUtil.getCurrentTime());
 			invoice.setUser_id(user.getUser_id());
 			invoice.setUser_name(user.getUser_name());
 			invoice.setCompany_id(user.getCompany_id());
@@ -165,11 +163,6 @@ public class InvoiceServiceImpl implements InvoiceService {
 		Invoice invoice = JSON.parseObject(invoice_str, Invoice.class);
 		Integer action_id = invoice.getAction_id();
 		Action action = actionDao.getActionById(action_id);
-		// 如果是属于一次action里的第一张，更新action相关信息
-		if(invoice.getOrder() == 1){
-			actionDao.runAction(action_id);
-			actionDao.solrAddUpdateAction(action);
-		}
 		//补充，将当前要跑的发票的url等信息发给前端
 		broadcastNextRecognize(invoice);
 		// 将后缀转换为本地硬盘路径
@@ -189,6 +182,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 		Socket customerSocket = socketLoadTool.getCustomerSocket();
 		//是否是报错发票
 		Boolean isWrong = false;
+		//用来记录发票识别的id，写入日志中
+		List<Integer>invoice_id_list = new ArrayList<>();
 		while (true) {
 			// 处理一次消息数据
 			try {
@@ -244,6 +239,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 								invoice.setIs_fault(0);
 							}
 							invoice_id = invoiceDao.addRecognizeInvoice(invoice_data,invoice);
+							//记录下来id
+							invoice_id_list.add(invoice_id);
 							System.out.println("成功将该发票信息写入数据库,invoice_id=" + invoice_id);
 							//如果是测试集的话，准备统计识别结果、识别率
 							String testCase_str = (String) redisDao.getValue("testCase");
@@ -256,8 +253,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 						}
 						// 如果是最后一张的话，更新action表的一些信息
 						if(invoice.getOrder() == invoice.getRecognize_num()){
-							actionDao.finishAction(action_id,1);//1代表成功
-							actionDao.solrAddUpdateAction(action);;
+							action.setDescription("识别发票" + invoice_id_list.toString());
+							actionDao.updateActionDescription(action.getAction_id(),action.getDescription());
+							//actionDao.solrAddUpdateAction(action);
 							System.out.println("成功更新该action,action_id=" + action_id);
 							if(testCase != null){
 								if(testCase.getPage()*10 + invoice.getOrder() == testCase.getPic_num()){
@@ -266,7 +264,6 @@ public class InvoiceServiceImpl implements InvoiceService {
 									CheckUtil.finishCheck(redisDao,testCase);
 								}
 							}
-
 						}
 						// 该模板的成功识别次数加一
 						modelDao.plusModelSuccess(model_id);
@@ -371,7 +368,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 			console.setUser_name(invoice.getUser_name());
 			console.setCompany_id(invoice.getCompany_id());
 			console.setCompany_name(invoice.getCompany_name());
-			console.setAction_start_time(invoice.getAction_start_time());
+			console.setAction_time(invoice.getAction_time());
 			console.setImg_str("data:image/jpg;base64," + img_str);
 			console.setMsg_id(202);
 			//获取发票识别延时
@@ -399,7 +396,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 		start_map.put(Const.IMG_STR, "data:image/jpg;base64," + img_str);
 		start_map.put(Const.MSG_ID, 203);
 		start_map.put(Const.USER_NAME, invoice.getUser_name());
-		start_map.put(Const.ACTION_START_TIME, invoice.getAction_start_time());
+		start_map.put(Const.ACTION_START_TIME, invoice.getAction_time());
 		start_map.put(Const.COMPANY_NAME, invoice.getCompany_name());
 		systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(start_map)),new int[]{2});
 	}

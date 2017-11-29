@@ -7,6 +7,7 @@ public class Invoice {
 	private Integer model_id;
 	private String check_time;
 
+	//识别出来的数据信息
 	private String invoice_type;
 	private String invoice_money;
 	private String invoice_customer;
@@ -35,7 +36,7 @@ public class Invoice {
 	private Integer is_fault;
 	
 	// 前端需要的一些信息，后期补充
-	private String action_start_time;// 发送时间
+	private String action_time;// 发送时间
 	private Integer user_id;
 	private Integer company_id;
 	private String user_name;
@@ -239,14 +240,6 @@ public class Invoice {
 		this.recognize_time = recognize_time;
 	}
 
-	public String getAction_start_time() {
-		return action_start_time;
-	}
-
-	public void setAction_start_time(String action_start_time) {
-		this.action_start_time = action_start_time;
-	}
-
 	public String getUser_name() {
 		return user_name;
 	}
@@ -293,6 +286,14 @@ public class Invoice {
 
 	public void setImg_str(String img_str) {
 		this.img_str = img_str;
+	}
+
+	public String getAction_time() {
+		return action_time;
+	}
+
+	public void setAction_time(String action_time) {
+		this.action_time = action_time;
 	}
 
 }
