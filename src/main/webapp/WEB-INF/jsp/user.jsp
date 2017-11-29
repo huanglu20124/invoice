@@ -595,7 +595,10 @@
 		//点击users_member模态框中的编辑按钮
 		function clickStartEdit() {
 			$("#start_edit").unbind('click').click(function() {
-				
+				$(".users_member_div i").css("opacity", "1");
+				$("#start_edit").attr("disabled", true);
+				$("#addUserId").attr("disabled", false);
+				$("#addUserBtn").attr("disabled", false);
 			})
 		}
 

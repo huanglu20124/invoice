@@ -8,6 +8,7 @@
 		热点 "192.168.137.221:8080"
 		172.18.92.142
 	-->
+    <!-- <connect_ip>172.18.92.209:8080</connect_ip> -->
     <connect_ip>localhost:8080</connect_ip>
 	<root_host>invoice</root_host>
 	<invoice_width>1160</invoice_width>
