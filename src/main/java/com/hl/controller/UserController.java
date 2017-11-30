@@ -188,7 +188,7 @@ public class UserController {
 	@RequestMapping(value = "/getGroupUsers.action", method = RequestMethod.POST)
 	@ResponseBody
 	public String getGroupUsers(Integer group_id,Integer comapny_id, HttpServletResponse response)throws IOException{
-		System.out.println("获取当前一个用户组的所有用户的请求");
+		System.out.println("获取当前一个用户组的所有用户的请求aaaa");
 		System.out.println("group_id="+group_id + "  company_id=" + comapny_id);
 		List<User>list = userService.getGroupUser(group_id,comapny_id);
 		if(list == null) list = new ArrayList<>();
