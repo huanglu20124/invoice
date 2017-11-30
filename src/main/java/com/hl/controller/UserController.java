@@ -194,6 +194,7 @@ public class UserController {
 		if(list == null) list = new ArrayList<>();
 		Map<String, Object>map = new HashMap<>();
 		map.put("user_list", list);
+		System.out.println("加一行测试");
 		return JSON.toJSONString(map);
 	}	
 
