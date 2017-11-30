@@ -171,6 +171,7 @@ public class UserServiceImpl implements UserService{
 	@Override
 	public List<User> getGroupUser(Integer group_id, Integer company_id) {
 		List<User> user_list = userDao.getGroupUser(group_id, company_id);
+		System.out.println("user_list.size()=" + user_list.size());
 		for(User user : user_list){
 			user.setPermissions(getUserPermission(user.getUser_id()));
 		}

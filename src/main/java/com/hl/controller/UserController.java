@@ -175,11 +175,12 @@ public class UserController {
 	//获取当前用户的最新权限
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/getUserPermission.action", method = RequestMethod.POST)
-	public void getUserPermission(Integer user_id,HttpServletResponse response)throws IOException{
+	@ResponseBody
+	public String getUserPermission(Integer user_id,HttpServletResponse response)throws IOException{
 		List<Permission>permissions = userService.getUserPermission(user_id);
 		Map<String, Object>map = new HashMap<>();
 		map.put("permission_list", permissions);
-		response.getWriter().write(JSON.toJSONString(map));
+		return JSON.toJSONString(map);
 	}
 	
 	//获取当前一个用户组的所有用户
@@ -187,6 +188,8 @@ public class UserController {
 	@RequestMapping(value = "/getGroupUsers.action", method = RequestMethod.POST)
 	@ResponseBody
 	public String getGroupUsers(Integer group_id,Integer comapny_id, HttpServletResponse response)throws IOException{
+		System.out.println("获取当前一个用户组的所有用户的请求");
+		System.out.println("group_id="+group_id + "  company_id=" + comapny_id);
 		List<User>list = userService.getGroupUser(group_id,comapny_id);
 		if(list == null) list = new ArrayList<>();
 		Map<String, Object>map = new HashMap<>();
