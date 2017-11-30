@@ -573,6 +573,7 @@ function getSelectedPage() {
 function justifyUserGrant(user_json) {
     $(".own_user_name").text(user_json.user_name);
     var permission_array = user_json.permissions;
+    user_id = user_json.user_id;
     //判断导航栏链接的权限
     $(".aside_nav_list-item").each(function() {
         if($(this).hasClass("nav_disabled")) {
