@@ -24,7 +24,6 @@ import com.hl.domain.ActionQuery;
 import com.hl.domain.SimpleResponse;
 import com.hl.service.ActionService;
 import com.hl.util.Const;
-import com.mysql.fabric.xmlrpc.base.Array;
 
 @Controller
 public class ActionController {

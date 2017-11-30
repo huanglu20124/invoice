@@ -14,8 +14,6 @@ import com.hl.dao.UserDao;
 import com.hl.domain.Group;
 import com.hl.domain.Permission;
 import com.hl.domain.SimpleResponse;
-import com.hl.domain.UpdatePermission;
-import com.hl.domain.UpdateUser;
 import com.hl.domain.User;
 import com.hl.service.UserService;
 
@@ -53,24 +51,21 @@ public class UserServiceImpl implements UserService{
 	}
 	
 	@Override
-	public SimpleResponse updateUsersPermission(List<UpdateUser>users) {
+	public SimpleResponse updateUsersPermission(Integer user_id,List<Permission>permission_list) {
 		SimpleResponse response = new SimpleResponse();
 		//修改用户权限
-		for(UpdateUser user : users){
-			//遍历
-			for(UpdatePermission permission : user.getUpdate_permissions()){
-				if(userDao.getIsUserPermission(user.getUser_id(),permission.getPermission_id()) == true){
+		for(Permission permission : permission_list){
+				if(userDao.getIsUserPermission(user_id,permission.getPermission_name()) == true){
 					//有这个权限了
 					if(permission.getIs_checked() == 0){
 						//没打钩就删除
-						userDao.deleteUserPermission(user.getUser_id(),permission.getPermission_id());
+						userDao.deleteUserPermission(user_id,permission.getPermission_name());
 					}
 				}else {
 					if(permission.getIs_checked() == 1){
-						userDao.addUserPermission(user.getUser_id(),permission.getPermission_id());
+						userDao.addUserPermission(user_id,permission.getPermission_name());
 					}
 				}
-			}
 		}
 		response.setSuccess("修改成功");
 		return response;
@@ -112,15 +107,20 @@ public class UserServiceImpl implements UserService{
 
 
 	@Override
-	public SimpleResponse updateGroupPermission(List<UpdatePermission> list, Integer group_id) {
-		for(UpdatePermission permission : list){
-			if(userDao.getIsGroupPermission(permission.getPermission_id(),group_id) == true){
+	public SimpleResponse updateGroupPermission(List<Permission> list, Integer group_id) {
+		System.out.println("group_id" + group_id);
+		for(Permission permission : list){
+			System.out.println(permission.getPermission_name());
+			System.out.println("isChecked" + permission.getIs_checked());
+			if(userDao.getIsGroupPermission(permission.getPermission_name(),group_id) == true){
 				if(permission.getIs_checked() == 0){
-					userDao.deleteGroupPermission(group_id, permission.getPermission_id());
+					System.out.println("删除权限");
+					userDao.deleteGroupPermission(group_id, permission.getPermission_name());
 				}
 			}else {
 				if(permission.getIs_checked() == 1){
-					userDao.addGroupPermission(group_id, permission.getPermission_id());
+					System.out.println("增加权限");
+					userDao.addGroupPermission(group_id, permission.getPermission_name());
 				}
 			}
 		}

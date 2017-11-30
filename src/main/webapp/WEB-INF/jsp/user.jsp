@@ -163,7 +163,7 @@
 	    <div style="display: table-cell; vertical-align: middle;">
 	        <div class="modal-content">
 	            <div class="modal-header">
-	                <button type="button" class="close" data-dismiss="modal" aria-hidden="true" id="close_modal">&times;</button>
+	                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
 	                <h4 class="modal-title" style="display: inline-block; vertical-align: middle; width: auto; margin-right: 10px;">用户组权限管理</h4>
 	            </div>
 	            <div class="modal-body" style="padding: 0px;">
@@ -204,7 +204,7 @@
 								<div class="table_display_td" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 								<div class="table_display_td" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
-							<div class="table_display_row">
+							<div class="table_display_row" grant_type="unit">
 								<div class="table_display_td">单位管理</div>
 								<div class="table_display_td" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 								<div class="table_display_td" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
@@ -214,7 +214,7 @@
 	            </div>
 	            <div class="modal-footer">
 	            	<button type="button" class="btn btn-primary flex-none edit_grant" style="padding: 5px 15px;" data-write="true">编辑</button>
-					<button type="button" class="btn btn-primary flex-none save_grant" style="padding: 5px 15px; margin-right: 10px; display: none;" data-dismiss="modal">保存</button>
+					<button type="button" class="btn btn-primary flex-none save_grant" style="padding: 5px 15px; margin-right: 10px; display: none;" data-dismiss="modal" id="users_grant_save">保存</button>
 					<button type="button" class="btn btn-default flex-none cancel_edit" style="padding: 5px 15px; display: none;" data-dismiss="modal">取消</button>
 	            </div>
 	        </div><!-- /.modal-content -->
@@ -235,7 +235,7 @@
 						<input type="text" class="form-control" name="addUserId" placeholder="请输入要添加至本用户组的用户id" style="margin-top: 40px;" disabled="true" id="addUserId"/>
 						<button type="button" class="btn btn-primary" style="width: 100%; margin-top: 20px;" disabled="true" id="addUserBtn">添加用户</button>
 					</div>
-	            	<div style="margin-right: 300px;">
+	            	<div style="margin-right: 300px;" class="users_member_container">
 						<div class="user_div users_member_div">
 							 <img src="pic/头像.png" style="width: 40px; margin-right: 10px;">
 							 <div class="user_desc">
@@ -275,6 +275,28 @@
 	    </div><!-- /.modal -->
 	</div>
 
+	<div class="modal fade" id="progressModal" tabindex="-1" aria-hidden="true" style="margin: 0px auto; margin-top: 200px; width: 33%;">
+		<div>
+	        <div class="modal-content">
+	        	<div class="modal-header">
+	        		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+	        		<h4 class="modal-title">正在修改权限...</h4>
+	        	</div>
+	        	<div class="modal-body">
+	        		<div class="progress progress-striped active">
+					    <div class="progress-bar" role="progressbar" aria-valuenow="60" 
+					        aria-valuemin="0" aria-valuemax="100" style="width: 40%;">
+					        <span class="sr-only">40% 完成</span>
+					    </div>
+					</div>
+	        	</div>
+	        	<div class="modal-footer">
+	                <button type="button" class="btn btn-default" data-dismiss="modal" disabled id="certain_progress">确定</button>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+
 	<script type="text/javascript" src="script/common.js"></script>
 	<script type="text/javascript">
 
@@ -283,10 +305,8 @@
     
 		var user_grant_array = []; //记录当前的原本用户对象及其权限的数组
 		var edit_grant_array = []; //记录正在修改的用户对象及其权限的数组
-		var send_grant_array = []; //将要发送给服务器的被修改的用户对象及其权限的数组
 
-		var users_grant_array = []; //记录当前的原本用户对象及其权限的数组
-		var users_edit_array = []; //记录正在修改的用户对象及其权限的数组
+		var click_users_jq; //记录当前被点击的用户组对象
 		var users_send_array = []; //将要发送给服务器的被修改的用户对象及其权限的数组
 
 		//绑定编辑按钮，点击后开始编辑
@@ -305,9 +325,9 @@
 						$(".user_grant_table").addClass("display_table_hover");
 					}
 					else if(type == 1) { //代表users_grant
-						$(".users_grant_table .table_display_td[data-write='true'] i").css("cursor", "pointer");
-						$(".users_grant_table .table_display_td[data-write='true'] i").each(function() {
-							$(this).click(function(){clickIcon($(this))});
+						$(".users_grant_table .table_display_td i").css("cursor", "pointer");
+						$(".users_grant_table .table_display_td i").each(function() {
+							$(this).unbind("click").click(function(){clickUsersGrantIcon($(this))});
 						})
 					}
 				})
@@ -342,97 +362,78 @@
 			})
 		}
 
-		//点击保存按钮
-		function clickSave() {
-			$("#save_grant").click(function() {
+		//点击users_grant_modal保存按钮
+		function clickUsersGrantSave() {
+			$("#users_grant_save").click(function() {
 				//发送ajax请求告诉服务器哪些用户的哪些权限被修改
-				console.log(send_grant_array);
+				console.log(users_send_array + " " + click_users_jq.get(0).users_object.group_id);
+				$("#progressModal").modal("show");
 				$.ajax({
 					type: 'POST',
-					url : 'http://' + ip2 + '/invoice/updateUsersPermission.action',
+					url : 'http://' + ip2 + '/invoice/updateGroupPermission.action',
 					data : {
-						user_list : JSON.stringify(send_grant_array)
+						permission_list : JSON.stringify(users_send_array),
+						group_id : click_users_jq.get(0).users_object.group_id
 					},
-					success : function() {
-						user_grant_array = edit_grant_array;
-						send_grant_array.splice(0, send_grant_array.length);
-						exitEdit();
-						$(".success_info").css("display", "inline-block");
-						setTimeout(function() {
-							$(".success_info").css("display", "none");
-						}, 2500)
+					success : function(res, status) {
+						$("#progressModal h4").text("权限修改成功");
+						$("#progressModal .progress-bar").get(0).style.width = "100%";
+						setTimeout(function(){
+							$("#progressModal").modal('hide');
+						}, 1000);
+
+						//更新每个元素自身保存的permissions
+						for(var i = 0; i < users_send_array.length; i++) {
+							var exit_permission = false;
+							for(var j = 0; j < click_users_jq.get(0).users_object.permissions.length; j++) {
+								if(click_users_jq.get(0).users_object.permissions[j].permission_name == users_send_array[i].permission_name) {
+									if(users_send_array[i].is_checked == 0)
+										click_users_jq.get(0).users_object.permissions.splice(j, 1);
+									exit_permission = true;
+									break;
+								}
+							}	
+							if(exit_permission == false) {
+								click_users_jq.get(0).users_object.permissions.push(users_send_array[i]);	
+							}
+						}
+
+						users_send_array.splice(0, users_send_array.length);
 					},
 					error : function(err) {
-						exitEdit();
-						//还原全部数组
-						edit_grant_array = user_grant_array;
-						send_grant_array.splice(0, send_grant_array.length);
-
-						//还原视图
-						$(".grant_table").html("")
-						$(".grant_table").append("<div class=\"table_display_row\"><div class=\"table_display_th\">成员</div><div class=\"table_display_th\">修改模板</div><div class=\"table_display_th\">增加模板</div><div class=\"table_display_th\">查询模板</div><div class=\"table_display_th\">删除模板</div><div class=\"table_display_th\">监控识别</div><div class=\"table_display_th\">日志查询</div><div class=\"table_display_th\">缓冲队列查询</div><div class=\"table_display_th\">错误发票查询</div><div class=\"table_display_th\">增加用户</div><div class=\"table_display_th\">编辑用户</div><div class=\"table_display_th\">查询用户</div><div class=\"table_display_th\">删除用户</div></div>");
-						for(var i = 0; i < user_grant_array.length; i++) {
-							addUserGrant(user_grant_array[i]);
-						}
-						$(".fail_info").css("display", "inline-block");
-						setTimeout(function() {
-							$(".fail_info").css("display", "none");
-						}, 2500)
+						users_send_array.splice(0, users_send_array.length);
+						$("#progressModal h4").text("权限修改失败");
+						$("#progressModal .progress-bar").addClass("progress-bar-danger");
+						$("#progressModal .btn").get(0).disabled = false;
 					}
 				})
-
+				
 			})
 		}
 
 		//点击勾选图标
-		function clickIcon(click_jq) {
+		function clickUsersGrantIcon(click_jq) {
 			toggleChecked(click_jq);
-
-			//修改edit_grant_array
-			for(var i = 0; i < edit_grant_array.length; i++) {
-				if(edit_grant_array[i].user_id == click_jq.parent().parent().prop("user_id")) {
-					if(click_jq.hasClass("fa-check-square-o")) {
-						edit_grant_array[i].permissions.push({
-							permission_id: click_jq.parent().prop("grant_type")
-						});	
-					}
-					else {
-						for(var j = 0; j < edit_grant_array[i].permissions.length; j++) {
-							if(edit_grant_array[i].permissions[j].permission_id == click_jq.parent().prop("grant_type")) {
-								edit_grant_array[i].permissions.splice(j, 1);
-							}
-						}
-					}
-					break;
-				}
-			}
-
-			//记录修改的地方并放入send_grant_array
+			//修改users_send_array
 			var hasUserId = false;
-			for(var i = 0; i < send_grant_array.length; i++) {
-				if(send_grant_array[i].user_id == click_jq.parent().parent().prop("user_id")) {
+			for(var i = 0; i < users_send_array.length; i++) {
+				if(users_send_array[i].permission_name == (click_jq.parent().parent().attr("grant_type") + "-" + click_jq.parent().attr("rw_type"))) {
+
+					users_send_array[i].is_checked = click_jq.hasClass("fa-check-square-o") ? 1 : 0;
 					hasUserId = true;
-					for(var j = 0; j < send_grant_array[i].update_permission.length; j++) {
-						if(send_grant_array[i].update_permissions[j].permission_id == click_jq.parent().prop("grant_type")){
-							send_grant_array[i].update_permissions[j].is_checked = send_grant_array[i].update_permissions[j].is_checked == 1 ? 0 : 1;
-						}
-					}
 					break;
 				}
 			}
 
 			if(hasUserId == false) {
 				//alert(click_jq.parent().prop("grant_type"));
-				send_grant_array.push({
-					user_id : click_jq.parent().parent().prop("user_id"),
-					group_id : click_jq.parent().parent().prop("group_id"),
-					update_permissions : [{
-						permission_id : click_jq.parent().prop("grant_type"),
-						is_checked : click_jq.hasClass("fa-check-square-o") == true ? 1 : 0
-					}]
+				users_send_array.push({
+					is_checked: click_jq.hasClass("fa-check-square-o") ? 1 : 0,
+					permission_name: click_jq.parent().parent().attr("grant_type")+"-"+click_jq.parent().attr("rw_type")
 				})	
 			}
 
+			console.log(users_send_array);
 		}
 
 		//将array中的用户对象放入视图
@@ -450,6 +451,17 @@
 			$(".users_div_container").append("<div class=\"users_div\"><i class=\"fa fa-users\" aria-hidden=\"true\"></i><div class=\"users_desc\"><p>"+temp_group.group_name+"</p><p>"+temp_group.group_id+"</p></div><div class=\"modal_menu\"><p class=\"startUsersGrant\">编辑权限</p><p class=\"startUsersMember\">编辑用户组成员</p></div></div>");
 
 			$(".users_div_container .users_div:last-child").get(0).users_object = temp_group;
+			$(".users_div_container .users_div:last-child .startUsersGrant").click(function() {
+				(function(btn_jq){
+					clickStartUsersGrant(btn_jq);
+				})($(this));
+			})
+			$(".users_div_container .users_div:last-child .startUsersMember").click(function() {
+				(function(btn_jq){
+					clickStartUsersMember(btn_jq);
+				})($(this));
+			})
+
 			hoverUsers($(".users_div_container .users_div:last-child"));
 		}
 
@@ -486,12 +498,11 @@
 					user_id : user_id
 				},
 				success : function(res, status) {
-					console.log(res);
 					var data = JSON.parse(res).group_list;
 					for(var i = 0; i < data.length; i++) {
-						var temp_group = data[i];
-						addUsersGroup(temp_group);
-						// console.log(data.length);
+						(function(temp_group) {
+							addUsersGroup(temp_group);
+						})(data[i]);
 					}
 					// edit_grant_array = user_grant_array;
 				},
@@ -501,19 +512,91 @@
 			})
 		}
 
+		//获取用户组中的所属用户
+		function getGroupUser() {
+			$.ajax({
+				type: 'POST',
+				url : "http://" + ip2 + "/invoice/getGroupUsers.action",
+				data : {
+					group_id: click_users_jq.get(0).users_object.group_id, 
+					company_id: click_users_jq.get(0).users_object.company_id
+				},
+				success : function(res, status) {
+					console.log(res);
+					var data = JSON.parse(res).user_list;
+					for(var i = 0; i < data.length; i++) {
+						addUserToGroup(data[i]);
+					}
+					// edit_grant_array = user_grant_array;
+				},
+				error: function() {
+					console.log("error");
+				}
+			})
+		}
+
+		//删除用户组中的某个用户
+		function deleteGroupUser(close_jq) {
+			$.ajax({
+				type: 'POST',
+				url : "http://" + ip2 + "/invoice/removeGroupUser.action",
+				data : {
+					user_id : close_jq.parent().get(0).user_id
+				},
+				success : function(res, status) {
+					close_jq.parent().remove();
+				},
+				error: function() {
+					console.log("error");
+				}
+			})
+		}
+
+		//发送添加用户组中的某个用户的请求
+		function addGroupUser() {
+			$.ajax({
+				type: 'POST',
+				url : "http://" + ip2 + "/invoice/addGroupUser.action",
+				data : {
+					user_id : $("#addUserId").val(),
+					group_id : click_users_jq.get(0).users_object.group_id
+				},
+				success : function(res, status) {
+					close_jq.parent().remove();
+				},
+				error: function() {
+					console.log("error");
+				}
+			})
+		}
+
+		//添加用户到用户组视图中
+		function addUserToGroup(user_object) {
+			$(".users_member_container").append("<div class=\"user_div users_member_div\"><img src=\"pic/头像.png\" style=\"width: 40px; margin-right: 10px;\"><div class=\"user_desc\"><p>"+user_object.user_name+"</p><p>"+user_object.company_name+"</p><i class=\"fa fa-times-circle\" aria-hidden=\"true\"></i></div></div>");
+			$(".users_member_container users_member_div").get(0).user_id = user_object.user_id;
+		}
+
 		//根据permission_list来绘制user_modal表格
 		function flushUserGrantTable(permissions) {
-			$("")
 			for(var i = 0; i < permissions.length; i++) {
 
 			}
 		}
 
 		//根据users_permission_list来绘制Users_grant_modal的表格
-		function flushUsersGrantTable(permissions) {
-			for(var i = 0; i < permissions.length; i++) {
-				
-			}
+		function flushUsersGrantTable(permissions) { 
+			// console.log($(".users_grant_table .table_display_row").eq(0).attr("grant_type"));
+			console.log(permissions);
+			$(".users_grant_table .table_display_row").each(function() {
+				for(var i = 0; i < permissions.length; i++) {
+					var permission_name = permissions[i].permission_name;
+					// console.log(permission_name + " " + $(this).attr("grant_type"));
+					if($(this).attr("grant_type") == permission_name.split("-")[0]) {
+						$(this).children(".table_display_td[rw_type='" + permission_name.split("-")[1] + "']").children().removeClass("fa-square-o");
+						$(this).children(".table_display_td[rw_type='" + permission_name.split("-")[1] + "']").children().addClass("fa-check-square-o");
+					}
+				}	
+			})
 		}
 
 		//点击成员头像
@@ -527,9 +610,6 @@
 
 		//悬浮用户组头像
 		function hoverUsers(users_jq) {
-			var users_object = users_jq.users_object;
-			clickStartUsersGrant(users_object);
-			clickStartUsersMember(users_object);
 			users_jq.mouseenter(function() {
 				$(this).children(".modal_menu").css("opacity", "1");
 			})
@@ -539,25 +619,23 @@
 		}
 
 		//点击用户组编辑用户组权限按钮
-		function clickStartUsersGrant(users_object) {
-			$(".startUsersGrant").click(function() {
-				$("#usersGrantModal").modal('show');
-				$("#usersGrantModal").css("display", "table");
-				ModalVerticalAlign($("#usersGrantModal").get(0));
+		function clickStartUsersGrant(btn_jq) {
+			click_users_jq = btn_jq.parent().parent();
+			var users_object = btn_jq.parent().parent().get(0).users_object;
 
-				//获取权限填写表格
-				users_grant_array = users_object.permissions;
-
-			})
+			$("#usersGrantModal").modal('show');
+			$("#usersGrantModal").css("display", "table");
+			ModalVerticalAlign($("#usersGrantModal").get(0));
+			//获取权限填写表格
+			flushUsersGrantTable(users_object.permissions);
 		}
 
 		//点击用户组编辑成员权限按钮
-		function clickStartUsersMember(users_object) {
-			$(".startUsersMember").click(function() {
-				$("#usersMemberModal").modal('show');
-				$("#usersMemberModal").css("display", "table");
-				ModalVerticalAlign($("#usersMemberModal").get(0));	
-			})
+		function clickStartUsersMember(btn_jq) {
+			click_users_jq = btn_jq.parent().parent();
+			$("#usersMemberModal").modal('show');
+			$("#usersMemberModal").css("display", "table");
+			ModalVerticalAlign($("#usersMemberModal").get(0));	
 		}
 
 		//初始化user_grant_modal模态框
@@ -584,11 +662,18 @@
 				$(".save_grant").css("display", "none");
 				$(".cancel_edit").css("display", "none");	
 
-				$(".users_grant_table .table_display_td[data-write='true'] i").css("cursor", "default");
-				$(".users_grant_table .table_display_td[data-write='true'] i").each(function() {
+				$(".users_grant_table .table_display_td i").css("cursor", "default");
+				$(".users_grant_table .table_display_td i").each(function() {
 					$(this).unbind("click");
 				})
+
+				users_send_array.splice(0, users_send_array.length);
 				beginEdit(1);
+			})
+
+			$("#usersGrantModal").on("hide.bs.modal", function() {
+				$(".users_grant_table .table_display_td i").removeClass("fa-check-square-o");
+				$(".users_grant_table .table_display_td i").addClass("fa-square-o");
 			})
 		}
 
@@ -602,6 +687,15 @@
 
 				$(".users_member_div i").css("opacity", "0");
 				clickStartEdit();
+				getGroupUser();
+			})
+		}
+
+		//初始化progressModal进度条模态框
+		function initProgressModal() {
+			$("#progressModal").on("show.bs.modal", function() {
+				$("#progressModal h4").text("正在修改权限...");
+				$("#progressModal .progress-bar").get(0).style.width = "40%";
 			})
 		}
 
@@ -627,6 +721,8 @@
 
         	getUserGrant();
         	getUsersGrant();
+
+        	clickUsersGrantSave();
         })
 	</script>
 </body>

@@ -5,8 +5,6 @@ import java.util.List;
 import com.hl.domain.Group;
 import com.hl.domain.Permission;
 import com.hl.domain.SimpleResponse;
-import com.hl.domain.UpdatePermission;
-import com.hl.domain.UpdateUser;
 import com.hl.domain.User;
 
 public interface UserService {
@@ -15,11 +13,11 @@ public interface UserService {
 
 	List<User> getManagerUsers(Integer user_id);
 
-	SimpleResponse updateUsersPermission(List<UpdateUser>users);
+	SimpleResponse updateUsersPermission(Integer user_id,List<Permission>permission_list);
 
 	List<Group> getManagerGroups(Integer user_id);
 
-	SimpleResponse updateGroupPermission(List<UpdatePermission> list, Integer group_id);
+	SimpleResponse updateGroupPermission(List<Permission> list, Integer group_id);
 
 	SimpleResponse addGroupUser(Integer user_id, Integer group_id);
 

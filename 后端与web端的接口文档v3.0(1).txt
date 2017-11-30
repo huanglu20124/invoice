@@ -1,8 +1,5 @@
 ﻿后端与Web端的接口文档
 
-//前端git仓库位置：cd /f/web/website/project/invoice_project/invoice-server
-
-
 由于算法端一次只能干一件事，为了避免在一次http请求里等待过久或者导致超时，大部分web请求都不会直接返回算法结果，而是先加入等待队列，然后响应告诉用户要等待。
 最终算法结果将以websocket的方式主动推送给前端    
 
@@ -134,6 +131,7 @@ url:http://服务端ip:8080/invoice/getManagerGroups.action
 url:http://服务端ip:8080/invoice/updateGroupPermission.action
 请求参数：group_id,permission_list:[修改的权限1，修改的权限2.。。]
 一个修改的权限的信息{permission_id,is_checked}  is_checked为0代表没有打钩，is_checked为1代表已经打钩
+成功时返回，{"group_list":[用户组信息1，用户组信息2，。。]}
 
 16、将用户加入某个用户组
 url:http://服务端ip:8080/invoice/addGroupUser.action
@@ -146,8 +144,14 @@ url:http://服务端ip:8080/invoice/removeGroupUser.action
 成功时返回，{"sucess"："修改成功"}  失败时返回，{"err"："修改失败"}
 
 18、获取一个用户的最新权限
+url:http://服务端ip:8080/invoice/getUserPermission.action
+请求参数：user_id
+返回：permission_list
 
-
+19、获取一个用户组的所有用户
+url:http://服务端ip:8080/invoice/getGroupUsers.action
+请求参数：group_id, company_id
+返回：user_list
 	
 二、websocket部分：服务端通过websocket会不断返回当前算法端正在处理的任务信息
 
