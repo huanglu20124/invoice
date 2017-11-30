@@ -25,19 +25,19 @@ public interface UserDao {
 
 	List<User> getManagerUsers(Integer user_id);
 
-	boolean getIsUserPermission(Integer user_id, Integer permission_id);
+	boolean getIsUserPermission(Integer user_id, String permission_name);
 
-	void deleteUserPermission(Integer user_id, Integer permission_id);
+	void deleteUserPermission(Integer user_id, String permission_name);
 
-	void addUserPermission(Integer user_id, Integer permission_id);
+	void addUserPermission(Integer user_id, String permission_name);
 
 	List<Group> getManagerGroups(Integer user_id);
 
-	boolean getIsGroupPermission(Integer permission_id, Integer group_id);
+	boolean getIsGroupPermission(String permission_name, Integer group_id);
 
-	void deleteGroupPermission(Integer group_id, Integer permission_id);
+	void deleteGroupPermission(Integer group_id, String permission_name);
 
-	void addGroupPermission(Integer group_id, Integer permission_id);
+	void addGroupPermission(Integer group_id, String permission_name);
 
 	void addGroupUser(Integer user_id, Integer group_id);
 

@@ -4,6 +4,7 @@ public class Permission {
 	private Integer permission_id; //权限id
 	private String  permission_name;//权限名称
 	private Integer isPrivate; //0位公有，1为私有
+	private Integer is_checked;//前端送过来的，是否打钩
 	
 	public Integer getPermission_id() {
 		return permission_id;
@@ -32,5 +33,12 @@ public class Permission {
 	public void setIsPrivate(Integer isPrivate) {
 		this.isPrivate = isPrivate;
 	}
+	public Integer getIs_checked() {
+		return is_checked;
+	}
+	public void setIs_checked(Integer is_checked) {
+		this.is_checked = is_checked;
+	}
 
+	
 }

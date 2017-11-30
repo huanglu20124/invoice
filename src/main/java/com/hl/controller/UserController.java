@@ -31,12 +31,9 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.hl.domain.Group;
 import com.hl.domain.Permission;
 import com.hl.domain.SimpleResponse;
-import com.hl.domain.UpdatePermission;
-import com.hl.domain.UpdateUser;
 import com.hl.domain.User;
 import com.hl.exception.InvoiceException;
 import com.hl.service.UserService;
@@ -123,16 +120,16 @@ public class UserController {
 	//修改一组用户的私有 权限（用户组）
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/updateUsersPermission.action", method = RequestMethod.POST)
-	public void updateUsersPermission(HttpServletRequest request, HttpServletResponse response) throws IOException {
+	@ResponseBody
+	public String  updateUsersPermission(Integer user_id,HttpServletRequest request) throws IOException {
 		request.setCharacterEncoding("utf-8");
-		response.setCharacterEncoding("utf-8");
 		System.out.println("接收到修改用户权限的请求");
-		String list_str = request.getParameter("user_list"); 
+		String list_str = request.getParameter("permission_list"); 
 		System.out.println(list_str);
 		JSONArray array = JSON.parseArray(list_str);
-		List<UpdateUser>users = array.toJavaList(UpdateUser.class);
-		SimpleResponse simpleResponse = userService.updateUsersPermission(users);
-		response.getWriter().write(JSON.toJSONString(simpleResponse));
+		List<Permission>permission_list = array.toJavaList(Permission.class);
+		SimpleResponse simpleResponse = userService.updateUsersPermission(user_id,permission_list);
+		return JSON.toJSONString(simpleResponse);
 	}
 	
 	//修改用户组的公有权限(用户组)
@@ -145,7 +142,7 @@ public class UserController {
 		Integer group_id = new Integer(request.getParameter("group_id"));
 		String list_str = request.getParameter("permission_list");
 		JSONArray array = JSON.parseArray(list_str);
-		List<UpdatePermission>list = array.toJavaList(UpdatePermission.class);
+		List<Permission>list = array.toJavaList(Permission.class);
 		SimpleResponse simpleResponse = userService.updateGroupPermission(list,group_id);
 		response.getWriter().write(JSON.toJSONString(simpleResponse));
 	}
@@ -178,11 +175,12 @@ public class UserController {
 	//获取当前用户的最新权限
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/getUserPermission.action", method = RequestMethod.POST)
-	public void getUserPermission(Integer user_id,HttpServletResponse response)throws IOException{
+	@ResponseBody
+	public String getUserPermission(Integer user_id,HttpServletResponse response)throws IOException{
 		List<Permission>permissions = userService.getUserPermission(user_id);
 		Map<String, Object>map = new HashMap<>();
 		map.put("permission_list", permissions);
-		response.getWriter().write(JSON.toJSONString(map));
+		return JSON.toJSONString(map);
 	}
 	
 	//获取当前一个用户组的所有用户
@@ -190,6 +188,8 @@ public class UserController {
 	@RequestMapping(value = "/getGroupUsers.action", method = RequestMethod.POST)
 	@ResponseBody
 	public String getGroupUsers(Integer group_id,Integer comapny_id, HttpServletResponse response)throws IOException{
+		System.out.println("获取当前一个用户组的所有用户的请求");
+		System.out.println("group_id="+group_id + "  company_id=" + comapny_id);
 		List<User>list = userService.getGroupUser(group_id,comapny_id);
 		if(list == null) list = new ArrayList<>();
 		Map<String, Object>map = new HashMap<>();

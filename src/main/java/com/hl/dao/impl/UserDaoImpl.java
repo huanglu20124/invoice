@@ -137,10 +137,12 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 	}
 
 	@Override
-	public boolean getIsUserPermission(Integer user_id, Integer permission_id) {
-		String sql = "select permission_id from user_permission where user_id=? and permission_id=?";
+	public boolean getIsUserPermission(Integer user_id, String permission_name) {
+		String sql = "select a.permission_id from user_permission a,permission b"
+				+ " where a.user_id=? and a.permission_id=b.permission_id "
+				+ " and b.permission_name=?";
 		try {
-			Integer temp = getJdbcTemplate().queryForObject(sql, Integer.class,user_id,permission_id);
+			Integer temp = getJdbcTemplate().queryForObject(sql, Integer.class,user_id,permission_name);
 			if(temp != null) return true;
 		} catch (Exception e) {
 			return false;
@@ -149,15 +151,16 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 	}
 
 	@Override
-	public void deleteUserPermission(Integer user_id, Integer permission_id) {
-		String sql = "delete from user_permission where user_id=? and permission_id=?";
-		getJdbcTemplate().update(sql,user_id,permission_id);
+	public void deleteUserPermission(Integer user_id, String permission_name) {
+		String sql = "delete from user_permission where user_id=? and permission_id = "
+				+ " (select permission_id from permission where permission_name=?)";
+		getJdbcTemplate().update(sql,user_id,permission_name);
 	}
 
 	@Override
-	public void addUserPermission(Integer user_id, Integer permission_id) {
-		String sql = "insert into user_permission values(?,?)";
-		getJdbcTemplate().update(sql,permission_id,user_id);
+	public void addUserPermission(Integer user_id, String permission_name) {
+		String sql = "insert into user_permission values((select permission_id from permission where permission_name=?),?)";
+		getJdbcTemplate().update(sql,permission_name,user_id);
 	}
 
 	
@@ -170,11 +173,14 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 		return getJdbcTemplate().query(sql, new GroupRowMapper(),user_id);
 	}
 
+	
 	@Override
-	public boolean getIsGroupPermission(Integer permission_id, Integer group_id) {
-		String sql = "select permission_id from group_permission where group_id=? and permission_id=?";
+	public boolean getIsGroupPermission(String permission_name, Integer group_id) {
+		String sql = "select a.permission_id from group_permission a,permission b"
+				+ " where a.group_id=? and a.permission_id=b.permission_id "
+				+ " and b.permission_name=?";
 		try {
-			Integer temp = getJdbcTemplate().queryForObject(sql, Integer.class,group_id,permission_id);
+			Integer temp = getJdbcTemplate().queryForObject(sql, Integer.class,group_id,permission_name);
 			if(temp != null) return true;
 		} catch (Exception e) {
 			return false;
@@ -183,15 +189,16 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 	}
 
 	@Override
-	public void deleteGroupPermission(Integer group_id, Integer permission_id) {
-		String sql = "delete from group_permission where group_id=? and permission_id=?";
-		getJdbcTemplate().update(sql,group_id,permission_id);
+	public void deleteGroupPermission(Integer group_id, String permission_name) {
+		String sql = "delete from group_permission where group_id=? and permission_id = "
+				+ " (select permission_id from permission where permission_name=?)";
+		getJdbcTemplate().update(sql,group_id, permission_name);
 	}
 
 	@Override
-	public void addGroupPermission(Integer group_id, Integer permission_id) {
-		String sql = "insert into group_permission values(?,?);";
-		getJdbcTemplate().update(sql,group_id,permission_id);
+	public void addGroupPermission(Integer group_id, String permission_name) {
+		String sql = "insert into group_permission values(?,(select permission_id from permission where permission_name=?))";
+		getJdbcTemplate().update(sql,group_id,permission_name);
 	}
 
 	
