@@ -202,7 +202,7 @@
                         //temp_img.src = data.url;
                         if(data.user_name != undefined) {
                             $("#user_name").text($("#user_name").text().split("：")[0] + "：" + data.user_name);
-                            $("#action_start_time").text($("#action_start_time").text().split("：")[0] + "：" + data.action_start_time);
+                            $("#action_start_time").text($("#action_start_time").text().split("：")[0] + "：" + data.action_time);
                             $("#company_name").text($("#company_name").text().split("：")[0] + "：" + data.company_name);   
                         }    
                     }

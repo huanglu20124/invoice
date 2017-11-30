@@ -627,14 +627,14 @@ aside {
 	overflow-x: scroll;
 }*/
 
-.user_grant_table .table_display_td, .user_grant_table .table_display_th, .edit_grant_table .table_display_td, .edit_grant_table .table_display_th{
+.user_grant_table .table_display_td, .user_grant_table .table_display_th, .users_grant_table .table_display_td, .users_grant_table .table_display_th, .edit_grant_table .table_display_td, .edit_grant_table .table_display_th{
 	text-align: center;
 	color: gray;
 	font-size: 16px;
 	min-width: 120px;
 }
 
-.user_grant_table .table_display_td:first-child, .user_grant_table .table_display_th:first-child {
+.user_grant_table .table_display_td:first-child, .user_grant_table .table_display_th:first-child, .users_grant_table .table_display_td:first-child, .users_grant_table .table_display_th:first-child {
 	/*min-width: 200px;*/
 	text-align: left;
 	color: black;
@@ -656,7 +656,7 @@ aside {
 	cursor: pointer;
 	display: inline-block;
 	margin-right: 40px;
-	margin-bottom: 20px;
+	margin-bottom: 25px;
 	position: relative;
 }
 
@@ -718,14 +718,17 @@ aside {
 	opacity: 0;
 	transition: opacity 0.4s;
 	width: 150px;
-	padding: 10px 15px;
 	position: absolute;
 	z-index: 2;
 	bottom: 100%;
 	left: 50%;
+	padding-top: 5px;
+	margin-bottom: 10px;
 	margin-left: -75px;
 	border-radius: 6px;
 	font-size: 14px;
+	background-color: rgb(244, 244, 247);
+	box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
 }
 
 .modal_menu:after {
@@ -734,9 +737,29 @@ aside {
     top: 100%; 
     left: 50%;
 	width: 0px;
-    margin-left: -5px;
-	border-width: 5px;
+    margin-left: -10px;
+	border-width: 10px;
 	border-style: solid;
-    border-color: black transparent transparent transparent; 
+    border-color: rgb(244, 244, 247) transparent transparent transparent; 
 }
 
+.modal_menu p {
+	padding: 5px 15px;
+}
+
+.modal_menu p:hover {
+	background-color: rgba(255, 255, 255, 1);
+}
+
+.users_member_div {
+	position: relative;
+}
+
+.users_member_div i {
+	display: inline-block;
+	position: absolute;
+	font-size: 20px;
+	top: -10px;
+	left: -10px;
+	color: red;
+}

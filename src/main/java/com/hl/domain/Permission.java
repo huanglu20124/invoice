@@ -1,5 +1,4 @@
 package com.hl.domain;
-
 public class Permission {
 	private Integer permission_id; //权限id
 	private String  permission_name;//权限名称

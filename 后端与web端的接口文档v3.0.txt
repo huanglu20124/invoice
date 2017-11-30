@@ -1,0 +1,216 @@
+﻿后端与Web端的接口文档
+
+//前端git仓库位置：cd /f/web/website/project/invoice_project/invoice-server
+
+
+由于算法端一次只能干一件事，为了避免在一次http请求里等待过久或者导致超时，大部分web请求都不会直接返回算法结果，而是先加入等待队列，然后响应告诉用户要等待。
+最终算法结果将以websocket的方式主动推送给前端    
+
+现在后端有三个等待队列：
+"manage_wait";     //操作队列，包括模板信息的增删改，
+"recognize_wait"; //识别队列,只有操作队列为空时，才能执行这个（操作队列优先级最高）
+"exception_wait"; //异常队列,识别失败或者增加模板失败的时候加进去
+用户的一次行为（action）会加入到识别队列或操作队列，一次行为 包括 上传发票、增加模板、删除模板、修改模板
+用户的一次行为的唯一标识为action_id，这个action_id就是用来排队的,即是队列里一项的唯一标识
+服务器通过websocket返回的信息都会携带一个action_id，告诉前端当前哪个action正在算法端跑算法
+
+操作队列的优先级比识别队列高，算法端空闲的时候，若操作队列不为空则优先调度操作队列；否则调度识别队列。异常队列目前暂时作用不大。
+
+
+一、ajax部分
+
+1、用户上传一张或多张图片，加入识别队列，msg_id = 1  表单格式上传(请求enctype必须为multiple，可上传一张或多组) 
+请求参数：user_id, 
+url:http://服务端ip:8080/invoice/recognizeImage   
+返回：成功时：{"sucess"："已加入队列，等待算法服务器处理" , "action_id_list":[1,2], "manage_size" : 1, "recognize_size" : 0} 
+            //最后那两个东西分别是操作队列和识别队列的长度,中间那个是一个action_id数组(一张图片对应一个action_id)
+      失败时：{err : "上传文件失败" }
+之后算法的运算过程及结果用websocket返回
+
+
+2、上传发票模板原图的请求，表单格式上传
+url:http://服务端ip:8080/invoice/uploadModelOrigin
+返回：成功时：{"sucess"："上传文件成功" , "file_name" : "xxxxxxxxxxxx"} 
+            //第二个参数是服务器生成的文件的网络url，到时候作为增加发票模板请求的一个参数，发回给服务器
+      失败时：{err : "上传文件失败" }
+	  
+
+3、增加发票模板 or 修改发票模板的请求，加入到操作队列 
+请求参数：{modelAction:{"user_id":1,"json_model":xxx, "model_id":1,"company_id":1},"img_str":xxx, "file_name":"xxx", "type":0}    
+(type = 0是增加发票模板，type = 1是修改发票模板) (如果是增加模板，则model_id不填也行)
+url:http://服务端ip:8080/invoice/addModel
+返回：成功时：{sucess："已加入队列，等待算法服务器处理","action_id": 1, "manage_size" : 1, "recognize_size" : 0} 
+//最后那两个东西分别是操作队列和识别队列的长度
+      失败时：{err : "上传文件失败" } || {err : "权限不足"}
+之后算法的运算结果用websocket返回
+
+
+4、删除发票模板的请求，加入到操作队列  msg_id = 3
+请求参数：user_id,model_id
+url:http://服务端ip:8080/invoice/deleteModel
+返回：成功时：{sucess："已加入队列，等待算法服务器处理","action_id": 1, "manage_size" : 1, "recognize_size" : 0} //最后那两个东西分别是操作队列和识别队列的长度
+失败：{err : "权限不足"}
+之后结果用websocket返回
+
+5、模板库一次获取12条发票模板的请求
+请求参数：user_id   page              （page表示第几段加载，一开始填0）
+url:http://服务端ip:8080/invoice/getAllModel.action
+成功时返回：{"model_list": [{一个模板model}， {}，{}。。。 ]}
+一个模板model的信息包括：
+model( model_id                 '主键，唯一标识，模板ID', 
+       json_model               '模板具体信息的json',
+	   model_register_time      '识别器建立日期',
+	   model_success_counter    '识别成功次数',
+	   model_url                '模板图片url',
+	   model_label              '模板名称',
+	   image_size:166,          '模板图片大小',
+	   model_uuid               '模板唯一id'
+)
+
+
+6、点击一个模板，获取img_str的请求
+url:http://服务端ip:8080/invoice/getImgStr
+请求参数： url
+返回img_str
+
+
+7、获取监控台信息
+url:http://服务端ip:8080/invoice/openConsole
+无请求参数
+成功时返回 {"action_id":6, "user_id":6, "user_name":"黄建平", action_start_time:"2017xxxx" ,"url":xxxxx img_str }
+
+
+8、获取缓冲队列
+url:http://服务端ip:8080/invoice/recognizeWait
+无请求参数
+成功时返回  返回当前识别队列的信息（头200个）：msg_id = 200
+返回：{"msg_id":200,"recognize_wait": [{"user_id":6, "action_start_time":"操作时间", "user_name":"黄建平", "user_company":"中山大学", "url":"xxxx",image_size:166}, {}, {}...]}
+
+
+9、按时间排序 + 关键词，一次获取20条日志
+url:http://服务端ip:8080/invoice/getTwentyAction.action
+请求参数：page (代表第几次加载，第一次填0)，startTime，endTime,keyword, type
+startTime，endTime为开始和结束的时间，格式为"yyyy-MM-dd HH:mm:ss"
+
+//type= 0:用户ip， 1：用户名字， 2：单位名字， 3：操作类型
+如果type填0的话，keyowrd可以填："识别发票","增加模板","修改模板"。。(目前日志只记录这些)
+
+成功时返回，{page_sum:10,action_list:[{日志记录1},{日志记录2},...]}
+失败时返回,""err":"请输入开始时间和结束时间""
+
+一条日志信息包括
+action_id, action_time, action_description, user_id, user_name, company_id, company_name, user_ip
+
+10、通过model_label的关键字模糊查询模板信息，一次12条
+url:http://服务端ip:8080/invoice/searchModelLabel.action
+请求参数：page (代表第几次加载，第一次填0),keyword
+成功时返回，[{模板信息1},{模板信息2},...]
+	
+11、获取一个管理员管理的用户
+url:http://服务端ip:8080/invoice/getManagerUsers.action
+请求参数：user_id
+成功时返回，[{用户信息1},{用户信息2},...]
+
+12、修改一群用户的权限
+url:http://服务端ip:8080/invoice/updateUsersPermission.action
+请求参数：user_list = [用户1，用户2。。。]
+一个用户包括的信息{user_id, group_id,update_permissions:[修改的权限1，修改的权限2.。。]}
+一个修改的权限的信息{permission_id,is_checked}  is_checked为0代表没有打钩，is_checked为1代表已经打钩
+
+成功时返回，{"sucess":"修改成功"}或{"sucess":"修改失败"}
+
+13、20张发票一次，获取异常发票队列
+url:http://服务端ip:8080/invoice/getFaultQueue.action
+请求参数：page（第几段加载，第一次填0）
+成功时返回，{fault_num:21,fault_list:[发票信息1，发票信息2...]}
+一个发票信息包括：user_name, company_name invoice_id, model_id, invoice_url  recognize_time, region_list
+
+14、获取一个管理员的管理的所有用户组
+url:http://服务端ip:8080/invoice/getManagerGroups.action
+请求参数：user_id
+成功时返回，{"group_list":[用户组信息1，用户组信息2，。。]}
+
+15、修改用户组权限
+url:http://服务端ip:8080/invoice/updateGroupPermission.action
+请求参数：group_id,permission_list:[修改的权限1，修改的权限2.。。]
+一个修改的权限的信息{permission_id,is_checked}  is_checked为0代表没有打钩，is_checked为1代表已经打钩
+
+16、将用户加入某个用户组
+url:http://服务端ip:8080/invoice/addGroupUser.action
+请求参数：user_id,group_id
+成功时返回，{"sucess"："修改成功"}  失败时返回，{"err"："修改失败"}
+
+17、将用户移出他所属的用户组
+url:http://服务端ip:8080/invoice/removeGroupUser.action
+请求参数：user_id
+成功时返回，{"sucess"："修改成功"}  失败时返回，{"err"："修改失败"}
+
+18、获取一个用户的最新权限
+
+
+	
+二、websocket部分：服务端通过websocket会不断返回当前算法端正在处理的任务信息
+
+服务端推送的的websocket信息一定会带有一个msg_id
+
+   
+   1、缓冲队列：识别队列新增发票：msg_id = 201
+   {"msg_id":201, "new_recognize":[{"action_id":6, "url":xxxxx, image_size:166},{...}]}  new_recognize数组的每一项包含了一个图片url和action_id以及图片大小image_size
+
+  
+   2、监控显示：告诉下一张要跑的图片的信息   msg_id = 203
+    {"msg_id":203, "url":"xxxx", image_size:166,  "action_id":6, "user_id":6, "user_name":"黄路", "action_start_time":"2017xxxx", "company_name":"中山大学"} 
+   
+   3、监控显示：返回发票识别过程信息：msg_id = 1,100,101,102
+    与师兄给的协议上面的大致相同，只不过服务器端在一条消息里面的json里加入了msg_id，action_id,然后返回给前端  
+    如果中途，服务器出现异常异常，客户端会收到err = "接收算法服务器数据异常" 或者 "向服务器发送消息异常"
+    返回的一条websocket消息举例  {"action_id":6,"msg_id":100, "id":3, "status":0, "url":"xxxxxxx"}  (补充，msg_id=100的时候，会返回模板的url)
+   
+   4、返回新增发票模板的信息，msg_id = 2
+   {"action_id":6,"msg_id":2, "status":0} 
+   
+   5、返回删除发票模板的信息，msg_id = 3
+   {"action_id":6,"msg_id":3, "status":0} 
+   
+   6、返回修改发票模板的信息，msg_id = 4
+   {"action_id":6,"msg_id":4, "status":0} 
+
+   7、返回region_list，msg_id=204
+   {"region_list":{...}}
+   
+   8、websocket建立连接后，web前端发送给后端：
+   {"code":"001","console_status":1}//向服务器注册当前页面的状态，console_status为1/2/3/4/5/6，代表六个页面
+   {"code":"002"}//告诉服务器监控台已经加载完监控台图片（图片的img_str是通过ajax请求得到的）
+   
+   9、返回最新的报错发票数量（新增一张报错发票时发送该消息）（"console_status"=1，2,3,5,6）
+   {"msg_id":205,fault_num:21}
+   
+   10、处于报错发票页面的时候（"console_status"=4），返回数量及新增的报错发票
+    {"msg_id":206,fault_invoice:{错误发票信息}}
+
+   
+   用户登录+权限管理：网页转换成jsp，登录后 var user_json = <%=JSON.toJSONString(request.getAttribute("user"))%>
+   前端得到user对象字符串。
+   jsp调试的方法，通过filezilla将修改的jsp文件放到服务器电脑工程目录下，刷新
+   ftp://服务器ip  账号:huanglu  密码：137137lu
+   
+目前设定的权限有：
+1	model-r
+2	model-rw
+5	invoice-r
+6	invoice-rw
+7	console-r
+8	log-r
+9	queue-r
+10	fault-r
+11	user-r
+14	user-rw
+15	console-rw
+16	log-rw
+17	queue-rw
+18	fault-rw
+19	group-r
+20	group-rw
+   
+   
+   
