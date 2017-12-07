@@ -39,11 +39,13 @@ public interface UserDao {
 
 	void addGroupPermission(Integer group_id, String permission_name);
 
-	void addGroupUser(Integer user_id, Integer group_id);
+	int  addGroupUser(Integer user_id, Integer group_id);
 
 	void removeGroupUser(Integer user_id);
 
 	List<User> getGroupUser(Integer group_id, Integer comapny_id);
+
+	Integer getUserGroupId(Integer user_id);
 
 
 }

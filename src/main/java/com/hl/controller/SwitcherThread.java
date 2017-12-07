@@ -155,7 +155,8 @@ public class SwitcherThread implements Runnable {
 			String url_suffix = modelAction.getUrl_suffix();
 			//得到原图
 			String url_suffix_original = url_suffix.replaceAll("handle", "original");
-			String local_path = ImageUtil.suffixToBmp(localConfig.getImagePath() + url_suffix_original);
+			//统一为jpg
+			String local_path = localConfig.getImagePath() + url_suffix_original;
 			//得到json_model，加入图片url
 			Map<String, Object>json_model_map = (Map<String, Object>) JSON.parse(modelAction.getJson_model());
 			json_model_map.put(Const.URL, local_path);

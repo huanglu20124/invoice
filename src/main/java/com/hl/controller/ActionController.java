@@ -38,15 +38,19 @@ public class ActionController {
 	public String getTwentyAction(Integer page,String startTime,String endTime,String keyword,Integer type) throws IOException{
 		System.out.println("接收到查询操作日志的请求");
 		System.out.println(page + "  " + startTime + "  " + endTime + "   " + keyword + "。");
-		if(startTime == null || endTime == null){
-			SimpleResponse simpleResponse = new SimpleResponse();
-			simpleResponse.setErr("请输入开始时间和结束时间");
-			return JSON.toJSONString(simpleResponse);
-		}		
 		ActionQuery actionQuery = null;
-		if(keyword == null || keyword.equals("")){
+		if(startTime == null && endTime == null && keyword == null){
+			//初始化加载,只输入页数
+			actionQuery = actionService.getTwentyActionInit(page);
+		}
+			
+		if(keyword == null && startTime != null && endTime != null){
+			//只输入时间
 			actionQuery = actionService.getTwentyActionByTime(page,startTime,endTime);
-		}else {
+		}
+		
+        if(keyword != null){
+        	//输入关键字，包括了输入和没输入时间的情况
 			actionQuery = actionService.getTwentyActionByKeyword(page,startTime,endTime,keyword,type);
 		}
 		if(actionQuery != null){

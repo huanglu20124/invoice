@@ -124,6 +124,7 @@ public class ModelServiceImpl implements ModelService{
 		action.setCompany_id(user.getCompany_id());
 		action.setCompany_name(user.getCompany_name());
 		action.setDescription("删除模板["+model_id+"]");
+		action.setUser_ip(user_ip);
 		action.setModel_id(model_id);
 		Integer action_id = actionDao.addAction(action);
 		redisDao.leftPush(Const.MANAGE_WAIT, action_id.toString());// 加入到操作队列

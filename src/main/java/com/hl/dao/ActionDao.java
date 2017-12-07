@@ -26,4 +26,6 @@ public interface ActionDao {
 			Integer page);
 	public ActionQuery getTwentyActionByKeywordDescription(String startTime, String endTime, String keyword,
 			Integer page);
+	public List<Action> getTwentyActionInit(Integer page);
+	public Integer getActionSumInit();
 }

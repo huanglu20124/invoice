@@ -58,4 +58,20 @@ public class ActionServiceImpl implements ActionService{
 		return actionQuery;
 	}
 
+	@Override
+	public ActionQuery getTwentyActionInit(Integer page) {
+		ActionQuery actionQuery = new ActionQuery();
+		//一次获取二十条日志
+		List<Action>actions = actionDao.getTwentyActionInit(page);
+		//获取总页数
+		if(page == 0){
+			Integer sum = actionDao.getActionSumInit();
+			Integer page_sum = sum/20 +1;
+			actionQuery.setPage_sum(page_sum);
+		}
+		actionQuery.setAction_list(actions);
+		return actionQuery;
+	}
+
+
 }
