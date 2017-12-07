@@ -1,13 +1,18 @@
 package com.hl.service.impl;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Resource;
 
+import org.apache.hadoop.mapred.machines_jsp;
 import org.springframework.stereotype.Service;
 
 import com.hl.dao.UserDao;
@@ -51,8 +56,8 @@ public class UserServiceImpl implements UserService{
 	}
 	
 	@Override
-	public SimpleResponse updateUsersPermission(Integer user_id,List<Permission>permission_list) {
-		SimpleResponse response = new SimpleResponse();
+	public List<Permission> updateUsersPermission(Integer user_id,List<Permission>permission_list) {
+		List<Permission>ans_list = new ArrayList<>();
 		//修改用户权限
 		for(Permission permission : permission_list){
 				if(userDao.getIsUserPermission(user_id,permission.getPermission_name()) == true){
@@ -60,15 +65,17 @@ public class UserServiceImpl implements UserService{
 					if(permission.getIs_checked() == 0){
 						//没打钩就删除
 						userDao.deleteUserPermission(user_id,permission.getPermission_name());
+					}else {
+						ans_list.add(permission);
 					}
 				}else {
 					if(permission.getIs_checked() == 1){
 						userDao.addUserPermission(user_id,permission.getPermission_name());
+						ans_list.add(permission);
 					}
 				}
 		}
-		response.setSuccess("修改成功");
-		return response;
+		return ans_list;
 	}
 		
 	//获得用户全部权限公有加上私有的
@@ -107,8 +114,9 @@ public class UserServiceImpl implements UserService{
 
 
 	@Override
-	public SimpleResponse updateGroupPermission(List<Permission> list, Integer group_id) {
+	public List<Permission> updateGroupPermission(List<Permission> list, Integer group_id) {
 		System.out.println("group_id" + group_id);
+		List<Permission>ans_list = new ArrayList<>();
 		for(Permission permission : list){
 			System.out.println(permission.getPermission_name());
 			System.out.println("isChecked" + permission.getIs_checked());
@@ -116,31 +124,38 @@ public class UserServiceImpl implements UserService{
 				if(permission.getIs_checked() == 0){
 					System.out.println("删除权限");
 					userDao.deleteGroupPermission(group_id, permission.getPermission_name());
+				}else{
+					ans_list.add(permission);
 				}
 			}else {
 				if(permission.getIs_checked() == 1){
 					System.out.println("增加权限");
 					userDao.addGroupPermission(group_id, permission.getPermission_name());
+					ans_list.add(permission);
 				}
 			}
 		}
-		SimpleResponse simpleResponse = new SimpleResponse();
-		simpleResponse.setSuccess("修改成功");
-		return simpleResponse;
+		return ans_list;
 	}
 
 	
 	@Override
-	public SimpleResponse addGroupUser(Integer user_id, Integer group_id) {
-		SimpleResponse simpleResponse = new SimpleResponse();
+	public Map<String, Object>  addGroupUser(Integer user_id, Integer group_id) {
+		Map<String, Object>map = new HashMap<>();
+		//先检查一下
 		try {
-			userDao.addGroupUser(user_id,group_id);
-			simpleResponse.setSuccess("添加到用户组成功");
+			if(userDao.getUserGroupId(user_id) != null){
+				map.put("err", "该用户已存在另外一个用户组中");
+			}else {
+				userDao.addGroupUser(user_id,group_id);
+				User user = userDao.getUserById(user_id);
+				map.put("user", user);
+			}
 		} catch (Exception e) {
-			simpleResponse.setErr("添加到用户组失败");
+			map.put("err","添加到用户组失败");
 			e.printStackTrace();
 		}		
-		return simpleResponse;
+		return map;
 	}
 
 

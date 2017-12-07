@@ -15,6 +15,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -141,20 +142,29 @@ public class ModelController {
 			// 获取其他参数
 			while (files.hasNext()) {
 				MultipartFile file = request2.getFile(files.next());
-				//保存的文件名由uuid生成
-				String save_file_name = UUID.randomUUID().toString() + ".bmp";//暂时 保存的文件名=原始文件名
-				//生成后缀
-				String url_suffix = "image/model/original/"+"201710"+"/"+save_file_name;
+				String origin_file_name = FilenameUtils.getName(file.getOriginalFilename());
+				System.out.println("origin_file_name==" + origin_file_name);
+				String save_file_name = null;
+				String url_suffix = null;
+				if(origin_file_name.endsWith("jpg")){
+					save_file_name = UUID.randomUUID().toString() + ".jpg";
+					url_suffix = "image/model/original/"+"201710"+"/"+save_file_name;
+				}
+				else if(origin_file_name.endsWith("bmp")){
+					save_file_name = UUID.randomUUID().toString() + ".bmp";
+					url_suffix = "image/model/original/"+"201710"+"/"+save_file_name;
+				}
 				try {
 					//先保存bmp
-					File bmp_file = new File(save_folder, save_file_name);
-					FileOutputStream fos = new FileOutputStream(bmp_file);
+					File save_file = new File(save_folder, save_file_name);
+					FileOutputStream fos = new FileOutputStream(save_file);
 					InputStream ins = file.getInputStream();
 					IOUtil.inToOut(ins, fos);
 					IOUtil.close(ins, fos);
 					System.out.println("上传文件成功;");
-					//再保存jpg
-					ImageUtil.bmpTojpg(localConfig.getImagePath() + url_suffix);
+					//如果是bmp的话再保存jpg
+					if(origin_file_name.endsWith("bmp"))
+					    ImageUtil.bmpTojpg(localConfig.getImagePath() + url_suffix);
 					//重要！将文件url返回给web端
 					ans_map.put("file_name", ImageUtil.suffixToJpg(localConfig.getIp() + url_suffix));
 					String local_jpg = ImageUtil.suffixToJpg(localConfig.getImagePath() + url_suffix);

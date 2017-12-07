@@ -203,9 +203,9 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 
 	
 	@Override
-	public void addGroupUser(Integer user_id, Integer group_id) {
-		String sql = "update user set user_id=? and group_id=?";
-		getJdbcTemplate().update(sql,user_id,group_id);
+	public int addGroupUser(Integer user_id, Integer group_id) {
+		String sql = "update user set group_id=? where user_id=?";
+		return getJdbcTemplate().update(sql,group_id,user_id);
 	}
 
 	@Override
@@ -216,9 +216,16 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 
 	@Override
 	public List<User> getGroupUser(Integer group_id, Integer company_id) {
-		String sql = "select a.*, b.company_name from user a,company b where a.group_id=? and a.company_id=?"
-				+ " and b.company_id = a.company_id";
+		String sql = "select a.*,b.company_name from user a, company b where a.group_id=? and a.company_id=?"
+				+ " and  a.company_id=b.company_id";
 		return getJdbcTemplate().query(sql, new UserRowmapper(),group_id,company_id);
+	}
+
+	
+	@Override
+	public Integer getUserGroupId(Integer user_id) {
+		String sql = "select group_id from user where user_id=?";
+		return getJdbcTemplate().queryForObject(sql, Integer.class,user_id);
 	}
 
 	

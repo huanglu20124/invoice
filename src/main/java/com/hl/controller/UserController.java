@@ -94,27 +94,25 @@ public class UserController {
 	//管理员获取他管理的单位的用户组信息
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/getManagerGroups.action", method = RequestMethod.POST)
-	public void getManagerGroups(Integer user_id, HttpServletRequest request,HttpServletResponse response) throws IOException{
-		request.setCharacterEncoding("utf-8");
-		response.setCharacterEncoding("utf-8");
+	@ResponseBody
+	public String getManagerGroups(Integer user_id, HttpServletRequest request) throws IOException{
 		System.out.println("接收到获取管理的用户组的请求");
 		Map<String, Object>map = new HashMap<>();
 		List<Group>list = userService.getManagerGroups(user_id);
 		map.put("group_list", list);
-		response.getWriter().write(JSON.toJSONString(map));
+		return JSON.toJSONString(map);
 	}	
 	
 	//管理员查询他管理的单位所有用户信息
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/getManagerUsers.action", method = RequestMethod.POST)
-	public void getManagerUsers(Integer user_id, HttpServletRequest request,HttpServletResponse response) throws IOException{
-		request.setCharacterEncoding("utf-8");
-		response.setCharacterEncoding("utf-8");
+	@ResponseBody
+	public String getManagerUsers(Integer user_id) throws IOException{
 		System.out.println("接收到获取管理的用户信息的请求");
 		Map<String, Object>map = new HashMap<>();
 		List<User>list = userService.getManagerUsers(user_id);
 		map.put("user_list", list);
-		response.getWriter().write(JSON.toJSONString(map));
+		return JSON.toJSONString(map);
 	}
 	
 	//修改一组用户的私有 权限（用户组）
@@ -128,23 +126,26 @@ public class UserController {
 		System.out.println(list_str);
 		JSONArray array = JSON.parseArray(list_str);
 		List<Permission>permission_list = array.toJavaList(Permission.class);
-		SimpleResponse simpleResponse = userService.updateUsersPermission(user_id,permission_list);
-		return JSON.toJSONString(simpleResponse);
+		List<Permission>ans_list = userService.updateUsersPermission(user_id,permission_list);
+		Map<String, Object>map = new HashMap<>();
+		map.put("permission_list", ans_list);
+		return JSON.toJSONString(map);
 	}
 	
 	//修改用户组的公有权限(用户组)
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/updateGroupPermission.action", method = RequestMethod.POST)
-	public void updateGroupPermission(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		request.setCharacterEncoding("utf-8");
-		response.setCharacterEncoding("utf-8");
+	@ResponseBody
+	public String updateGroupPermission(HttpServletRequest request) throws IOException {
 		System.out.println("接收到修改用户组权限的请求");
 		Integer group_id = new Integer(request.getParameter("group_id"));
 		String list_str = request.getParameter("permission_list");
 		JSONArray array = JSON.parseArray(list_str);
 		List<Permission>list = array.toJavaList(Permission.class);
-		SimpleResponse simpleResponse = userService.updateGroupPermission(list,group_id);
-		response.getWriter().write(JSON.toJSONString(simpleResponse));
+		List<Permission> ans_list = userService.updateGroupPermission(list,group_id);
+		Map<String, Object>map = new HashMap<>();
+		map.put("permission_list", ans_list);
+		return JSON.toJSONString(map);
 	}
 
 	//用户注册，刚注册的时候只有查看控制台的权限
@@ -159,17 +160,21 @@ public class UserController {
 	//将某个用户添加到一个用户组里
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/addGroupUser.action", method = RequestMethod.POST)
-	public void addGroupUser(Integer user_id,Integer group_id,HttpServletResponse response)throws IOException{
-		SimpleResponse simpleResponse = userService.addGroupUser(user_id,group_id);
-		response.getWriter().write(JSON.toJSONString(simpleResponse));
+	@ResponseBody
+	public String addGroupUser(Integer user_id,Integer group_id)throws IOException{
+		System.out.println("将某个用户添加到一个用户组里");
+		System.out.println("user_id="+user_id + "group_id=" + group_id);
+		Map<String, Object>map = userService.addGroupUser(user_id,group_id);//顺便返回一个用户对象
+		return JSON.toJSONString(map);
 	}	
 
 	//将某个用户移出所属用户组里
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/removeGroupUser.action", method = RequestMethod.POST)
-	public void removeGroupUser(Integer user_id,HttpServletResponse response)throws IOException{
+	@ResponseBody
+	public String removeGroupUser(Integer user_id)throws IOException{
 		SimpleResponse simpleResponse = userService.removeGroupUser(user_id);
-		response.getWriter().write(JSON.toJSONString(simpleResponse));
+		return JSON.toJSONString(simpleResponse);
 	}	
 
 	//获取当前用户的最新权限
@@ -188,13 +193,12 @@ public class UserController {
 	@RequestMapping(value = "/getGroupUsers.action", method = RequestMethod.POST)
 	@ResponseBody
 	public String getGroupUsers(Integer group_id,Integer company_id, HttpServletResponse response)throws IOException{
-		System.out.println("获取当前一个用户组的所有用户的请求aaaa");
+		System.out.println("获取当前一个用户组的所有用户的请求");
 		System.out.println("group_id="+group_id + "  company_id=" + company_id);
 		List<User>list = userService.getGroupUser(group_id,company_id);
 		if(list == null) list = new ArrayList<>();
 		Map<String, Object>map = new HashMap<>();
 		map.put("user_list", list);
-		System.out.println("加一行测试");
 		return JSON.toJSONString(map);
 	}	
 
