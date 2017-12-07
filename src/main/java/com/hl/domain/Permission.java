@@ -38,6 +38,7 @@ public class Permission {
 	public void setIs_checked(Integer is_checked) {
 		this.is_checked = is_checked;
 	}
+	
 
 	
 }

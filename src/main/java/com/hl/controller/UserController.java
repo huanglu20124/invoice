@@ -187,10 +187,10 @@ public class UserController {
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/getGroupUsers.action", method = RequestMethod.POST)
 	@ResponseBody
-	public String getGroupUsers(Integer group_id,Integer comapny_id, HttpServletResponse response)throws IOException{
+	public String getGroupUsers(Integer group_id,Integer company_id, HttpServletResponse response)throws IOException{
 		System.out.println("获取当前一个用户组的所有用户的请求aaaa");
-		System.out.println("group_id="+group_id + "  company_id=" + comapny_id);
-		List<User>list = userService.getGroupUser(group_id,comapny_id);
+		System.out.println("group_id="+group_id + "  company_id=" + company_id);
+		List<User>list = userService.getGroupUser(group_id,company_id);
 		if(list == null) list = new ArrayList<>();
 		Map<String, Object>map = new HashMap<>();
 		map.put("user_list", list);
