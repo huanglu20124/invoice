@@ -177,28 +177,34 @@
         				page: 0, //首次请求
         				startTime: star_time,
         				endTime: end_time,
+        				type: $("select[name='type']").val(),
         				keyword: $("#keyword").val() == null ? null : $("#keyword").val()
         			},
         			success: function(res, status) {
         				var data = JSON.parse(res);
-        				$(".select_result").css("display", "block");
+        				// $(".select_result").css("display", "block");
         				//先清空上一次查询的结果
-        				$(".select_result table tbody").html("");
+        				$(".select_result .log_table .table_display_row:nth-child(n+2)").remove();
 
-        				if(res.length == 0) {
+        				if(data.action_list.length == 0 || data.action_list == undefined) {
         					$(".select_result .text_describe").css("display", "block");
+        					$(".select_result .log_table").css("display", "none");
         				}
+
         				else{
-	        				for(var i = 0; i < data.action_list.length; i++) {
-	        					console.log(data.action_list[i]);
-	        					var temp_data = data.action_list[i];
-								// var data = res[i];
-								$(".select_result table tbody").append("<tr><td>"+temp_data.user_name+"</td><td>"+temp_data.company_name+"</td><td>"+temp_data.msg_id+"</td><td>"+temp_data.action_time+"</td><td>"+temp_data.action_run_time+"</td><td>"+temp_data.action_end_time+"</td></tr>");
-	        				}	
+        					$(".select_result .text_describe").css("display", "none");
+        					$(".select_result .log_table").css("display", "table");
+
+            				for(var i = 0; i < data.action_list.length; i++) {
+            					// console.log(data.action_list[i]);
+            					var temp_data = data.action_list[i];
+    							// var data = res[i];
+    							$(".select_result .log_table").append("<div class=\"table_display_row\"><div class=\"table_display_td\">"+temp_data.user_name+"</div><div class=\"table_display_td\">"+temp_data.company_name+"</div><div class=\"table_display_td\">"+temp_data.description+"</div><div class=\"table_display_td\">"+temp_data.action_time+"</div><div class=\"table_display_td\">"+temp_data.user_ip+"</div></div>");
+            				}	
         				}
         			},
         			error: function() {
-        				$(".select_result").css("display", "block");
+        				$(".select_result .log_table").css("display", "none");
         				$(".select_result .text_describe").css("display", "block");
         			}
         		})
