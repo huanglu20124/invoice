@@ -21,7 +21,7 @@
 		<jsp:include page="aside_menu.jsp" flush="true" />
 		<div class="main_content">
             <div class="main_content_hd flex flex-align-end">
-                <span class="flex-1">监控显示</span>
+                <span class="flex-1">算法过程可视化</span>
             </div>
 			<div style="display: inline-block; width: 64%; vertical-align: top; margin-right: 2%;">
 				<div class="panel panel-default">
@@ -30,9 +30,9 @@
 				    </div>
 				    <div class="panel-body" style="padding: 0px;">
 						<div style="width: 100%; height:auto; overflow: hidden; border-radius: 4px; position: relative;" id="canvas_panel_body">
-							<canvas style="background-color: transparent; background-size: cover; position:relative; z-index: 2;" id="show_fapiao"></canvas>
+							<canvas style="background-color: transparent; background-size: contain; position:relative; z-index: 2;" id="show_fapiao"></canvas>
 							<!-- 用于备份图片的画布 -->
-							<canvas id="copy_fapiao" style="z-index: 1; position: absolute; background: url('pic/shibie_placehold.png') no-repeat center; background-size: cover;"></canvas>
+							<canvas id="copy_fapiao" style="z-index: 1; position: absolute; background: url('pic/shibie_placehold.png') no-repeat center; background-size: contain;"></canvas>
 						</div>
 				    </div>
 				</div>
@@ -166,6 +166,7 @@
 
             // 判断权限
             justifyUserGrant(user_json);
+            justifyRW(user_json);
 
         	initCanvasPhoto();
         

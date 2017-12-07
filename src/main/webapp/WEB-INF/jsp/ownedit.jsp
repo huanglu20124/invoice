@@ -34,7 +34,7 @@
 						<div class="table_display_row">
 							<span class="table_display_td">账户名称</span>
 							<span class="table_display_td user_name">Eric Wong</span>
-							<span class="table_display_td text_right edit"><a>修改</a></span>
+							<span class="table_display_td text_right edit" data-write="true"><a>修改</a></span>
 						</div>
 						<div class="table_display_row">
 							<span class="table_display_td">账户id</span>
@@ -56,20 +56,36 @@
 					<div style="overflow-x: auto;">
 						<div class="table_display_container edit_grant_table">
 							<div class="table_display_row">
-								<div class="table_display_th">修改模板</div>
-								<div class="table_display_th">增加模板</div>
-								<div class="table_display_th">查询模板</div>
-								<div class="table_display_th">删除模板</div>
-								<div class="table_display_th">监控识别</div>
-								<div class="table_display_th">日志查询</div>
-								<div class="table_display_th">缓冲队列查询</div>
-								<div class="table_display_th">错误发票查询</div>
-								<div class="table_display_th">增加用户</div>
-								<div class="table_display_th">编辑用户</div>
-								<div class="table_display_th">查询用户</div>
-								<div class="table_display_th">删除用户</div>
+								<div class="table_display_th" grant_type="queue-r">缓冲队列·读</div>
+								<div class="table_display_th" grant_type="queue-rw">缓冲队列·写</div>
+								<div class="table_display_th" grant_type="console-r">算法可视·读</div>
+								<div class="table_display_th" grant_type="console-rw">算法可视·写</div>
+								<div class="table_display_th" grant_type="model-r">发票模板·读</div>
+								<div class="table_display_th" grant_type="model-rw">发票模板·写</div>
+								<div class="table_display_th" grant_type="fault-r">错误模板·读</div>
+								<div class="table_display_th" grant_type="fault-rw">错误模板·写</div>
+								<div class="table_display_th" grant_type="user-r">用户权限·读</div>
+								<div class="table_display_th" grant_type="user-rw">用户权限·写</div>
+								<div class="table_display_th" grant_type="group-r">用户组管理·读</div>
+								<div class="table_display_th" grant_type="group-rw">用户组管理·写</div>
+								<div class="table_display_th" grant_type="company-r">单位管理·读</div>
+								<div class="table_display_th" grant_type="company-rw">单位管理·写</div>
 							</div>
 							<div class="table_display_row">
+								<div class="table_display_td" grant_type="queue-r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" grant_type="queue-rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" grant_type="console-r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" grant_type="console-rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" grant_type="model-r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" grant_type="model-rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" grant_type="fault-r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" grant_type="fault-rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" grant_type="user-r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" grant_type="user-rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" grant_type="group-r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" grant_type="group-rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" grant_type="company-r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" grant_type="company-rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
 						</div>
 					</div>
@@ -120,14 +136,9 @@
 			//显示权限信息
 
 			//添加权限选取框
-			for(var j = 1; j <= 14; j++) {
-				if(j == 5) {
-					j ++;
-					continue;
-				}
-				$(".edit_grant_table .table_display_row:last-child").append("<div class=\"table_display_td\"><i class=\"fa fa-square-o\" aria-hidden=\"true\"></i></div>");
-				// console.log(user_json.permissions);
-				grantSwitch($(".edit_grant_table .table_display_row:last-child .table_display_td:last-child"), user_json.permissions, j);
+			for(var i = 0; i < user_json.permissions.length; i++) {
+				$(".edit_grant_table .table_display_td[grant_type='" + user_json.permissions[i].permission_name + "']").children().removeClass("fa-square-o");
+				$(".edit_grant_table .table_display_td[grant_type='" + user_json.permissions[i].permission_name + "']").children().addClass("fa-check-square-o");
 			}
 		}
 
@@ -135,6 +146,7 @@
         	// console.log(document.documentElement.clientHeight);
         	// 判断权限
         	justifyUserGrant(user_json);
+        	justifyRW(user_json);
         	displayUserJson();
         	// 绑定模态框及调整垂直居中
         	showEditModal();

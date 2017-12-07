@@ -107,9 +107,9 @@
         $(document).ready(function(){
         	// 判断权限
         	justifyUserGrant(user_json);
+        	justifyRW(user_json);
 
         	// console.log(document.documentElement.clientHeight);
-        	$("#showWaiting").css("marginTop", document.documentElement.clientHeight*0.08 + "px");
         	var img_width = parseFloat($("#img_info").width());
         	$("#img_info").css("height", img_info*invoice_height/invoice_width);
 

@@ -15,7 +15,7 @@
             </a>
             <a href=""  class="aside_nav_list-item nav_disabled" data-permission="console">
                 <i class="fa fa-television aside_nav_list-item-icon"></i>
-                <span>监控显示</span>
+                <span>算法可视</span>
             </a>
             <a href="" class="aside_nav_list-item nav_disabled" data-permission="model">
                 <i class="fa fa-clipboard aside_nav_list-item-icon"></i>
@@ -34,6 +34,10 @@
             <a href="" class="aside_nav_list-item nav_disabled" data-permission="user">
                 <i class="fa fa-user-o aside_nav_list-item-icon" aria-hidden="true"></i>
                 <span>用户管理</span>
+            </a>
+            <a href="${pageContext.request.contextPath}/company.action" class="aside_nav_list-item" data-permission="company">
+                <i class="fa fa-university aside_nav_list-item-icon" aria-hidden="true"></i>
+                <span>单位管理</span>
             </a>
             <a href="${pageContext.request.contextPath}/ownedit.action" class="aside_nav_list-item" data-permission="ownedit">
                 <i class="fa fa-cog aside_nav_list-item-icon" aria-hidden="true"></i>

@@ -71,7 +71,7 @@
 					<input type="file" name="origin_img" id="inputImageFile" />
 					<!-- <p class="help-block">点击提交后可在原图上制作模板</p> -->
 				</div>
-				<button type="submit" class="btn btn-default" onclick="addImageSubmit()">提交图片并制作新的模板</button>
+				<button type="submit" class="btn btn-default" onclick="addImageSubmit()" data-write="true">提交图片并制作新的模板</button>
 				<button type="button" class="btn btn-danger" onclick="deleteAllMuban()" style="display: none;">清空模板库</button>
 			</form>
 		</div>
@@ -79,7 +79,7 @@
 	<!-- 模态框（Modal） -->
 	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style=" padding-left: 0px; margin: 0px auto;">
 	    <div>
-	        <div class="modal-content">
+	        <div class="modal-content" style="overflow: auto; width: 100%;">
 	            <div class="modal-header">
 	                <button type="button" class="close" data-dismiss="modal" aria-hidden="true" id="close_modal">&times;</button>
 	                <h4 class="modal-title" id="myModalLabel" style="display: inline-block; vertical-align: middle; width: auto; margin-right: 10px;">操作图片</h4>
@@ -94,7 +94,7 @@
 						<canvas id="myCanvas"></canvas>
 					</div>
 					<div style="width: 200px; display: inline-block; vertical-align: top; padding: 20px 0px 0px 20px;">
-						<button type="button" class="btn btn-primary" style="width: 100%;" id="getEdit">启用编辑</button>
+						<button type="button" class="btn btn-primary" style="width: 100%;" id="getEdit" data-write="true">启用编辑</button>
 						<form role="form" id="global_setting" style="margin-top: 20px;">
 						  <div class="form-group">
 						    <label for="biaoqian" class="control-label">发票类型</label>
@@ -167,7 +167,7 @@
 	        </div><!-- /.modal-content -->
 	    </div><!-- /.modal -->
 	</div>
-	<div class="modal fade" id="progressModal" tabindex="-1" aria-hidden="true" style="margin: 0px auto; margin-top: 200px; width: 33%;">
+	<div class="modal fade" id="progressModal" tabindex="-1" aria-hidden="true" style="margin: 0px auto; width: 33%;">
 		<div>
 	        <div class="modal-content">
 	        	<div class="modal-header">
@@ -418,6 +418,14 @@
 
 		//提交新增图片按钮 
 		function addImageSubmit() {
+			// var file = $("#inputImageFile").val();
+			console.log($("#inputImageFile").val());
+			// var temp_img = new Image();
+			// temp_img.onload = function() {
+			// 	console.log(temp_img.width + " " + temp_img.height);
+			// }
+			// temp_img.src = $("#inputImageFile").val();
+			
 			$("#myCanvas").css("backgroundImage","url(\'\')");
 			$("#myModalLabel").text("正在上传图片...");
 			$("#myModalLabel_progress ").css("display", "inline-block");
@@ -523,7 +531,7 @@
 		//添加模板图片至模板库
 		function addImgMuban(url, json_model, id, model_register_time, image_size, model_label) { 
 
-			console.log(url);
+			// console.log(url);
 			//放入model_array
 			var model_object = {
 				model_url : url,
@@ -555,6 +563,7 @@
 			$(".thumbnail_muban").append("<div><img /><p>1</p></div>");
 			$(".thumbnail_muban div:last-child").addClass("ku_img_container");	
 			$(".thumbnail_muban div:last-child p").addClass("ku_img_id");
+			console.log(model_array_object.model_label);
 			$(".thumbnail_muban div:last-child p").text(model_array_object.model_label);
 			$(".thumbnail_muban div:last-child img").get(0).src = model_array_object.model_url;
 			$(".thumbnail_muban div:last-child img").get(0).model_url = model_array_object.model_url;
@@ -736,19 +745,40 @@
 			}
 		}
 
+		//初始化画布模态框
+		var myModal_real_height = 843; //mymodal的滚动高度
+
+		function initCanvasModal() {
+			var model_width = parseInt(invoice_width) + 240;
+			//初始化模态框的长宽
+			if(model_width > document.documentElement.clientWidth) {
+				$("#myModal").css("width", document.documentElement.clientHeight+"px");
+			} else {
+				$("#myModal").css("width", model_width + "px");
+			}
+			if(myModal_real_height > document.documentElement.clientHeight) {
+				$("#myModal .modal-content").css("height", document.documentElement.clientHeight+"px");
+			} else {
+				$("#myModal .modal-content").css("height", myModal_real_height+"px");	
+			}
+			
+			// $("#myModal").css("height", model_height + "px");
+			$("#canvas_container").css("width", invoice_width+"px");
+			$("#canvas_container").css("height", invoice_height+"px");
+			$("#myCanvas").get(0).height = invoice_height;
+			$("#myCanvas").get(0).width = invoice_width;
+		}
+
 		$(document).ready(function() {
 			// loadxml("config.xml");
 			// connectEndpoint();
 			// WebsocketJustify();
 			// 判断权限
         	justifyUserGrant(user_json);
+        	justifyRW(user_json);
 
 			//初始化canvas
-			var model_width = parseInt(invoice_width) + 240;
-			$("#myModal").css("width", model_width + "px");
-			$("#canvas_container").css("width", invoice_width+"px");
-			$("#myCanvas").get(0).height = invoice_height;
-			$("#myCanvas").get(0).width = invoice_width;
+			initCanvasModal();			
 
 			//ajaxForm配置添加图片按钮
 
@@ -1158,12 +1188,12 @@
 									detail: detail_,
 									invoice_id: invoice_id_
 						 		}),
-						 		model_id: temp_click_jq_img == undefined ? -1 : temp_click_jq_img.get(0).model_id,
+						 		model_id: muban_type == 0 ? null : temp_click_jq_img.get(0).model_id,
 						 		company_id: 1
 							}),
 							img_str: canvas_url,						
 					 		file_name: addImage_filename,			 		
-					 		type: muban_type
+					 		type: muban_type //
 					 	},
 						success: function(res, status) {
 							tellConsole(res, 3);
@@ -1199,8 +1229,6 @@
 				$("#progressModal h4").text("正在添加/修改...");
     			$("#progressModal .progress-bar").get(0).style.width = "40%";
 				$("#progressModal").modal('show');
-
-				tellConsole("here", 4);
 			})
 
 			//点击关闭模态窗口
