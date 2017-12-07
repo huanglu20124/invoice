@@ -57,7 +57,7 @@ function handleShow(data) {
             $("#muban").get(0).src = "pic/search_placehold.png";
 
             $("#user_name").text($("#user_name").text().split("：")[0] + "：" + data.user_name);
-            $("#action_start_time").text($("#action_start_time").text().split("：")[0] + "：" + data.action_start_time);
+            $("#action_start_time").text($("#action_start_time").text().split("：")[0] + "：" + data.action_time);
             $("#company_name").text($("#company_name").text().split("：")[0] + "：" + data.company_name);
         
         }
@@ -236,7 +236,7 @@ function connectEndpoint(){
                         var temp_json = $(this).get(0).base_json;
                         tellConsole($(this).get(0).base_json, 3);
                         $("#user_info").text(temp_json.user_name);
-                        $("#time_info").text(temp_json.action_start_time);
+                        $("#time_info").text(temp_json.action_time);
                         $("#img_info").get(0).src = temp_json.url;
                     })
                     num++;
@@ -263,6 +263,7 @@ function connectEndpoint(){
                     $("#progressModal .progress-bar").get(0).style.width = "100%";
                     setTimeout(function(){$("#progressModal").modal('hide');}, 2000);
                     //增加图片至模板库
+                    console.log(data.model_label);
                     addImgMuban(data.url, temp_json_model, data.id, data.model_register_time, data.image_size, data.model_label);
 
                     //模板数相应增加
@@ -561,7 +562,6 @@ function adjustMainContent() {
 function getSelectedPage() {
     var href = window.location.href;
     $(".aside_nav_list-item").each(function() {
-        console.log(href + " " + $(this).data("permission"));
         if(href.indexOf($(this).data("permission")) != -1) {
             $(this).removeClass("nav_disabled");
             $(this).addClass("selected");
@@ -569,7 +569,7 @@ function getSelectedPage() {
     })
 }
 
-//判断用户权限
+//判断用户拥有的权限
 function justifyUserGrant(user_json) {
     $(".own_user_name").text(user_json.user_name);
     var permission_array = user_json.permissions;
@@ -578,6 +578,12 @@ function justifyUserGrant(user_json) {
     $(".aside_nav_list-item").each(function() {
         if($(this).hasClass("nav_disabled")) {
             for(var i = 0; i < permission_array.length; i++) {
+                if(permission_array[i].permission_name.split("-")[0] == "group" && $(this).data("permission") == "user") {
+                    $(this).attr("href", $(this).data("permission")+".action");
+                    $(this).css("cursor", "pointer");
+                    $(this).removeClass("nav_disabled");
+                    continue;
+                }
                 if(permission_array[i].permission_name.split("-")[0] == $(this).data("permission")) {
                     $(this).attr("href", $(this).data("permission")+".action");
                     $(this).css("cursor", "pointer");
@@ -586,6 +592,23 @@ function justifyUserGrant(user_json) {
             }     
         }      
     })  
+}
+
+//判断用户特定的读写权限
+function justifyRW(user_json) {
+    var cur_page_permission = $(".aside_nav_list-item.selected").data("permission");
+
+    //判断一些“写”的权限能否操作
+    if($("[data-write='true']").get(0) != undefined) {
+        var permission_array = user_json.permissions;
+        for(var i = 0; i < permission_array.length; i++) {
+            if(permission_array[i].permission_name.split("-")[0] == cur_page_permission) {
+                if(permission_array[i].permission_name.split("-")[1] == "rw") {
+                    $("[data-write='true']").get(0).disabled = false;
+                }
+            }
+        }    
+    }
 }
 
 //改变勾选图标
@@ -617,9 +640,23 @@ function grantSwitch(table_jq, permissions, j) {
 
 //模态框垂直居中
 function ModalVerticalAlign(modal_jq) {
+    console.log(document.documentElement.clientHeight + " " + modal_jq.offsetHeight);
     if(modal_jq.offsetHeight < document.documentElement.clientHeight) {
         var margin_top = parseFloat((document.documentElement.clientHeight - modal_jq.offsetHeight)/2);
         $(modal_jq).css("marginTop", margin_top);
+    }
+}
+
+//使页面模态框都居中
+function AllModalVerticalAlign() {
+    if($(".modal").get(0) != undefined) {
+        $(".modal").each(function() {
+            $(this).on("show.bs.modal", function() {
+                // console.log("modal_here");
+                $(this).css("display", "table");
+                ModalVerticalAlign($(this).get(0));
+            })
+        })
     }
 }
 
@@ -628,4 +665,8 @@ $(document).ready(function() {
     loadxml("config.xml");
     getSelectedPage();
     connectEndpoint();
+    AllModalVerticalAlign();
+
+    //设置main_content的Min_height
+    $(".main_content").css("minHeight", (document.documentElement.clientHeight-150)+"px");
 })

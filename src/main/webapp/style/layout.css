@@ -81,36 +81,33 @@ header {
 }
 
 main{
-	/*overflow: hidden;*/
+	overflow: hidden;
 	/*padding-top: 20px;*/
 }
 
 
 aside {
 	color: #6a6e76;
-	display: inline-block;
+	float: left;
 	vertical-align: top;
-	width: 15%;
-	/*min-width: 210px;*/
+/*	width: 15%;*/
+	min-width: 220px;
 	margin-top: 20px;
 }
 
 .main_content {
-	display: inline-block;
+	display: block;
 	vertical-align: top;
 	overflow: hidden;
-	width: 84%;
-	padding: 0px 60px;
+	/*padding: 0px 60px;*/
+	padding: 0px;
+	padding-left: 5%;
+	padding-right: 5%;
 	border-left: 1px solid rgba(200, 200, 200, 0.5);
 	margin-top: 20px;
 	margin-bottom: 20px;
 
-	min-height: 600px;
-}
-
-.aside_nav {
-	display: inline-block;
-	width: 15%;
+	/*min-height: 600px;*/
 }
 
 .aside_nav_list {
@@ -135,12 +132,11 @@ aside {
 
 .aside_nav_list-item-icon {
 	font-size: 16px;
-	margin-right: 15%;
+	margin-right: 20px;
 
 	/*使其固定宽度*/
 	display: inline-block;
-	/*width: 25px;*/
-	width: 15%;
+	width: 25px;
 }
 
 .aside_nav_list-item:hover {
@@ -300,7 +296,7 @@ aside {
 /* login.html */
 
 .login_main {
-	width: 25%; 
+	width: 400px; 
 	position: absolute; 
 	top: 50%; 
 	left: 50%;
@@ -547,7 +543,7 @@ aside {
 
 .form_hd {
 	font-size: 16px;
-	width: 10%;
+	width: 100px;
 	display: inline-block;
 }
 
@@ -611,10 +607,6 @@ aside {
 	border-bottom: 1px solid rgba(220, 220, 230, 0.6);
 }
 
-.table_display_td:first-child, .table_display_th:first-child {
-	width: 100px;
-}
-
 .ownedit_table .table_display_td:last-child a{
 	cursor: pointer;
 }
@@ -626,6 +618,14 @@ aside {
 /*.grant_table {
 	overflow-x: scroll;
 }*/
+
+.ownedit_table .table_display_td:first-child, .ownedit_table .table_display_th:first-child {
+	width: 100px;
+}
+
+.user_grant_table .table_display_td:first-child, .user_grant_table .table_display_th:first-child, .users_grant_table .table_display_td:first-child, .users_grant_table .table_display_th:first-child {
+	width: 100px;
+}
 
 .user_grant_table .table_display_td, .user_grant_table .table_display_th, .users_grant_table .table_display_td, .users_grant_table .table_display_th, .edit_grant_table .table_display_td, .edit_grant_table .table_display_th{
 	text-align: center;
@@ -758,8 +758,51 @@ aside {
 .users_member_div i {
 	display: inline-block;
 	position: absolute;
+	opacity: 0;
 	font-size: 20px;
 	top: -10px;
 	left: -10px;
 	color: red;
+}
+
+.users_member_div i:hover {
+	color: #9f0000;
+}
+
+.user_memeber_container .user_member_div:nth-child(3n) {
+	margin-right: 0px;
+}
+
+.deleteAlert {
+	background-color: white;
+	box-shadow: 5px 5px 30px rgba(0, 0, 0, 0.4), -5px -5px 30px rgba(0, 0, 0, 0.4);
+	border-radius: 6px;
+	/*display: none;*/
+	position: absolute;
+	z-index: 1060;
+	top: 20%;
+	left: 50%;
+	width: 350px;
+	margin-left: -175px;
+	overflow: hidden;
+	transition: opacity 0.5s;
+	opacity: 0;
+	/*text-align: center;*/
+}
+
+.deleteAlert .alertHd {
+	padding: 10px 15px;
+	font-size: 14px;
+	line-height: 2em;
+	border-bottom: 1px solid rgba(200, 200, 200, 0.5);
+	margin-bottom: 15px;
+	overflow: hidden;
+}
+
+.deleteAlert button {
+	display: inline-block;
+	float: right;
+	width: 50px;
+	margin-right: 10px;
+	margin-bottom: 15px;
 }

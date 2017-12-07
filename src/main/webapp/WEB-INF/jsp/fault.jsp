@@ -296,7 +296,8 @@
 
         	// 判断权限
         	justifyUserGrant(user_json);
-        	
+        	justifyRW(user_json);
+
         	getFaultInvoice(0);
         	//connectEndpoint();
         	//ws.send("success");
