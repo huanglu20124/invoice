@@ -4,17 +4,24 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+import javax.annotation.Resource;
+
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 
 import com.alibaba.fastjson.JSON;
 import com.hl.dao.UserDao;
+import com.hl.domain.Company;
 import com.hl.domain.Group;
+import com.hl.domain.LocalConfig;
 import com.hl.domain.Permission;
 import com.hl.domain.User;
 import com.hl.util.Const;
 
 public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
+	
+	@Resource(name = "localConfig")
+	private LocalConfig localConfig;
 	
 	class UserRowmapper implements RowMapper<User>{
 		@Override
@@ -212,19 +219,13 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 
 	@Override
 	public List<User> getGroupUser(Integer group_id, Integer company_id) {
-		String sql = "select a.*,b.company_name from user a, company b where a.group_id=? and a.company_id=?"
-				+ " and  a.company_id=b.company_id";
+		String sql = "select a.*,b.company_name from user a, company b, user_group_relation c "
+				+ "where c.group_id=? and a.company_id=?"
+				+ " and  a.company_id=b.company_id"
+				+ " and c.user_id=a.user_id";
 		return getJdbcTemplate().query(sql, new UserRowmapper(),group_id,company_id);
 	}
 
-	
-	@Override
-	public Integer getUserGroupId(Integer user_id) {
-		String sql = "select group_id from user where user_id=?";
-		return getJdbcTemplate().queryForObject(sql, Integer.class,user_id);
-	}
-
-	
 	@Override
 	public List<Group> getUserGroups(Integer user_id) {
 		String sql = "select a.*, c.company_name "
@@ -234,5 +235,33 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 		return getJdbcTemplate().query(sql, new GroupRowMapper(),user_id);
 	}
 
+	
+	class CompanyRowMapper implements RowMapper<Company>{
+
+		@Override
+		public Company mapRow(ResultSet rs, int rowNum) throws SQLException {
+			Company company = new Company();
+			company.setCompany_id(rs.getInt("company_id"));
+			company.setCompany_description(rs.getString("company_description"));
+		    company.setCompany_logo(localConfig.getIp() + rs.getString("company_logo"));
+		    company.setCompany_name(rs.getString("company_name"));
+		    company.setCompany_register_time(rs.getString("company_register_time"));
+		    company.setCompany_user_num(rs.getInt("company_user_num"));
+		    company.setUser_id(rs.getInt("user_id"));
+		    company.setUser_name(rs.getString("user_name"));
+			return company;
+		}
+		
+	}
+	
+	@Override
+	public Company getUserCompany(Integer user_id) {
+		String sql = "select a.*, b.user_name from company a, user b "
+				+ " where a.company_id=b.company_id and "
+				+ " b.user_id=?"; 
+		return getJdbcTemplate().queryForObject(sql, new CompanyRowMapper(),user_id);
+	}
+	
+ 
 	
 }
