@@ -172,8 +172,8 @@ public class UserController {
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/removeGroupUser.action", method = RequestMethod.POST)
 	@ResponseBody
-	public String removeGroupUser(Integer user_id)throws IOException{
-		SimpleResponse simpleResponse = userService.removeGroupUser(user_id);
+	public String removeGroupUser(Integer user_id,Integer group_id)throws IOException{
+		SimpleResponse simpleResponse = userService.removeGroupUser(user_id,group_id);
 		return JSON.toJSONString(simpleResponse);
 	}	
 
@@ -182,7 +182,7 @@ public class UserController {
 	@RequestMapping(value = "/getUserPermission.action", method = RequestMethod.POST)
 	@ResponseBody
 	public String getUserPermission(Integer user_id,HttpServletResponse response)throws IOException{
-		List<Permission>permissions = userService.getUserPermission(user_id);
+		List<Permission>permissions = userService.getAllPermission(user_id);
 		Map<String, Object>map = new HashMap<>();
 		map.put("permission_list", permissions);
 		return JSON.toJSONString(map);

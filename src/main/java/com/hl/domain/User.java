@@ -12,16 +12,15 @@ public class User {
 	private String user_register_time;//用户注册时间
 	private String salt;     //盐（密码加密用的）
 	private Integer locked;  //是否被上锁
-	private Integer group_id;//用户组编号
+	private List<Group> groups;//用户组
 	private List<Permission>permissions;//权限数组
 	
-	public Integer getGroup_id() {
-		return group_id;
+	public List<Group> getGroups() {
+		return groups;
 	}
-	public void setGroup_id(Integer group_id) {
-		this.group_id = group_id;
+	public void setGroups(List<Group> groups) {
+		this.groups = groups;
 	}
-	
 	public Integer getCompany_id() {
 		return company_id;
 	}

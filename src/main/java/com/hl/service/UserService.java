@@ -22,10 +22,9 @@ public interface UserService {
 
 	Map<String, Object> addGroupUser(Integer user_id, Integer group_id);
 
-	SimpleResponse removeGroupUser(Integer user_id);
-
-	List<Permission> getUserPermission(Integer user_id);
+	SimpleResponse removeGroupUser(Integer user_id,Integer group_id);
 
 	List<User> getGroupUser(Integer group_id,Integer company_id);
+	public List<Permission> getAllPermission(Integer user_id);
 
 }

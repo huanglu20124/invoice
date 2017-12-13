@@ -1,9 +1,13 @@
 package com.hl.domain;
+
+import java.util.List;
+
 public class Permission {
 	private Integer permission_id; //权限id
 	private String  permission_name;//权限名称
 	private Integer isPrivate; //0位公有，1为私有
 	private Integer is_checked;//前端送过来的，是否打钩
+	private List<String>origin_groups;//如果该权限是公有的，还要记录它来自的用户组名字
 	
 	public Integer getPermission_id() {
 		return permission_id;
@@ -38,7 +42,10 @@ public class Permission {
 	public void setIs_checked(Integer is_checked) {
 		this.is_checked = is_checked;
 	}
-	
-
-	
+	public List<String> getOrigin_groups() {
+		return origin_groups;
+	}
+	public void setOrigin_groups(List<String> origin_groups) {
+		this.origin_groups = origin_groups;
+	}
 }

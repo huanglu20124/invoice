@@ -24,11 +24,15 @@ import com.alibaba.fastjson.JSON;
 import com.hl.dao.UserDao;
 import com.hl.domain.Permission;
 import com.hl.domain.User;
+import com.hl.service.UserService;
 
 public class UserRealm extends AuthorizingRealm {
 
 	@Resource(name = "userDao")
 	private UserDao userDao;
+	
+	@Resource(name = "userService")
+	private UserService userService;
 	
 	@Override
 	protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
@@ -36,10 +40,8 @@ public class UserRealm extends AuthorizingRealm {
 		//从 principals获取主身份信息
 		User user = (User) principals.getPrimaryPrincipal();
 		//根据身份信息获取用户权限信息
-		Set<Permission>permissions = new HashSet<>();
-		//取交集
-		permissions.addAll(userDao.getUserPermission(user.getUser_id()));
-		permissions.addAll(userDao.getGroupPermission(user.getGroup_id()));
+		List<Permission>permissions = user.getPermissions();
+		if(permissions == null) permissions = userService.getAllPermission(user.getUser_id());
 		//放到下面的数组中
 		List<String>permission_strs = new ArrayList<>();
 		Iterator<Permission>iterator = permissions.iterator();
@@ -75,11 +77,11 @@ public class UserRealm extends AuthorizingRealm {
 		String salt = user.getSalt();
 		//权限集合
 		//根据身份信息获取用户权限信息
-		List<Permission>list = new ArrayList<>();
-		//取交集
-		list.addAll(userDao.getUserPermission(user.getUser_id()));
-		list.addAll(userDao.getGroupPermission(user.getGroup_id()));
+		List<Permission>list = userService.getAllPermission(user.getUser_id());
 		user.setPermissions(list);
+		//设置用户组集合
+		user.setGroups(userDao.getUserGroups(user.getUser_id()));
+		
 		//将User设置simpleAuthenticationInfo
 		SimpleAuthenticationInfo authenticationInfo = new SimpleAuthenticationInfo(user, password,ByteSource.Util.bytes(salt), this.getName());
 		System.out.println("UserRealm认证结束");
