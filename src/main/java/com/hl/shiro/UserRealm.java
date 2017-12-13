@@ -77,11 +77,14 @@ public class UserRealm extends AuthorizingRealm {
 		String salt = user.getSalt();
 		//权限集合
 		//根据身份信息获取用户权限信息
-		List<Permission>list = userService.getAllPermission(user.getUser_id());
-		user.setPermissions(list);
-		//设置用户组集合
-		user.setGroups(userDao.getUserGroups(user.getUser_id()));
-		
+		try {
+			List<Permission>list = userService.getAllPermission(user.getUser_id());
+			user.setPermissions(list);
+			//设置用户组集合
+			user.setGroups(userDao.getUserGroups(user.getUser_id()));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}	
 		//将User设置simpleAuthenticationInfo
 		SimpleAuthenticationInfo authenticationInfo = new SimpleAuthenticationInfo(user, password,ByteSource.Util.bytes(salt), this.getName());
 		System.out.println("UserRealm认证结束");
