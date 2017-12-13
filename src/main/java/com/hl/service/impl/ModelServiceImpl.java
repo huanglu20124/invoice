@@ -127,6 +127,7 @@ public class ModelServiceImpl implements ModelService{
 		action.setUser_ip(user_ip);
 		action.setModel_id(model_id);
 		Integer action_id = actionDao.addAction(action);
+		action.setAction_id(action_id);
 		redisDao.leftPush(Const.MANAGE_WAIT, action_id.toString());// 加入到操作队列
 		// key为action_id，value为图片url以及msg_id=2,还有json_model
 		redisDao.addKey(action_id.toString(), JSON.toJSONString(action));
@@ -264,7 +265,7 @@ public class ModelServiceImpl implements ModelService{
 		//actionDao.solrAddUpdateAction(modelAction);
 		
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
-		// 处理增加模板的结果
+		// 处理删除模板的结果
 		try {
 			ResponseMessage message = MessageUtil.getMessage(inputStream);
 			String json_str = message.getJson_str();

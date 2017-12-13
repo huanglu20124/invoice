@@ -54,7 +54,6 @@ public class ActionServiceImpl implements ActionService{
 		default:
 			break;
 		}
-		
 		return actionQuery;
 	}
 

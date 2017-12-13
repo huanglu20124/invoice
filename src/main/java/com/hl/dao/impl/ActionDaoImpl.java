@@ -234,7 +234,8 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 			//查询总页数
 			String sql2 = "SELECT FOUND_ROWS();";
 			Integer sum = getJdbcTemplate().queryForObject(sql2, Integer.class);
-			query.setPage_sum(sum);
+			Integer page_sum = sum/20 +1;
+			query.setPage_sum(page_sum);
 		}
 		return query;
 	}
@@ -268,7 +269,8 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 			//查询总页数
 			String sql2 = "SELECT FOUND_ROWS();";
 			Integer sum = getJdbcTemplate().queryForObject(sql2, Integer.class);
-			query.setPage_sum(sum);
+			Integer page_sum = sum/20 +1;
+			query.setPage_sum(page_sum);
 		}
 		return query;
 	}
@@ -302,7 +304,8 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 			//查询总页数
 			String sql2 = "SELECT FOUND_ROWS();";
 			Integer sum = getJdbcTemplate().queryForObject(sql2, Integer.class);
-			query.setPage_sum(sum);
+			Integer page_sum = sum/20 +1;
+			query.setPage_sum(page_sum);
 		}
 		return query;
 	}
@@ -336,7 +339,8 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 			//查询总页数
 			String sql2 = "SELECT FOUND_ROWS();";
 			Integer sum = getJdbcTemplate().queryForObject(sql2, Integer.class);
-			query.setPage_sum(sum);
+			Integer page_sum = sum/20 +1;
+			query.setPage_sum(page_sum);
 		}
 		return query;
 	}

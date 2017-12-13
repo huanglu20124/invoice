@@ -116,7 +116,6 @@ public class UserServiceImpl implements UserService{
 	@Override
 	public List<Permission> updateGroupPermission(List<Permission> list, Integer group_id) {
 		System.out.println("group_id" + group_id);
-		List<Permission>ans_list = new ArrayList<>();
 		for(Permission permission : list){
 			System.out.println(permission.getPermission_name());
 			System.out.println("isChecked" + permission.getIs_checked());
@@ -124,16 +123,17 @@ public class UserServiceImpl implements UserService{
 				if(permission.getIs_checked() == 0){
 					System.out.println("删除权限");
 					userDao.deleteGroupPermission(group_id, permission.getPermission_name());
-				}else{
-					ans_list.add(permission);
 				}
 			}else {
 				if(permission.getIs_checked() == 1){
 					System.out.println("增加权限");
 					userDao.addGroupPermission(group_id, permission.getPermission_name());
-					ans_list.add(permission);
 				}
 			}
+		}
+		List<Permission>ans_list = userDao.getGroupPermission(group_id);
+		for(Permission permission : ans_list){
+			permission.setIsPrivate(0);
 		}
 		return ans_list;
 	}

@@ -37,19 +37,22 @@ public class ActionController {
 	@ResponseBody
 	public String getTwentyAction(Integer page,String startTime,String endTime,String keyword,Integer type) throws IOException{
 		System.out.println("接收到查询操作日志的请求");
-		System.out.println(page + "  " + startTime + "  " + endTime + "   " + keyword + "。");
+		System.out.println(" page=" +page + " startTime=" + startTime + " endTime=" + endTime + " keyword=" + keyword + " type=" + type);
 		ActionQuery actionQuery = null;
-		if(startTime == null && endTime == null && keyword == null){
+		if((startTime == null || startTime.equals("")) && (endTime == null || endTime.equals("")) 
+				&& (keyword == null || keyword.equals(""))){
 			//初始化加载,只输入页数
 			actionQuery = actionService.getTwentyActionInit(page);
 		}
 			
-		if(keyword == null && startTime != null && endTime != null){
+		if((keyword == null || keyword.equals("")) && 
+				startTime != null && endTime != null
+				&& (!startTime.equals("")) && (!endTime.equals(""))){
 			//只输入时间
 			actionQuery = actionService.getTwentyActionByTime(page,startTime,endTime);
 		}
 		
-        if(keyword != null){
+        if(keyword != null && !keyword.equals("")){
         	//输入关键字，包括了输入和没输入时间的情况
 			actionQuery = actionService.getTwentyActionByKeyword(page,startTime,endTime,keyword,type);
 		}
