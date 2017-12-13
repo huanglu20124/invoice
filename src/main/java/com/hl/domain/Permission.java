@@ -1,7 +1,7 @@
 package com.hl.domain;
 
 import java.util.List;
-
+ 
 public class Permission {
 	private Integer permission_id; //权限id
 	private String  permission_name;//权限名称

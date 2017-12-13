@@ -31,6 +31,7 @@ public class InvoiceExceptionResolver implements HandlerExceptionResolver {
 		} else {
 			// 针对非CustomException异常，对这类重新构造成一个CustomException，异常信息为“未知错误”
 			invoiceException = new InvoiceException("未知错误\r\n" + ex.getMessage());
+			ex.printStackTrace();
 		}
 		// 错误 信息
 		message = invoiceException.getMessage();
