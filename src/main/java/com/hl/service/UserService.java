@@ -3,6 +3,7 @@ package com.hl.service;
 import java.util.List;
 import java.util.Map;
 
+import com.hl.domain.Company;
 import com.hl.domain.Group;
 import com.hl.domain.Permission;
 import com.hl.domain.SimpleResponse;
@@ -26,5 +27,7 @@ public interface UserService {
 
 	List<User> getGroupUser(Integer group_id,Integer company_id);
 	public List<Permission> getAllPermission(Integer user_id);
+
+	Company getCompany(Integer user_id);
 
 }

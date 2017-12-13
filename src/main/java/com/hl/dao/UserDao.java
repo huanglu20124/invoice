@@ -3,6 +3,7 @@ package com.hl.dao;
 import java.util.Collection;
 import java.util.List;
 
+import com.hl.domain.Company;
 import com.hl.domain.Group;
 import com.hl.domain.Permission;
 import com.hl.domain.User;
@@ -45,9 +46,9 @@ public interface UserDao {
 
 	List<User> getGroupUser(Integer group_id, Integer comapny_id);
 
-	Integer getUserGroupId(Integer user_id);
-
 	List<Group> getUserGroups(Integer user_id);
+
+	Company getUserCompany(Integer user_id);
 
 
 }

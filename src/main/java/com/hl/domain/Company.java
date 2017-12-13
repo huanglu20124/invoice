@@ -7,6 +7,9 @@ public class Company {
 	private String company_description;
 	private Integer company_user_num;
 	private String company_logo;
+	private Integer user_id;//负责人id
+	private String user_name;//负责人名字
+	
 	
 	public Integer getCompany_id() {
 		return company_id;
@@ -43,6 +46,18 @@ public class Company {
 	}
 	public void setCompany_logo(String company_logo) {
 		this.company_logo = company_logo;
+	}
+	public Integer getUser_id() {
+		return user_id;
+	}
+	public void setUser_id(Integer user_id) {
+		this.user_id = user_id;
+	}
+	public String getUser_name() {
+		return user_name;
+	}
+	public void setUser_name(String user_name) {
+		this.user_name = user_name;
 	}
 	
 	

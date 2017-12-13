@@ -12,6 +12,7 @@ import javax.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import com.hl.dao.UserDao;
+import com.hl.domain.Company;
 import com.hl.domain.Group;
 import com.hl.domain.Permission;
 import com.hl.domain.SimpleResponse;
@@ -170,13 +171,9 @@ public class UserServiceImpl implements UserService{
 		Map<String, Object>map = new HashMap<>();
 		//先检查一下
 		try {
-			if(userDao.getUserGroupId(user_id) != null){
-				map.put("err", "该用户已存在另外一个用户组中");
-			}else {
 				userDao.addGroupUser(user_id,group_id);
 				User user = userDao.getUserById(user_id);
 				map.put("user", user);
-			}
 		} catch (Exception e) {
 			map.put("err","添加到用户组失败");
 			e.printStackTrace();
@@ -208,6 +205,12 @@ public class UserServiceImpl implements UserService{
 			user.setGroups(userDao.getUserGroups(user.getUser_id()));
 		}
 		return user_list;
+	}
+
+	
+	@Override
+	public Company getCompany(Integer user_id) {
+		return userDao.getUserCompany(user_id);
 	}
 
 
