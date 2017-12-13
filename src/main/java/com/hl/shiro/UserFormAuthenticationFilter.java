@@ -20,7 +20,6 @@ public class UserFormAuthenticationFilter extends FormAuthenticationFilter {
 	protected boolean onAccessDenied(ServletRequest request,
 			ServletResponse response) throws Exception {
 		System.out.println("登录成功");
-		
 		return super.onAccessDenied(request, response);
 	}
 	

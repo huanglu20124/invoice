@@ -28,7 +28,6 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 			user.setSalt(rs.getString(Const.SALT));
 			user.setLocked(rs.getInt(Const.LOCKED));
 			user.setCompany_name(rs.getString(Const.COMPANY_NAME));
-			user.setGroup_id(rs.getInt("group_id"));
 			return user;
 		}		
 	}
@@ -73,7 +72,6 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 				+ " where a.company_id=b.company_id and b.user_id=?";
 		return getJdbcTemplate().queryForObject(sql, String.class,user_id);
 	}
-
 	
 	@Override
 	public User getUserById(Integer user_id) {
@@ -99,7 +97,6 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 		}
 		return null;
 	}
-
 	
 	@Override
 	public List<Permission> getUserPermission(Integer user_id) {
@@ -201,17 +198,16 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 		getJdbcTemplate().update(sql,group_id,permission_name);
 	}
 
-	
 	@Override
 	public int addGroupUser(Integer user_id, Integer group_id) {
-		String sql = "update user set group_id=? where user_id=?";
-		return getJdbcTemplate().update(sql,group_id,user_id);
+		String sql = "insert into user set values(?,?);";
+		return getJdbcTemplate().update(sql,user_id,group_id);
 	}
 
 	@Override
-	public void removeGroupUser(Integer user_id) {
-		String sql = "update user set group_id=null where user_id=?";
-		getJdbcTemplate().update(sql,user_id);	
+	public void removeGroupUser(Integer user_id,Integer group_id) {
+		String sql = "delete user_group_relation where group_id=? and user_id=?";
+		getJdbcTemplate().update(sql,group_id,user_id);	
 	}
 
 	@Override
@@ -226,6 +222,15 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 	public Integer getUserGroupId(Integer user_id) {
 		String sql = "select group_id from user where user_id=?";
 		return getJdbcTemplate().queryForObject(sql, Integer.class,user_id);
+	}
+
+	
+	@Override
+	public List<Group> getUserGroups(Integer user_id) {
+		String sql = "select a.*"
+				+ " from user_group a, user_group_relation b"
+				+ " where a.group_id=b.group_id and b.user_id=?";
+		return getJdbcTemplate().query(sql, new GroupRowMapper(),user_id);
 	}
 
 	

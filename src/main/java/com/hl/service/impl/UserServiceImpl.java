@@ -1,7 +1,5 @@
 package com.hl.service.impl;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,8 +9,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Resource;
-
-import org.apache.hadoop.mapred.machines_jsp;
 import org.springframework.stereotype.Service;
 
 import com.hl.dao.UserDao;
@@ -50,7 +46,9 @@ public class UserServiceImpl implements UserService{
 		}
 		//添加用户权限
 		for(User user : list){
-			user.setPermissions(getUserPermission(user));
+			user.setPermissions(getAllPermission(user.getUser_id()));
+			//设置用户组集合
+			user.setGroups(userDao.getUserGroups(user.getUser_id()));
 		}
 		return list;
 	}
@@ -79,15 +77,43 @@ public class UserServiceImpl implements UserService{
 	}
 		
 	//获得用户全部权限公有加上私有的
-	public List<Permission> getUserPermission(User user){
-		List<Permission>private_permissions = userDao.getUserPermission(user.getUser_id());
+	@Override
+	public List<Permission> getAllPermission(Integer user_id){
+		List<Permission>private_permissions = userDao.getUserPermission(user_id);
 		for(Permission permission : private_permissions){
 			permission.setIsPrivate(1);
 		}
-		List<Permission>public_permissions = userDao.getGroupPermission(user.getGroup_id());
-		for(Permission permission : public_permissions){
-			permission.setIsPrivate(0);
+		//先得到用户的全部所属用户组，然后得到权限，再凑成集合，遍历
+		List<Group>groups = userDao.getUserGroups(user_id);
+		List<List<Permission>>groups_permissions = new ArrayList<>();
+		for(Group group : groups){
+			groups_permissions.add(userDao.getGroupPermission(group.getGroup_id()));
 		}
+		//得到集合,变成数组
+	    Set<Permission>public_permission_set = new HashSet<>();
+	    for(List<Permission>permissions : groups_permissions){
+	    	public_permission_set.addAll(permissions);
+	    }
+	    List<Permission>public_permissions = new ArrayList<Permission>(public_permission_set);
+	    
+		//最后进行记录，一个公有权限的所属用户组
+	    Map<Permission, List<String>>map = new HashMap<>();
+	    for(int i = 0; i < groups_permissions.size(); i++){
+	    	List<Permission> permissions = groups_permissions.get(i);
+	    	for(Permission permission : permissions){
+	    		List<String>list = map.get(permission);
+	    		if(list == null) list = new ArrayList<>();
+	    		  list.add(groups.get(i).getGroup_name());
+	    		map.put(permission, list);
+	    	}
+	    }
+	    //最后    
+		for(Permission permission : public_permissions){
+			List<String>list = map.get(permission);
+			permission.setIsPrivate(0);
+			permission.setOrigin_groups(list);
+		}
+		
 		//相加
 		private_permissions.addAll(public_permissions);
 		return private_permissions;
@@ -160,10 +186,10 @@ public class UserServiceImpl implements UserService{
 
 
 	@Override
-	public SimpleResponse removeGroupUser(Integer user_id) {
+	public SimpleResponse removeGroupUser(Integer user_id,Integer group_id) {
 		SimpleResponse simpleResponse = new SimpleResponse();
 		try {
-			userDao.removeGroupUser(user_id);
+			userDao.removeGroupUser(user_id,group_id);
 			simpleResponse.setSuccess("移出用户组成功");
 		} catch (Exception e) {
 			simpleResponse.setErr("移除用户组失败");
@@ -172,23 +198,14 @@ public class UserServiceImpl implements UserService{
 		return simpleResponse;
 	}
 
-	
-	@Override
-	public List<Permission> getUserPermission(Integer user_id) {
-		User user = userDao.getUserById(user_id);
-		if(user != null){
-			return getUserPermission(user);
-		}else {
-			return new ArrayList<>();
-		}
-	}
-
 	@Override
 	public List<User> getGroupUser(Integer group_id, Integer company_id) {
 		List<User> user_list = userDao.getGroupUser(group_id, company_id);
 		System.out.println("user_list.size()=" + user_list.size());
 		for(User user : user_list){
-			user.setPermissions(getUserPermission(user.getUser_id()));
+			user.setPermissions(getAllPermission(user.getUser_id()));
+			//设置用户组集合
+			user.setGroups(userDao.getUserGroups(user.getUser_id()));
 		}
 		return user_list;
 	}

@@ -84,16 +84,16 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 	
 
 	@Override
-	public List<Action> getTwentyActionByTime(Integer page,String startTime,String endTime) {
+	public List<Action> getTwentyActionByTime(Integer page,String startTime,String endTime,Integer section) {
 		//只根据时间日期,一次获取二十条日志
 		String sql = "select c.*, a.user_name, b.company_name "
 				+ " from user a, company b, action c "
 				+ " where a.user_id=c.user_id and b.company_id=c.company_id "
 				+ " and c.action_time >= ? and c.action_time <= ?"
-				+ " LIMIT ?,20";
-		int begin = page*20;
+				+ " LIMIT ?,?";
+		int begin = page*section;
 		if(startTime != null && endTime != null){
-			return getJdbcTemplate().query(sql, new ActionMapper(),startTime,endTime,begin);
+			return getJdbcTemplate().query(sql, new ActionMapper(),startTime,endTime,begin,section);
 		}else {
 			return null;
 		}
@@ -209,7 +209,8 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 	}
 
 	@Override
-	public ActionQuery getTwentyActionByKeywordIp(String startTime, String endTime, String keyword, Integer page) {
+	public ActionQuery getTwentyActionByKeywordIp(String startTime, String endTime,
+			String keyword, Integer page,Integer section) {
 		String sql1 = null;
 		List<Action>list = null;
 		if(startTime != null && endTime != null){
@@ -218,15 +219,15 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 						+ " where a.user_id=b.user_id and a.company_id=c.company_id "
 						+ " and action_time>=? and action_time<=? "
 						+ " and user_ip=? "
-						+ " LIMIT ?,20";
-			list = getJdbcTemplate().query(sql1, new ActionMapper(),startTime,endTime,keyword,page*20);
+						+ " LIMIT ?,?";
+			list = getJdbcTemplate().query(sql1, new ActionMapper(),startTime,endTime,keyword,page*section,section);
 		}else {
 			 sql1 = "SELECT SQL_CALC_FOUND_ROWS a.*,b.user_name,c.company_name "
 						+ " FROM action a, user b, company c "
 						+ " where a.user_id=b.user_id and a.company_id=c.company_id "
 						+ " and user_ip=? "
-						+ " LIMIT ?,20";
-			 list = getJdbcTemplate().query(sql1, new ActionMapper(),keyword,page*20);
+						+ " LIMIT ?,?";
+			 list = getJdbcTemplate().query(sql1, new ActionMapper(),keyword,page*section,section);
 		}
 		ActionQuery query = new ActionQuery();
 		query.setAction_list(list);
@@ -234,7 +235,7 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 			//查询总页数
 			String sql2 = "SELECT FOUND_ROWS();";
 			Integer sum = getJdbcTemplate().queryForObject(sql2, Integer.class);
-			Integer page_sum = sum/20 +1;
+			Integer page_sum = sum/section +1;
 			query.setPage_sum(page_sum);
 		}
 		return query;
@@ -243,7 +244,7 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 
 	@Override
 	public ActionQuery getTwentyActionByKeywordUserName(String startTime, String endTime, String keyword,
-			Integer page) {
+			Integer page,Integer section) {
 		String sql1 = null;
 		List<Action>list = null;
 		if(startTime != null && endTime != null){
@@ -252,15 +253,15 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 					+ " where a.user_id=b.user_id and a.company_id=c.company_id "
 					+ " and action_time>=? and action_time<=? "
 					+ " and user_name LIKE '%" + keyword + "%' "
-					+ " LIMIT ?,20";
-			list = getJdbcTemplate().query(sql1, new ActionMapper(),startTime,endTime,page*20);
+					+ " LIMIT ?,?";
+			list = getJdbcTemplate().query(sql1, new ActionMapper(),startTime,endTime,page*section,section);
 		}else {
 			sql1 = "SELECT SQL_CALC_FOUND_ROWS a.*,b.user_name,c.company_name "
 					+ " FROM action a, user b, company c "
 					+ " where a.user_id=b.user_id and a.company_id=c.company_id "
 					+ " and user_name LIKE '%" + keyword + "%' "
-					+ " LIMIT ?,20";
-			list = getJdbcTemplate().query(sql1, new ActionMapper(),page*20);
+					+ " LIMIT ?,?";
+			list = getJdbcTemplate().query(sql1, new ActionMapper(),page*section,section);
 		}
 
 		ActionQuery query = new ActionQuery();
@@ -269,7 +270,7 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 			//查询总页数
 			String sql2 = "SELECT FOUND_ROWS();";
 			Integer sum = getJdbcTemplate().queryForObject(sql2, Integer.class);
-			Integer page_sum = sum/20 +1;
+			Integer page_sum = sum/section +1;
 			query.setPage_sum(page_sum);
 		}
 		return query;
@@ -278,7 +279,7 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 
 	@Override
 	public ActionQuery getTwentyActionByKeywordCompanyName(String startTime, String endTime, String keyword,
-			Integer page) {
+			Integer page,Integer section) {
 		String sql1 = null;
 		List<Action>list = null;
 		if(startTime != null && endTime != null){
@@ -287,15 +288,15 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 					+ " where a.user_id=b.user_id and a.company_id=c.company_id "
 					+ " and action_time>=? and action_time<=? "
 					+ " and company_name LIKE '%" + keyword + "%' "
-					+ " LIMIT ?,20";
-			list = getJdbcTemplate().query(sql1, new ActionMapper(),startTime,endTime,page*20);
+					+ " LIMIT ?,?";
+			list = getJdbcTemplate().query(sql1, new ActionMapper(),startTime,endTime,page*section,section);
 		}else {
 			sql1 = "SELECT SQL_CALC_FOUND_ROWS a.*,b.user_name,c.company_name "
 					+ " FROM action a, user b, company c "
 					+ " where a.user_id=b.user_id and a.company_id=c.company_id "
 					+ " and company_name LIKE '%" + keyword + "%' "
-					+ " LIMIT ?,20";
-			list = getJdbcTemplate().query(sql1, new ActionMapper(),page*20);
+					+ " LIMIT ?,?";
+			list = getJdbcTemplate().query(sql1, new ActionMapper(),page*section,section);
 		}
 
 		ActionQuery query = new ActionQuery();
@@ -304,7 +305,7 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 			//查询总页数
 			String sql2 = "SELECT FOUND_ROWS();";
 			Integer sum = getJdbcTemplate().queryForObject(sql2, Integer.class);
-			Integer page_sum = sum/20 +1;
+			Integer page_sum = sum/section +1;
 			query.setPage_sum(page_sum);
 		}
 		return query;
@@ -313,7 +314,7 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 
 	@Override
 	public ActionQuery getTwentyActionByKeywordDescription(String startTime, String endTime, String keyword,
-			Integer page) {
+			Integer page,Integer section) {
 		String sql1 = null;
 		List<Action>list = null;
 		if(startTime != null && endTime != null){
@@ -322,15 +323,15 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 					+ " where a.user_id=b.user_id and a.company_id=c.company_id "
 					+ " and action_time>=? and action_time<=? "
 					+ " and description LIKE '%" + keyword + "%' "
-					+ " LIMIT ?,20";
-			list = getJdbcTemplate().query(sql1, new ActionMapper(),startTime,endTime,page*20);
+					+ " LIMIT ?,?";
+			list = getJdbcTemplate().query(sql1, new ActionMapper(),startTime,endTime,page*section,section);
 		}else {
 			sql1 = "SELECT SQL_CALC_FOUND_ROWS a.*,b.user_name,c.company_name "
 					+ " FROM action a, user b, company c "
 					+ " where a.user_id=b.user_id and a.company_id=c.company_id "
 					+ " and description LIKE '%" + keyword + "%' "
-					+ " LIMIT ?,20";
-			list = getJdbcTemplate().query(sql1, new ActionMapper(),page*20);
+					+ " LIMIT ?,?";
+			list = getJdbcTemplate().query(sql1, new ActionMapper(),page*section,section);
 		}
 
 		ActionQuery query = new ActionQuery();
@@ -339,7 +340,7 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 			//查询总页数
 			String sql2 = "SELECT FOUND_ROWS();";
 			Integer sum = getJdbcTemplate().queryForObject(sql2, Integer.class);
-			Integer page_sum = sum/20 +1;
+			Integer page_sum = sum/section +1;
 			query.setPage_sum(page_sum);
 		}
 		return query;
@@ -348,14 +349,14 @@ public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 
 	
 	@Override
-	public List<Action> getTwentyActionInit(Integer page) {
+	public List<Action> getTwentyActionInit(Integer page,Integer section) {
 		//不分日期 关键字的分页查询
 		String sql = "select c.*, a.user_name, b.company_name "
 				+ " from user a, company b, action c "
 				+ " where a.user_id=c.user_id and b.company_id=c.company_id "
-				+ " LIMIT ?,20";
-		int begin = page*20;
-		return getJdbcTemplate().query(sql, new ActionMapper(),begin);
+				+ " LIMIT ?,?";
+		int begin = page*section;
+		return getJdbcTemplate().query(sql, new ActionMapper(),begin,section);
 	}
 
 
