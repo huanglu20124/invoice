@@ -10,7 +10,8 @@
 	<script type="text/javascript" src="script/bootstrap.min.js"></script>
     <script type="text/javascript" src="script/jquery-ui.min.js"></script>
     <script type="text/javascript" src="script/reconnecting-websocket.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="style/jquery-ui.min.css">
+    <link rel="stylesheet" type="text/c
+    ss" href="style/jquery-ui.min.css">
 	<link rel="stylesheet" type="text/css" href="style/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="font-awesome-4.7.0/css/font-awesome.min.css">
 	<link rel="stylesheet" type="text/css" href="style/layout.css">

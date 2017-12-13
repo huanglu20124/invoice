@@ -20,7 +20,7 @@
 		<div class="main_content">
 
 			<div class="main_content_hd flex flex-align-end">
-				<span class="flex-1">报错发票</span>
+				<span class="flex-1">无法识别发票</span>
 			</div>
 			<div class="panel_hd_line flex flex-align-end">
 				<span class="flex-1" style="font-size: 16px;">共<span class="fault_num">0</span>张未被识别发票</span>
@@ -121,7 +121,8 @@
 
 		//将model_array中的一项放入detail视图
 		function addToDetail(temp_fault_invoice) {
-			$(".muban_table tbody").append("<tr><td>" + temp_fault_invoice.invoice_id + "</td><td>" + temp_fault_invoice.model_id + "</td><td>" + temp_fault_invoice.user_name + "</td><td>" + temp_fault_invoice.company_name + "</td></tr>" + temp_fault_invoice.recognize_time + "</td></tr>");
+			// console.log(temp_fault_invoice);
+			$(".muban_table tbody").append("<tr><td>" + temp_fault_invoice.invoice_id + "</td><td>" + temp_fault_invoice.model_id + "</td><td>" + temp_fault_invoice.user_name + "</td><td>" + temp_fault_invoice.company_name + "</td><td>" + temp_fault_invoice.recognize_time + "</td></tr>");
 			$(".muban_table tbody tr:last-child").get(0).invoice_info = temp_fault_invoice;
 			$(".muban_table tbody tr:last-child").unbind("click").click(function() {
 				clickMuban($(this));
@@ -279,7 +280,7 @@
         			page : page
         		},
         		success : function(res, status) {
-        			console.log(res);
+        			// console.log(res);
         			var data = JSON.parse(res);
         			$(".fault_num").text(data.fault_num);
         			for(var i = 0; i < data.fault_list.length; i++) {
