@@ -24,7 +24,12 @@
 
 			<div class="panel panel-default panel-box-shadow detect_div_container" style="margin-top: 0px;">
 			    <div class="detect_div users_div_container" style="padding: 30px 30px;">
-					<p class="detect_div_hd">用户组管理<span>管理员可以编辑本单位的用户组权限</span></p>
+					<p class="detect_div_hd flex flex-align-center">
+						<span class="flex-none" style="color: inherit; font-size: inherit; margin-left: 0px;">用户组管理</span>
+						<span class="flex-1">管理员可以编辑本单位的用户组权限</span>
+						<span class="flex-none text-primary" style="margin-right: 10px; display: inline-block; cursor: pointer;" title="增加用户组"><i class="fa fa-plus" aria-hidden="true"></i></span>
+						<span class="flex-none text-danger" title="删除用户组" style="cursor: pointer; margin-left: 0px;"><i class="fa fa-minus" aria-hidden="true"></i></span>
+					</p>
 
 			    </div>
 			</div>
@@ -349,6 +354,8 @@
 						})
 						$(".user_grant_table").addClass("display_table_hover");
 						$("[data-writeshow='true']").css("display", "table-cell");
+
+						// ModalVerticalAlign($("#userGrantModal").get(0));
 					}
 					else if(type == 1) { //代表users_grant
 						$(".users_grant_table .table_display_td i").css("cursor", "pointer");
@@ -417,7 +424,7 @@
 		function clickUserGrantSave() {
 			$("#user_grant_save").click(function() {
 				//发送ajax请求告诉服务器哪些用户的哪些权限被修改
-				console.log(user_send_array);
+				// console.log(user_send_array);
 				$("#progressModal").modal("show");
 				$.ajax({
 					type: 'POST',
@@ -427,7 +434,7 @@
 						user_id : click_user_jq.get(0).user_object.user_id
 					},
 					success : function(res, status) {
-						console.log(res);
+						// console.log(res);
 						$("#progressModal h4").text("权限修改成功");
 						$("#progressModal .progress-bar").get(0).style.width = "100%";
 						setTimeout(function(){
@@ -451,7 +458,7 @@
 		function clickUsersGrantSave() {
 			$("#users_grant_save").click(function() {
 				//发送ajax请求告诉服务器哪些用户的哪些权限被修改
-				console.log(users_send_array + " " + click_users_jq.get(0).users_object.group_id);
+				// console.log(users_send_array + " " + click_users_jq.get(0).users_object.group_id);
 				$("#progressModal").modal("show");
 				$.ajax({
 					type: 'POST',
@@ -519,7 +526,7 @@
 				})	
 			}
 
-			console.log(users_send_array);
+			// console.log(users_send_array);
 		}
 
 		//将array中的用户对象放入视图
@@ -679,6 +686,7 @@
 							$(this).children(".users_group").text("无");
 						}
 						else {
+							console.log(permissions[i].origin_groups);
 							$(this).children(".table_display_td[rw_type='" + permission_name.split("-")[1] + "']").not("[data-write='true']").children().removeClass("fa-square-o");
 							$(this).children(".table_display_td[rw_type='" + permission_name.split("-")[1] + "']").not("[data-write='true']").children().addClass("fa-check-square-o");	
 							$(this).children(".users_group").text(permissions[i].origin_groups.join("、"));
@@ -709,11 +717,23 @@
 		//点击成员头像
 		function clickUser(user_jq) {
 			click_user_jq = user_jq;
-			$("#userGrantModal").modal('show');
-			// $("#userGrantModal").css("display", "table");
-			// ModalVerticalAlign($("#userGrantModal").get(0));
+			// console.log(user_jq.get(0).user_object.user_id);
+			$.ajax({
+				type: 'POST',
+				url : "http://"+ip2+"/invoice/getUserPermission.action",
+				data: {
+					user_id : user_jq.get(0).user_object.user_id
+				},
+				success : function(res, status) {
+					var data = JSON.parse(res);
+					user_jq.get(0).user_object.pemissions = data.permission_list;
+					$("#userGrantModal").modal('show');
+					// $("#userGrantModal").css("display", "table");
+					// ModalVerticalAlign($("#userGrantModal").get(0));
 
-			flushUserGrantTable(user_jq.get(0).user_object.permissions);
+					flushUserGrantTable(user_jq.get(0).user_object.permissions);
+				}
+			})
 		}
 
 		//悬浮用户组头像
@@ -754,9 +774,20 @@
 				$(".cancel_edit").css("display", "none");	
 				$("[data-writeshow='true']").css("display", "none");
 
+				$(".user_grant_table .table_display_td i").each(function() {
+					if($(this).hasClass("fa-check-square-o")) {
+						$(this).removeClass("fa-check-square-o");
+						$(this).addClass("fa-square-o");
+					}
+				})
+
 				$(".user_grant_table .table_display_td[data-write='true'] i").css("cursor", "default");
 				$(".user_grant_table .table_display_td[data-write='true'] i").each(function() {
 					$(this).unbind("click");
+				})
+
+				$(".user_grant_table .users_group").each(function() {
+					$(this).text("无");
 				})
 				$(".user_grant_table").removeClass("display_table_hover");
 
@@ -774,6 +805,10 @@
 				$(".users_grant_table .table_display_td i").css("cursor", "default");
 				$(".users_grant_table .table_display_td i").each(function() {
 					$(this).unbind("click");
+					if($(this).hasClass("fa-check-square-o")) {
+						$(this).removeClass("fa-check-square-o");
+						$(this).addClass("fa-square-o");
+					}
 				})
 
 				users_send_array.splice(0, users_send_array.length);
@@ -844,7 +879,7 @@
 						user_id : $("#addUserId").val()
 					},
 					success: function(res, status) {
-						console.log(res);
+						// console.log(res);
 						if(JSON.parse(res).err == undefined) {
 							$("#myModalLabel_progress .progress-bar").css("width", "100%");
 							var user = JSON.parse(res).user;
@@ -883,7 +918,7 @@
 		function deleteUserBtn(user_jq) {
 			// $(".deleteAlert").css("display", "block");
 			$(".deleteAlert").css("opacity", 1);
-			console.log("confirm_here");
+			// console.log("confirm_here");
 			clickConfirmDelete(user_jq);	
 			clickDeleteCancel();
 		}
@@ -899,7 +934,8 @@
 					type: 'POST',
 					url: "http://"+ip2+"/invoice/removeGroupUser.action",
 					data : {
-						user_id : user_jq.get(0).user_object.user_id
+						user_id : user_jq.get(0).user_object.user_id,
+						group_id : click_users_jq.get(0).users_object.group_id
 					},
 					success: function(res, status) {
 						if(JSON.parse(res).success != undefined) {
@@ -947,8 +983,8 @@
 		}
 
         $(document).ready(function(){
-        	console.log(document.documentElement.clientHeight);
-        	console.log($("#userGrantModal").get(0).offsetHeight);
+        	// console.log(document.documentElement.clientHeight);
+        	// console.log($("#userGrantModal").get(0).offsetHeight);
         	// 判断权限
         	justifyUserGrant(user_json);
         	justifyRW(user_json);

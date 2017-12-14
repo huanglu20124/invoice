@@ -171,15 +171,19 @@
 		//点击隐藏该列按钮
 		function clickhideP() {
 			$(".hide_p").each(function(){
-				$(this).click(function() {
+				$(this).unbind('click').click(function() {
 					var nth_num = $(this).parent().parent().data("column");
 					hide_column_array.push(nth_num);
-					$(".log_table .table_display_th:nth-child(" + nth_num + ")").css("display", "none");
-					$(".log_table .table_display_td:nth-child(" + nth_num + ")").each(function(){
-						$(this).css("display", "none");
-					});
+					hideColumn(nth_num);
 				})
 			})
+		}
+
+		function hideColumn(nth_num) {
+			$(".log_table .table_display_th:nth-child(" + nth_num + ")").css("display", "none");
+			$(".log_table .table_display_td:nth-child(" + nth_num + ")").each(function(){
+				$(this).css("display", "none");
+			});
 		}
 
 		//发送查询ajax
@@ -201,7 +205,6 @@
     				// $(".select_result").css("display", "block");
     				//先清空上一次查询的结果
     				$(".select_result .log_table .table_display_row:nth-child(n+2)").remove();
-    				hide_column_array.splice(0, hide_column_array.length);
     				
     				log_num = page * section;
 
@@ -214,12 +217,17 @@
     					$(".select_result .text_describe").css("display", "none");
     					$(".select_result .log_table_container").css("display", "block");
     					$(".all_page").text(data.page_sum);
+    					$(".cur_page").text(page+1);
 
         				for(var i = 0; i < data.action_list.length; i++) {
         					// console.log(data.action_list[i]);
         					var temp_data = data.action_list[i];
 							// var data = res[i];
 							$(".select_result .log_table").append("<div class=\"table_display_row\"><div class=\"table_display_td\">"+(++log_num)+"</div><div class=\"table_display_td\">"+temp_data.action_time+"</div><div class=\"table_display_td\">"+temp_data.user_ip+"</div><div class=\"table_display_td\">"+temp_data.user_name+"</div><div class=\"table_display_td\">"+temp_data.description+"</div></div>");
+        				}
+
+        				for(var i = 0; i < hide_column_array.length; i++) {
+        					hideColumn(hide_column_array[i]);
         				}	
     				}
     			},
@@ -253,10 +261,18 @@
         		if($("#end_date").val() != null && $("#end_time").val() != null) {
         			end_time = $("#end_date").val() + " " + $("#end_time").val();
         		}
-        		getLog(parseInt($(".cur_page").text())-1, $("input[name='section']").val(), start_time, end_time, $("select[name='type']").val(), $("#keyword").val());
+
+        		//还原隐藏的列和表头
+        		hide_column_array.splice(0, hide_column_array.length);
+				$(".select_result .log_table .table_display_row:nth-child(1)").remove();
+        		$(".select_result .log_table").prepend("<div class=\"table_display_row\"><div class=\"table_display_th\" data-column=\"1\"><span>日志序号</span><div class=\"th_div\"><p class=\"hide_p\">隐藏该列</p></div></div><div class=\"table_display_th\" data-column=\"2\"><span>操作时间</span><div class=\"th_div\"><p class=\"hide_p\">隐藏该列</p></div></div><div class=\"table_display_th\" data-column=\"3\"><span>操作ip地址</span><div class=\"th_div\"><p class=\"hide_p\">隐藏该列</p></div></div><div class=\"table_display_th\" data-column=\"4\"><span>用户名称</span><div class=\"th_div\"><p class=\"hide_p\">隐藏该列</p></div></div><div class=\"table_display_th\" data-column=\"5\"><span>操作事件</span><div class=\"th_div\"><p class=\"hide_p\">隐藏该列</p></div></div></div>");
+        		clickLogColumn();
+        		clickhideP();
+        		getLog(0, $("input[name='section']").val(), start_time, end_time, $("select[name='type']").val(), $("#keyword").val());
         	})
 
         	$(".right_page").click(function() {
+        		if(parseInt($(".cur_page").text()) == parseInt($(".all_page").text())) return;
         		var start_time = null;
         		var end_time = null;
         		if($("#start_date").val() != null && $("#start_time").val() != null) {
@@ -265,11 +281,12 @@
         		if($("#end_date").val() != null && $("#end_time").val() != null) {
         			end_time = $("#end_date").val() + " " + $("#end_time").val();
         		}
-        		$(".cur_page").text(parseInt($(".cur_page").text())+1);
-        		getLog(parseInt($(".cur_page").text())-1, $("input[name='section']").val(), start_time, end_time, $("select[name='type']").val(), $("#keyword").val());
+        		// $(".cur_page").text(parseInt($(".cur_page").text())+1);
+        		getLog(parseInt($(".cur_page").text()), $("input[name='section']").val(), start_time, end_time, $("select[name='type']").val(), $("#keyword").val());
         	})
 
         	$(".left_page").click(function() {
+        		if(parseInt($(".cur_page").text()) == 1) return;
         		var start_time = null;
         		var end_time = null;
         		if($("#start_date").val() != null && $("#start_time").val() != null) {
@@ -278,8 +295,8 @@
         		if($("#end_date").val() != null && $("#end_time").val() != null) {
         			end_time = $("#end_date").val() + " " + $("#end_time").val();
         		}
-        		$(".cur_page").text(parseInt($(".cur_page").text())-1);
-        		getLog(parseInt($(".cur_page").text())-1, $("input[name='section']").val(), start_time, end_time, $("select[name='type']").val(), $("#keyword").val());
+        		// $(".cur_page").text(parseInt($(".cur_page").text())-1);
+        		getLog(parseInt($(".cur_page").text())-2, $("input[name='section']").val(), start_time, end_time, $("select[name='type']").val(), $("#keyword").val());
         	})
 
 

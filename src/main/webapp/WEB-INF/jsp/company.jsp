@@ -25,7 +25,7 @@
 				<span class="flex-1">单位管理</span>
 			</div>
 
-			<div class="panel_hd_line flex flex-align-end">
+			<!-- <div class="panel_hd_line flex flex-align-end">
 				<span class="flex-1" style="font-size: 16px;">共<span id="company_num">1</span>个单位</span>
 				<span class="flex-none text-primary" style="margin-right: 1em; display: inline-block; cursor: pointer;" title="增加单位"><i class="fa fa-plus" aria-hidden="true"></i></span>
 				<span class="flex-none text-danger" title="删除单位" style="cursor: pointer;"><i class="fa fa-minus" aria-hidden="true"></i></span>
@@ -39,30 +39,66 @@
 			    		</div>
 			    		<i class="fa fa-times-circle" aria-hidden="true"></i>
 			    	</div>
+			    </div>
+			</div> -->
 
-			    	<div class="company_div">
-			    		<img src="pic/logo.png" style="width: 100%;">
-			    		<div class="company_desc">
-			    			<p>中山大学</p>
-			    		</div>
-			    		<i class="fa fa-times-circle" aria-hidden="true"></i>
-			    	</div>
-
-			    	<div class="company_div">
-			    		<img src="pic/logo.png" style="width: 100%;">
-			    		<div class="company_desc">
-			    			<p>中山大学</p>
-			    		</div>
-			    		<i class="fa fa-times-circle" aria-hidden="true"></i>
-			    	</div>
-
-			    	<div class="company_div">
-			    		<img src="pic/logo.png" style="width: 100%;">
-			    		<div class="company_desc">
-			    			<p>中山大学</p>
-			    		</div>
-			    		<i class="fa fa-times-circle" aria-hidden="true"></i>
-			    	</div>
+			<div class="panel panel-default panel-box-shadow detect_div_container">
+			    <!-- <div class="form-group flex flex-align-center">
+			    	<label for="company_name" class="flex-none">单位名称</label>
+			    	<input class="form-control flex-1" type="text" id="company_name" name="company_name" />
+			    </div>
+			    <div class="form-group flex flex-align-center">
+			    	<label for="company_id" class="flex-none">单位id</label>
+			    	<input class="form-control flex-1" type="text" id="company_id" name="company_id" />
+			    </div>
+			    <div class="form-group flex flex-align-center">
+			    	<label for="company_manager" class="flex-none">单位责任人名称</label>
+			    	<input class="form-control flex-1" type="text" id="company_manager" name="company_manager" />
+			    </div>
+			    <div class="form-group flex flex-align-center">
+			    	<label for="company_manager_id" class="flex-none">单位责任人id</label>
+			    	<input class="form-control flex-1" type="text" id="company_manager_id" name="company_manager_id" />
+			    </div>
+			    <div class="form-group flex flex-align-center">
+			    	<label for="company_create_time" class="flex-none">单位注册时间</label>
+			    	<input class="form-control flex-1" type="text" id="company_create_time" name="company_create_time" />
+			    </div> -->
+			    <div class="detect_div" style="padding: 30px 30px;">
+					<p class="detect_div_hd">单位信息</p>
+					<div class="table_display_container companyedit_table">
+						<div class="table_display_row">
+							<span class="table_display_th">基本信息</span>
+							<span class="table_display_th"></span>
+							<span class="table_display_th text_right">操作</span>
+						</div>
+						<div class="table_display_row">
+							<span class="table_display_td">单位名称</span>
+							<span class="table_display_td company_name">中山大学</span>
+							<span class="table_display_td text_right edit" data-write="true"><a>修改</a></span>
+						</div>
+						<div class="table_display_row">
+							<span class="table_display_td">单位id</span>
+							<span class="table_display_td user_id">dw3e4e1ddf8d7f6773</span>
+							<span class="table_display_td text_right edit"></span>
+						</div>
+						<div class="table_display_row">
+							<span class="table_display_td">单位负责人</span>
+							<span class="table_display_td company_manager">张三</span>
+							<span class="table_display_td text_right edit"><a>修改</a></span>
+						</div>
+						<div class="table_display_row">
+							<span class="table_display_td">单位注册时间</span>
+							<span class="table_display_td register_time">2017-11-11</span>
+							<span class="table_display_td text_right edit"><a>修改</a></span>
+						</div>
+						<div class="table_display_row">
+							<span class="table_display_td">单位logo</span>
+							<span class="table_display_td comapny_logo">
+								<img src="pic/logo.png" style="height: 50px; width: auto;">
+							</span>
+							<span class="table_display_td text_right edit"><a>修改</a></span>
+						</div>
+					</div>
 			    </div>
 			</div>
 		</div>

@@ -607,11 +607,11 @@ aside {
 	border-bottom: 1px solid rgba(220, 220, 230, 0.6);
 }
 
-.ownedit_table .table_display_td:last-child a{
+.ownedit_table .table_display_td:last-child a, .companyedit_table .table_display_td:last-child a{
 	cursor: pointer;
 }
 
-.ownedit_table .table_display_td:last-child a:hover{
+.ownedit_table .table_display_td:last-child a:hover, .companyedit_table .table_display_td:last-child a:hover{
 	text-decoration: underline;
 }
 
@@ -623,8 +623,12 @@ aside {
 	width: 100px;
 }
 
-.user_grant_table .table_display_td:first-child, .user_grant_table .table_display_th:first-child, .users_grant_table .table_display_td:first-child, .users_grant_table .table_display_th:first-child {
+.companyedit_table .table_display_th:first-child, .companyedit_table .table_display_td:first-child {
 	width: 150px;
+}
+
+.user_grant_table .table_display_td:first-child, .user_grant_table .table_display_th:first-child, .users_grant_table .table_display_td:first-child, .users_grant_table .table_display_th:first-child {
+	min-width: 150px;
 }
 
 .user_grant_table .table_display_td, .user_grant_table .table_display_th, .users_grant_table .table_display_td, .users_grant_table .table_display_th, .edit_grant_table .table_display_td, .edit_grant_table .table_display_th{
@@ -926,4 +930,19 @@ aside {
 	width: 30px;
 	font-size: 16px;
 	display: inline-block;
+}
+
+.company_panel label{
+	font-weight: normal;
+	color: rgba(128, 128, 128, 1);
+	width: 100px;
+	margin-right: 1em;
+}
+
+.company_panel input {
+	display: inline-block !important;
+}
+
+.company_panel .form-group {
+	margin-bottom: 30px;
 }
