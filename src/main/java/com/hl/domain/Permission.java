@@ -48,6 +48,7 @@ public class Permission {
 	public void setOrigin_groups(List<String> origin_groups) {
 		this.origin_groups = origin_groups;
 	}
+
 	@Override
 	public String toString() {
 		return permission_id+"---"+permission_name;
@@ -57,4 +58,5 @@ public class Permission {
 	public int hashCode() {
 		return permission_id.hashCode();
 	}
+
 }

@@ -376,5 +376,17 @@ public class InvoiceController {
 		return modelAndView;
 	}
 	
-	
+	//jsp接口
+	@RequestMapping(value = "/company.action", method = RequestMethod.GET)
+	public ModelAndView companyAction(){
+		System.out.println("准备渲染company界面");
+		Subject subject = SecurityUtils.getSubject();
+		User user = (User) subject.getPrincipal();
+		ModelAndView modelAndView = new ModelAndView();
+		if(user != null){
+			modelAndView.addObject("user",user);
+		}
+		modelAndView.setViewName("company");
+		return modelAndView;
+	}	
 }

@@ -19,11 +19,11 @@
             </a>
             <a href="" class="aside_nav_list-item nav_disabled" data-permission="model">
                 <i class="fa fa-clipboard aside_nav_list-item-icon"></i>
-                <span>模板库</span>
+                <span>发票模板</span>
             </a>
             <a href="" class="aside_nav_list-item nav_disabled" data-permission="fault">
                 <i class="fa fa-times-circle-o aside_nav_list-item-icon"></i>
-                <span>报错发票
+                <span>未识发票
                     <span class="badge fault_num" style="margin-left: 10px;"></span>
                 </span>
             </a>

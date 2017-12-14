@@ -752,7 +752,7 @@
 			var model_width = parseInt(invoice_width) + 240;
 			//初始化模态框的长宽
 			if(model_width > document.documentElement.clientWidth) {
-				$("#myModal").css("width", document.documentElement.clientHeight+"px");
+				$("#myModal").css("width", document.documentElement.clientWidth+"px");
 			} else {
 				$("#myModal").css("width", model_width + "px");
 			}

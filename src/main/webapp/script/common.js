@@ -202,6 +202,12 @@ function connectEndpoint(){
         if(data.msg_id == 205) {
             console.log("205");
             $(".fault_num").text(data.fault_num.toString());
+            if(data.fault_num == 0) {
+                $(".fault_num").css("display", "none");
+            }
+            else {
+                $(".fault_num").css("display", "inline-block");
+            }
         }
 
         // console.jsp
@@ -640,10 +646,23 @@ function grantSwitch(table_jq, permissions, j) {
 
 //模态框垂直居中
 function ModalVerticalAlign(modal_jq) {
-    console.log(document.documentElement.clientHeight + " " + modal_jq.offsetHeight);
+    // console.log(document.documentElement.clientHeight + " " + modal_jq.offsetHeight);
+    console.log("init here " + parseFloat($(modal_jq).width()) + " " + document.documentElement.clientWidth);
+    console.log("init here " + parseFloat($(modal_jq).height()) + " " + document.documentElement.clientHeight);
+    if(parseFloat($(modal_jq).width()) > document.documentElement.clientWidth){
+        $(modal_jq).css("width", document.documentElement.clientWidth+"px");
+    }
+    if(parseFloat($(modal_jq).height()) > document.documentElement.clientHeight){
+        $(modal_jq).find(".modal-content").css("height", document.documentElement.clientHeight+"px");
+    } else {
+        $(modal_jq).find(".modal-content").css("height", parseFloat($(modal_jq).height())+"px");
+    }
+
     if(modal_jq.offsetHeight < document.documentElement.clientHeight) {
         var margin_top = parseFloat((document.documentElement.clientHeight - modal_jq.offsetHeight)/2);
-        $(modal_jq).css("marginTop", margin_top);
+        $(modal_jq).css("marginTop", margin_top+"px");
+    } else {
+        $(modal_jq).css("marginTop", "0px");
     }
 }
 
@@ -654,6 +673,7 @@ function AllModalVerticalAlign() {
             $(this).on("show.bs.modal", function() {
                 // console.log("modal_here");
                 $(this).css("display", "table");
+                $(this).find(".modal-content").css("overflow", "auto");
                 ModalVerticalAlign($(this).get(0));
             })
         })
