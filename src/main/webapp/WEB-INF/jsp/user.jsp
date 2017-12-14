@@ -24,7 +24,12 @@
 
 			<div class="panel panel-default panel-box-shadow detect_div_container" style="margin-top: 0px;">
 			    <div class="detect_div users_div_container" style="padding: 30px 30px;">
-					<p class="detect_div_hd">用户组管理<span>管理员可以编辑本单位的用户组权限</span></p>
+					<p class="detect_div_hd flex flex-align-center">
+						<span class="flex-none" style="color: inherit; font-size: inherit; margin-left: 0px;">用户组管理</span>
+						<span class="flex-1">管理员可以编辑本单位的用户组权限</span>
+						<span class="flex-none text-primary" style="margin-right: 10px; display: inline-block; cursor: pointer;" title="增加用户组"><i class="fa fa-plus" aria-hidden="true"></i></span>
+						<span class="flex-none text-danger" title="删除用户组" style="cursor: pointer; margin-left: 0px;"><i class="fa fa-minus" aria-hidden="true"></i></span>
+					</p>
 
 			    </div>
 			</div>
@@ -66,7 +71,9 @@
 								<div class="table_display_th">（汇总）可写</div>
 							</div>
 							<div class="table_display_row" grant_type="queue">
-								<div class="table_display_td">缓冲队列</div>
+								<div class="table_display_td" title="用户传送的待识别发票的队列">
+									<i class="fa fa-bar-chart grant_table_icon"></i>缓冲队列
+								</div>
 								<div class="table_display_td users_group" data-writeshow="true">无</div>
 								<div class="table_display_td inherit_read" data-writeshow="true" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 								<div class="table_display_td inherit_write" data-writeshow="true" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
@@ -76,7 +83,9 @@
 								<div class="table_display_td gather_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
 							<div class="table_display_row" grant_type="console">
-								<div class="table_display_td">算法可视</div>
+								<div class="table_display_td" title="发票识别算法运算过程的可视化">
+									<i class="fa fa-television grant_table_icon"></i>算法可视
+								</div>
 								<div class="table_display_td users_group" data-writeshow="true">无</div>
 								<div class="table_display_td inherit_read" data-writeshow="true" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 								<div class="table_display_td inherit_write" data-writeshow="true" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
@@ -86,7 +95,9 @@
 								<div class="table_display_td gather_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
 							<div class="table_display_row" grant_type="model">
-								<div class="table_display_td">发票模板</div>
+								<div class="table_display_td" title="用户自定义的用于识别发票的模板">
+									<i class="fa fa-clipboard grant_table_icon"></i>发票模板
+								</div>
 								<div class="table_display_td users_group" data-writeshow="true">无</div>
 								<div class="table_display_td inherit_read" data-writeshow="true" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 								<div class="table_display_td inherit_write" data-writeshow="true" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
@@ -96,7 +107,9 @@
 								<div class="table_display_td gather_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
 							<div class="table_display_row" grant_type="fault">
-								<div class="table_display_td">错误发票</div>
+								<div class="table_display_td" title="无法被算法识别的发票">
+									<i class="fa fa-times-circle-o grant_table_icon"></i>无法识别发票
+								</div>
 								<div class="table_display_td users_group" data-writeshow="true">无</div>
 								<div class="table_display_td inherit_read" data-writeshow="true" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 								<div class="table_display_td inherit_write" data-writeshow="true" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
@@ -106,7 +119,9 @@
 								<div class="table_display_td gather_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
 							<div class="table_display_row" grant_type="log">
-								<div class="table_display_td">日志查询</div>
+								<div class="table_display_td" title="查询系统用户的操作日志">
+									<i class="fa fa-tasks grant_table_icon"></i>日志查询
+								</div>
 								<div class="table_display_td users_group" data-writeshow="true">无</div>
 								<div class="table_display_td inherit_read" data-writeshow="true" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 								<div class="table_display_td inherit_write" data-writeshow="true" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
@@ -116,7 +131,21 @@
 								<div class="table_display_td gather_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
 							<div class="table_display_row" grant_type="user">
-								<div class="table_display_td">用户管理</div>
+								<div class="table_display_td" title="管理用户的权限">
+									<i class="fa fa-user-o grant_table_icon"></i>用户管理
+								</div>
+								<div class="table_display_td users_group" data-writeshow="true">无</div>
+								<div class="table_display_td inherit_read" data-writeshow="true" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td inherit_write" data-writeshow="true" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td private_read" data-writeshow="true" data-write="true" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td private_write" data-writeshow="true" data-write="true" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td gather_read"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td gather_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+							</div>
+							<div class="table_display_row" grant_type="group">
+								<div class="table_display_td" title="管理用户组的权限及成员">
+									<i class="fa fa-users grant_table_icon"></i>用户组管理
+								</div>
 								<div class="table_display_td users_group" data-writeshow="true">无</div>
 								<div class="table_display_td inherit_read" data-writeshow="true" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 								<div class="table_display_td inherit_write" data-writeshow="true" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
@@ -126,7 +155,9 @@
 								<div class="table_display_td gather_write"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
 							<div class="table_display_row" grant_type="company">
-								<div class="table_display_td">单位管理</div>
+								<div class="table_display_td" title="管理单位的名称及负责人等">
+									<i class="fa fa-university grant_table_icon" aria-hidden="true"></i>单位管理
+								</div>
 								<div class="table_display_td users_group" data-writeshow="true">无</div>
 								<div class="table_display_td inherit_read" data-writeshow="true" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 								<div class="table_display_td inherit_write" data-writeshow="true" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
@@ -163,37 +194,42 @@
 								<div class="table_display_th">可写</div>
 							</div>
 							<div class="table_display_row" grant_type="queue">
-								<div class="table_display_td">缓冲队列</div>
+								<div class="table_display_td" title="用户传送的待识别发票的队列">缓冲队列</div>
 								<div class="table_display_td" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 								<div class="table_display_td" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
 							<div class="table_display_row" grant_type="console">
-								<div class="table_display_td">算法可视</div>
+								<div class="table_display_td" title="发票识别算法运算过程的可视化">算法可视</div>
 								<div class="table_display_td" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 								<div class="table_display_td" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
 							<div class="table_display_row" grant_type="model">
-								<div class="table_display_td">发票模板</div>
+								<div class="table_display_td" title="用户自定义的用于识别发票的模板">发票模板</div>
 								<div class="table_display_td" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 								<div class="table_display_td" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
 							<div class="table_display_row" grant_type="fault">
-								<div class="table_display_td">错误发票</div>
+								<div class="table_display_td" title="无法被算法识别的发票">无法识别发票</div>
 								<div class="table_display_td" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 								<div class="table_display_td" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
 							<div class="table_display_row" grant_type="log">
-								<div class="table_display_td">日志查询</div>
+								<div class="table_display_td" title="查询系统用户的操作日志">日志查询</div>
 								<div class="table_display_td" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 								<div class="table_display_td" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
 							<div class="table_display_row" grant_type="user">
-								<div class="table_display_td">用户管理</div>
+								<div class="table_display_td" title="管理用户的权限">用户管理</div>
 								<div class="table_display_td" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 								<div class="table_display_td" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
-							<div class="table_display_row" grant_type="unit">
-								<div class="table_display_td">单位管理</div>
+							<div class="table_display_row" grant_type="group">
+								<div class="table_display_td" title="管理用户组的权限及成员">用户组管理</div>
+								<div class="table_display_td" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+								<div class="table_display_td" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
+							</div>
+							<div class="table_display_row" grant_type="company">
+								<div class="table_display_td" title="管理单位的名称及负责人等">单位管理</div>
 								<div class="table_display_td" rw_type="r"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 								<div class="table_display_td" rw_type="rw"><i class="fa fa-square-o" aria-hidden="true"></i></div>
 							</div>
@@ -318,6 +354,8 @@
 						})
 						$(".user_grant_table").addClass("display_table_hover");
 						$("[data-writeshow='true']").css("display", "table-cell");
+
+						// ModalVerticalAlign($("#userGrantModal").get(0));
 					}
 					else if(type == 1) { //代表users_grant
 						$(".users_grant_table .table_display_td i").css("cursor", "pointer");
@@ -386,7 +424,7 @@
 		function clickUserGrantSave() {
 			$("#user_grant_save").click(function() {
 				//发送ajax请求告诉服务器哪些用户的哪些权限被修改
-				console.log(user_send_array);
+				// console.log(user_send_array);
 				$("#progressModal").modal("show");
 				$.ajax({
 					type: 'POST',
@@ -396,7 +434,7 @@
 						user_id : click_user_jq.get(0).user_object.user_id
 					},
 					success : function(res, status) {
-						console.log(res);
+						// console.log(res);
 						$("#progressModal h4").text("权限修改成功");
 						$("#progressModal .progress-bar").get(0).style.width = "100%";
 						setTimeout(function(){
@@ -420,7 +458,7 @@
 		function clickUsersGrantSave() {
 			$("#users_grant_save").click(function() {
 				//发送ajax请求告诉服务器哪些用户的哪些权限被修改
-				console.log(users_send_array + " " + click_users_jq.get(0).users_object.group_id);
+				// console.log(users_send_array + " " + click_users_jq.get(0).users_object.group_id);
 				$("#progressModal").modal("show");
 				$.ajax({
 					type: 'POST',
@@ -488,7 +526,7 @@
 				})	
 			}
 
-			console.log(users_send_array);
+			// console.log(users_send_array);
 		}
 
 		//将array中的用户对象放入视图
@@ -581,8 +619,8 @@
 					company_id: click_users_jq.get(0).users_object.company_id
 				},
 				success : function(res, status) {
-					console.log(click_users_jq.get(0).users_object);
-					console.log(res);
+					// console.log(click_users_jq.get(0).users_object);
+					// console.log(res);
 					var data = JSON.parse(res).user_list;
 					for(var i = 0; i < data.length; i++) {
 						// console.log(data[i]);
@@ -645,10 +683,13 @@
 						if(permissions[i].isPrivate == 1) {
 							$(this).children(".table_display_td[rw_type='" + permission_name.split("-")[1] + "'][data-write='true']").children().removeClass("fa-square-o");
 							$(this).children(".table_display_td[rw_type='" + permission_name.split("-")[1] + "'][data-write='true']").children().addClass("fa-check-square-o");
+							$(this).children(".users_group").text("无");
 						}
 						else {
+							console.log(permissions[i].origin_groups);
 							$(this).children(".table_display_td[rw_type='" + permission_name.split("-")[1] + "']").not("[data-write='true']").children().removeClass("fa-square-o");
 							$(this).children(".table_display_td[rw_type='" + permission_name.split("-")[1] + "']").not("[data-write='true']").children().addClass("fa-check-square-o");	
+							$(this).children(".users_group").text(permissions[i].origin_groups.join("、"));
 						}
 						
 						flushGatherGrant($(this));
@@ -676,11 +717,23 @@
 		//点击成员头像
 		function clickUser(user_jq) {
 			click_user_jq = user_jq;
-			$("#userGrantModal").modal('show');
-			// $("#userGrantModal").css("display", "table");
-			// ModalVerticalAlign($("#userGrantModal").get(0));
+			// console.log(user_jq.get(0).user_object.user_id);
+			$.ajax({
+				type: 'POST',
+				url : "http://"+ip2+"/invoice/getUserPermission.action",
+				data: {
+					user_id : user_jq.get(0).user_object.user_id
+				},
+				success : function(res, status) {
+					var data = JSON.parse(res);
+					user_jq.get(0).user_object.pemissions = data.permission_list;
+					$("#userGrantModal").modal('show');
+					// $("#userGrantModal").css("display", "table");
+					// ModalVerticalAlign($("#userGrantModal").get(0));
 
-			flushUserGrantTable(user_jq.get(0).user_object.permissions);
+					flushUserGrantTable(user_jq.get(0).user_object.permissions);
+				}
+			})
 		}
 
 		//悬浮用户组头像
@@ -721,9 +774,20 @@
 				$(".cancel_edit").css("display", "none");	
 				$("[data-writeshow='true']").css("display", "none");
 
+				$(".user_grant_table .table_display_td i").each(function() {
+					if($(this).hasClass("fa-check-square-o")) {
+						$(this).removeClass("fa-check-square-o");
+						$(this).addClass("fa-square-o");
+					}
+				})
+
 				$(".user_grant_table .table_display_td[data-write='true'] i").css("cursor", "default");
 				$(".user_grant_table .table_display_td[data-write='true'] i").each(function() {
 					$(this).unbind("click");
+				})
+
+				$(".user_grant_table .users_group").each(function() {
+					$(this).text("无");
 				})
 				$(".user_grant_table").removeClass("display_table_hover");
 
@@ -741,6 +805,10 @@
 				$(".users_grant_table .table_display_td i").css("cursor", "default");
 				$(".users_grant_table .table_display_td i").each(function() {
 					$(this).unbind("click");
+					if($(this).hasClass("fa-check-square-o")) {
+						$(this).removeClass("fa-check-square-o");
+						$(this).addClass("fa-square-o");
+					}
 				})
 
 				users_send_array.splice(0, users_send_array.length);
@@ -811,7 +879,7 @@
 						user_id : $("#addUserId").val()
 					},
 					success: function(res, status) {
-						console.log(res);
+						// console.log(res);
 						if(JSON.parse(res).err == undefined) {
 							$("#myModalLabel_progress .progress-bar").css("width", "100%");
 							var user = JSON.parse(res).user;
@@ -850,7 +918,7 @@
 		function deleteUserBtn(user_jq) {
 			// $(".deleteAlert").css("display", "block");
 			$(".deleteAlert").css("opacity", 1);
-			console.log("confirm_here");
+			// console.log("confirm_here");
 			clickConfirmDelete(user_jq);	
 			clickDeleteCancel();
 		}
@@ -866,7 +934,8 @@
 					type: 'POST',
 					url: "http://"+ip2+"/invoice/removeGroupUser.action",
 					data : {
-						user_id : user_jq.get(0).user_object.user_id
+						user_id : user_jq.get(0).user_object.user_id,
+						group_id : click_users_jq.get(0).users_object.group_id
 					},
 					success: function(res, status) {
 						if(JSON.parse(res).success != undefined) {
@@ -893,12 +962,33 @@
 			})
 		}
 
+		//判断user和group的权限
+		function justifyUserGroup(user_json) {
+			var hasUser = false, hasGroup = false;
+			for(var i = 0; i < user_json.permissions.length; i++) {
+				// console.log(user_json.permissions[i].permission_name);
+				if(user_json.permissions[i].permission_name.split("-")[0] == "user") {
+					hasUser = true;
+				}
+				else if(user_json.permissions[i].permission_name.split("-")[0] == "group") {
+					hasGroup = true;
+				}
+			}
+			if(!hasUser) {
+				$(".users_div_container").parent().css("display", "none");
+			}
+			if(!hasGroup) {
+				$(".user_div_container").parent().css("display", "none");
+			}
+		}
+
         $(document).ready(function(){
-        	console.log(document.documentElement.clientHeight);
-        	console.log($("#userGrantModal").get(0).offsetHeight);
+        	// console.log(document.documentElement.clientHeight);
+        	// console.log($("#userGrantModal").get(0).offsetHeight);
         	// 判断权限
         	justifyUserGrant(user_json);
         	justifyRW(user_json);
+        	justifyUserGroup(user_json);
 
         	initUserGrantModal();
         	initUsersGrantModal();

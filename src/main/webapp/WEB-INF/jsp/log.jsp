@@ -46,7 +46,13 @@
 					<button class="btn btn-primary" type="submit" style="padding-left: 2.5em; padding-right: 2.5em; margin-top: 10px;" id="rizhi_select">查询</button>
 
 					<div class="select_result">
-						<p class="select_result_hd">查询结果</p>
+						<div class="select_result_hd flex flex-align-center">
+							<span class="flex-1">查询结果</span>
+							<span class="flex-none" style="display: inline-block; font-size: 14px; color: rgba(150, 150, 150, 0.6); overflow: hidden; width: 190px;">
+								<span style="display: inline-block; float: left; width: 100px; vertical-align: middle;">每页日志条数:</span>
+								<input class="form-control" type="number" name="section" value="10" min="5" max="30" style="font-size: 14px; height: 25px; display: inline-block; width: 80px; vertical-align: middle;" />
+							</span>
+						</div>
 
 						<!-- <div class="table_container" style="border: 1px solid rgba(200, 200, 200, 0.7); border-radius: 5px; padding-top: 0.5em;"> -->
 							<!-- <table class="table table-responsive table-striped table-hover" >
@@ -57,13 +63,47 @@
 								</tbody>
 							</table> -->
 					<!-- </div> -->
-					<div class="table_display_container log_table" style="border-radius: 6px; overflow: hidden; display: none;">
-						<div class="table_display_row">
-							<div class="table_display_th">用户名称</div>
-							<div class="table_display_th">责任单位</div>
-							<div class="table_display_th">操作事件</div>
-							<div class="table_display_th">操作时间</div>
-							<div class="table_display_th">操作ip地址</div>
+					<div class="log_table_container" style="display: none;">
+						<div class="table_display_container log_table" style="border-radius: 6px; overflow: hidden;">
+							<div class="table_display_row">
+								<div class="table_display_th" data-column="1">
+									<span>日志序号</span>
+									<div class="th_div">
+										<p class="hide_p">隐藏该列</p>
+									</div>
+								</div>
+								<div class="table_display_th" data-column="2">
+									<span>操作时间</span>
+									<div class="th_div">
+										<p class="hide_p">隐藏该列</p>
+									</div>
+								</div>
+								<div class="table_display_th" data-column="3">
+									<span>操作ip地址</span>
+									<div class="th_div">
+										<p class="hide_p">隐藏该列</p>
+									</div>
+								</div>
+								<div class="table_display_th" data-column="4">
+									<span>用户名称</span>
+									<div class="th_div">
+										<p class="hide_p">隐藏该列</p>
+									</div>
+								</div>
+								<div class="table_display_th" data-column="5">
+									<span>操作事件</span>
+									<div class="th_div">
+										<p class="hide_p">隐藏该列</p>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="page_foot">
+							<span class="left_page"><<</span>
+							<span class="page_desc">
+								当前页数 <span class="cur_page">1</span>/<span class="all_page">1</span>
+							</span>
+							<span class="right_page">>></span>
 						</div>
 					</div>
 
@@ -80,6 +120,9 @@
 
         //jsp加入
         var user_json = <%=JSON.toJSONString(request.getAttribute("user"))%>
+
+        var log_num = 0; //记录日志序号
+        var hide_column_array = []; //记录需要隐藏的列数
 
         //获取当前日期和时间
         function getNowFormatDate() {
@@ -115,6 +158,86 @@
 		   	})
 		}
 
+		//点击日志查询列
+		function clickLogColumn() {
+			$(".log_table .table_display_th").unbind("click").click(function() {
+				$(this).children(".th_div").toggle();
+				// console.log($(this).children("span").width());
+				var left_dis = parseFloat($(this).children("span").width()) + 25 - parseFloat($(this).children(".th_div").width());
+				$(this).children(".th_div").css("left", left_dis+"px");
+			})
+		}
+
+		//点击隐藏该列按钮
+		function clickhideP() {
+			$(".hide_p").each(function(){
+				$(this).unbind('click').click(function() {
+					var nth_num = $(this).parent().parent().data("column");
+					hide_column_array.push(nth_num);
+					hideColumn(nth_num);
+				})
+			})
+		}
+
+		function hideColumn(nth_num) {
+			$(".log_table .table_display_th:nth-child(" + nth_num + ")").css("display", "none");
+			$(".log_table .table_display_td:nth-child(" + nth_num + ")").each(function(){
+				$(this).css("display", "none");
+			});
+		}
+
+		//发送查询ajax
+		function getLog(page, section, start_time, end_time, type, keyword) {
+    		$.ajax({
+    			type: "POST",
+    			url: "http://"+ip2+"/invoice/getTwentyAction.action",
+    			data: {
+    				page: page, //首次请求
+    				section: section,
+    				startTime: start_time,
+    				endTime: end_time,
+    				type: type,
+    				keyword: keyword
+    			},
+    			success: function(res, status) {
+    				// console.log(res);
+    				var data = JSON.parse(res);
+    				// $(".select_result").css("display", "block");
+    				//先清空上一次查询的结果
+    				$(".select_result .log_table .table_display_row:nth-child(n+2)").remove();
+    				
+    				log_num = page * section;
+
+    				if(data.action_list.length == 0 || data.action_list == undefined) {
+    					$(".select_result .text_describe").css("display", "block");
+    					$(".select_result .log_table_container").css("display", "none");
+    				}
+
+    				else{
+    					$(".select_result .text_describe").css("display", "none");
+    					$(".select_result .log_table_container").css("display", "block");
+    					$(".all_page").text(data.page_sum);
+    					$(".cur_page").text(page+1);
+
+        				for(var i = 0; i < data.action_list.length; i++) {
+        					// console.log(data.action_list[i]);
+        					var temp_data = data.action_list[i];
+							// var data = res[i];
+							$(".select_result .log_table").append("<div class=\"table_display_row\"><div class=\"table_display_td\">"+(++log_num)+"</div><div class=\"table_display_td\">"+temp_data.action_time+"</div><div class=\"table_display_td\">"+temp_data.user_ip+"</div><div class=\"table_display_td\">"+temp_data.user_name+"</div><div class=\"table_display_td\">"+temp_data.description+"</div></div>");
+        				}
+
+        				for(var i = 0; i < hide_column_array.length; i++) {
+        					hideColumn(hide_column_array[i]);
+        				}	
+    				}
+    			},
+    			error: function() {
+    				$(".select_result .log_table_container").css("display", "none");
+    				$(".select_result .text_describe").css("display", "block");
+    			}
+    		})
+		}
+
         $(document).ready(function(){
         	// console.log(document.documentElement.clientHeight);
         	// 判断权限
@@ -122,93 +245,63 @@
         	justifyRW(user_json);
 
         	getNowFormatDate();
-        	//首次加载查询
-        	$.ajax({
-    			type: "POST",
-    			url: "http://"+ip2+"/invoice/getTwentyAction.action",
-    			data: {
-    				page: 0 //首次请求
-    			},
-    			success: function(res, status) {
-    				var data = JSON.parse(res);
-    				// $(".select_result").css("display", "block");
-    				//先清空上一次查询的结果
-    				$(".select_result .log_table .table_display_row:nth-child(n+2)").remove();
 
-    				if(data.action_list.length == 0 || data.action_list == undefined) {
-    					$(".select_result .text_describe").css("display", "block");
-    					$(".select_result .log_table").css("display", "none");
-    				}
-
-    				else{
-    					$(".select_result .text_describe").css("display", "none");
-    					$(".select_result .log_table").css("display", "table");
-
-        				for(var i = 0; i < data.action_list.length; i++) {
-        					// console.log(data.action_list[i]);
-        					var temp_data = data.action_list[i];
-							// var data = res[i];
-							$(".select_result .log_table").append("<div class=\"table_display_row\"><div class=\"table_display_td\">"+temp_data.user_name+"</div><div class=\"table_display_td\">"+temp_data.company_name+"</div><div class=\"table_display_td\">"+temp_data.description+"</div><div class=\"table_display_td\">"+temp_data.action_time+"</div><div class=\"table_display_td\">"+temp_data.user_ip+"</div></div>");
-        				}	
-    				}
-    			},
-    			error: function() {
-    				$(".select_result .log_table").css("display", "none");
-    				$(".select_result .text_describe").css("display", "block");
-    			}
-    		})
+        	//首次加载日志查询
+        	getLog(0, $("input[name='section']").val(), null, null, null, null);
 
 
         	//绑定提交按钮获取日志查询结果
         	$("#rizhi_select").click(function(){
         		// console.log($("#start_date").val() + " " + $("#start_time").val());
-        		var star_time = null;
+        		var start_time = null;
         		var end_time = null;
         		if($("#start_date").val() != null && $("#start_time").val() != null) {
-        			star_time = $("#start_date").val() + " " + $("#start_time").val();
+        			start_time = $("#start_date").val() + " " + $("#start_time").val();
         		}
         		if($("#end_date").val() != null && $("#end_time").val() != null) {
         			end_time = $("#end_date").val() + " " + $("#end_time").val();
         		}
-        		$.ajax({
-        			type: "POST",
-        			url: "http://"+ip2+"/invoice/getTwentyAction.action",
-        			data: {
-        				page: 0, //首次请求
-        				startTime: star_time,
-        				endTime: end_time,
-        				type: $("select[name='type']").val(),
-        				keyword: $("#keyword").val() == null ? null : $("#keyword").val()
-        			},
-        			success: function(res, status) {
-        				var data = JSON.parse(res);
-        				// $(".select_result").css("display", "block");
-        				//先清空上一次查询的结果
-        				$(".select_result .log_table .table_display_row:nth-child(n+2)").remove();
 
-        				if(data.action_list.length == 0 || data.action_list == undefined) {
-        					$(".select_result .text_describe").css("display", "block");
-        					$(".select_result .log_table").css("display", "none");
-        				}
-
-        				else{
-        					$(".select_result .text_describe").css("display", "none");
-        					$(".select_result .log_table").css("display", "table");
-
-            				for(var i = 0; i < data.action_list.length; i++) {
-            					// console.log(data.action_list[i]);
-            					var temp_data = data.action_list[i];
-    							// var data = res[i];
-    							$(".select_result .log_table").append("<div class=\"table_display_row\"><div class=\"table_display_td\">"+temp_data.user_name+"</div><div class=\"table_display_td\">"+temp_data.company_name+"</div><div class=\"table_display_td\">"+temp_data.description+"</div><div class=\"table_display_td\">"+temp_data.action_time+"</div><div class=\"table_display_td\">"+temp_data.user_ip+"</div></div>");
-            				}	
-        				}
-        			},
-        			error: function() {
-        				$(".select_result .log_table").css("display", "none");
-        				$(".select_result .text_describe").css("display", "block");
-        			}
-        		})
+        		//还原隐藏的列和表头
+        		hide_column_array.splice(0, hide_column_array.length);
+				$(".select_result .log_table .table_display_row:nth-child(1)").remove();
+        		$(".select_result .log_table").prepend("<div class=\"table_display_row\"><div class=\"table_display_th\" data-column=\"1\"><span>日志序号</span><div class=\"th_div\"><p class=\"hide_p\">隐藏该列</p></div></div><div class=\"table_display_th\" data-column=\"2\"><span>操作时间</span><div class=\"th_div\"><p class=\"hide_p\">隐藏该列</p></div></div><div class=\"table_display_th\" data-column=\"3\"><span>操作ip地址</span><div class=\"th_div\"><p class=\"hide_p\">隐藏该列</p></div></div><div class=\"table_display_th\" data-column=\"4\"><span>用户名称</span><div class=\"th_div\"><p class=\"hide_p\">隐藏该列</p></div></div><div class=\"table_display_th\" data-column=\"5\"><span>操作事件</span><div class=\"th_div\"><p class=\"hide_p\">隐藏该列</p></div></div></div>");
+        		clickLogColumn();
+        		clickhideP();
+        		getLog(0, $("input[name='section']").val(), start_time, end_time, $("select[name='type']").val(), $("#keyword").val());
         	})
+
+        	$(".right_page").click(function() {
+        		if(parseInt($(".cur_page").text()) == parseInt($(".all_page").text())) return;
+        		var start_time = null;
+        		var end_time = null;
+        		if($("#start_date").val() != null && $("#start_time").val() != null) {
+        			start_time = $("#start_date").val() + " " + $("#start_time").val();
+        		}
+        		if($("#end_date").val() != null && $("#end_time").val() != null) {
+        			end_time = $("#end_date").val() + " " + $("#end_time").val();
+        		}
+        		// $(".cur_page").text(parseInt($(".cur_page").text())+1);
+        		getLog(parseInt($(".cur_page").text()), $("input[name='section']").val(), start_time, end_time, $("select[name='type']").val(), $("#keyword").val());
+        	})
+
+        	$(".left_page").click(function() {
+        		if(parseInt($(".cur_page").text()) == 1) return;
+        		var start_time = null;
+        		var end_time = null;
+        		if($("#start_date").val() != null && $("#start_time").val() != null) {
+        			start_time = $("#start_date").val() + " " + $("#start_time").val();
+        		}
+        		if($("#end_date").val() != null && $("#end_time").val() != null) {
+        			end_time = $("#end_date").val() + " " + $("#end_time").val();
+        		}
+        		// $(".cur_page").text(parseInt($(".cur_page").text())-1);
+        		getLog(parseInt($(".cur_page").text())-2, $("input[name='section']").val(), start_time, end_time, $("select[name='type']").val(), $("#keyword").val());
+        	})
+
+
+        	clickLogColumn();
+        	clickhideP();
         })
 	</script>
 </body>

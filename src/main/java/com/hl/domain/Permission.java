@@ -48,6 +48,4 @@ public class Permission {
 	public void setOrigin_groups(List<String> origin_groups) {
 		this.origin_groups = origin_groups;
 	}
-
-	
 }
