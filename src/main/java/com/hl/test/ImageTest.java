@@ -6,7 +6,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import javax.annotation.Resource;
@@ -113,7 +116,16 @@ public class ImageTest {
 	
 	@Test
 	public void test10() throws Exception {
-		System.out.println(UUID.randomUUID().toString());
+		Permission permission1 = new Permission();
+		Permission permission2 = new Permission();
+		permission1.setPermission_id(1);
+		permission2.setPermission_id(1);
+		System.out.println(permission1.equals(permission2));
+		Set<Permission>set = new HashSet<>();
+		set.add(permission1);
+		set.add(permission2);
+		System.out.println(set);
 	}
+	
 	
 }

@@ -207,13 +207,13 @@ public class UserDaoImpl extends JdbcDaoSupport implements UserDao{
 
 	@Override
 	public int addGroupUser(Integer user_id, Integer group_id) {
-		String sql = "insert into user set values(?,?);";
+		String sql = "insert into user_group_relation values(?,?);";
 		return getJdbcTemplate().update(sql,user_id,group_id);
 	}
 
 	@Override
 	public void removeGroupUser(Integer user_id,Integer group_id) {
-		String sql = "delete user_group_relation where group_id=? and user_id=?";
+		String sql = "delete from user_group_relation where group_id=? and user_id=?";
 		getJdbcTemplate().update(sql,group_id,user_id);	
 	}
 
