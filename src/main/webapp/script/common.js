@@ -651,7 +651,11 @@ function ModalVerticalAlign(modal_jq) {
     console.log("init here " + parseFloat($(modal_jq).height()) + " " + document.documentElement.clientHeight);
     if(parseFloat($(modal_jq).width()) > document.documentElement.clientWidth){
         $(modal_jq).css("width", document.documentElement.clientWidth+"px");
+        $(modal_jq).find(".modal-content").css("width", document.documentElement.clientWidth+"px");
+    } else {
+
     }
+
     if(parseFloat($(modal_jq).height()) > document.documentElement.clientHeight){
         $(modal_jq).find(".modal-content").css("height", document.documentElement.clientHeight+"px");
     } else {
