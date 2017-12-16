@@ -95,7 +95,6 @@ public class UserServiceImpl implements UserService{
 	    for(List<Permission>permissions : groups_permissions){
 	    	public_permission_set.addAll(permissions);
 	    }
-	    System.out.println(public_permission_set);
 	    List<Permission>public_permissions = new ArrayList<Permission>(public_permission_set);
 		//最后进行记录，一个公有权限的所属用户组
 	    Map<Permission, List<String>>map = new HashMap<>();
@@ -113,7 +112,6 @@ public class UserServiceImpl implements UserService{
 			List<String>list = map.get(permission);
 			permission.setIsPrivate(0);
 			permission.setOrigin_groups(list);
-			System.out.println(permission.getPermission_name() + "---" + list);
 		}
 		
 		//相加
