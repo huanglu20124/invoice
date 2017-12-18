@@ -1,22 +1,30 @@
 package com.hl.service.impl;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
+import org.apache.commons.io.FilenameUtils;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.socket.TextMessage;
 
 import com.alibaba.fastjson.JSON;
@@ -33,8 +41,10 @@ import com.hl.domain.ModelAction;
 import com.hl.domain.ModelQuery;
 import com.hl.domain.ResponseMessage;
 import com.hl.domain.User;
+import com.hl.exception.InvoiceException;
 import com.hl.service.ModelService;
 import com.hl.util.Const;
+import com.hl.util.IOUtil;
 import com.hl.util.ImageUtil;
 import com.hl.util.MessageUtil;
 import com.hl.util.SocketLoadTool;
@@ -158,7 +168,7 @@ public class ModelServiceImpl implements ModelService{
 		//actionDao.solrAddUpdateAction(modelAction);
 		
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
-		String url = ImageUtil.suffixToJpg(localConfig.getIp() + modelAction.getUrl_suffix());// 变为网络url
+		String url = localConfig.getIp()  + modelAction.getFile_path() + "model.jpg";// 变为网络url
 		// 处理增加模板的结果
 		try {
 			ResponseMessage message = MessageUtil.getMessage(inputStream);
@@ -177,10 +187,10 @@ public class ModelServiceImpl implements ModelService{
 			// 2.成功的话，model表加入一个新model,model_id主键由算法端决定
 			if (status == 0) {
 				model_id = (int) response_map.get("id");
-				Integer image_size = ImageUtil.getImageSize(localConfig.getImagePath() + modelAction.getUrl_suffix());
+				//Integer image_size = ImageUtil.getImageSize(localConfig.getImagePath() + modelAction.getUrl_suffix());
 				//更新部分信息
 				modelAction.setModel_id(model_id);
-				modelAction.setImage_size(image_size);
+				//modelAction.setImage_size(image_size);
 				modelAction.setDescription("增加模板["+modelAction.getModel_id()+"]");
 				modelDao.addModel(modelAction);
 				//更新到索引库
@@ -209,7 +219,7 @@ public class ModelServiceImpl implements ModelService{
 	public void broadcastUpdateModel(InputStream inputStream, ModelAction modelAction) {
 		Integer action_id = modelAction.getAction_id();		
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
-		String url = ImageUtil.suffixToJpg(localConfig.getIp() + modelAction.getUrl_suffix());// 将后缀变为网络url
+		//String url = ImageUtil.suffixToJpg(localConfig.getIp() + modelAction.getUrl_suffix());// 将后缀变为网络url
 		// 处理增加模板的结果
 		try {
 			ResponseMessage message = MessageUtil.getMessage(inputStream);
@@ -219,7 +229,7 @@ public class ModelServiceImpl implements ModelService{
 			int status = (int) response_map.get("status");
 			String temp_str = message.getFinalMessage(action_id);
 			Map<String, Object> temp_map = JSON.parseObject(temp_str);
-			temp_map.put(Const.URL, url);
+			//temp_map.put(Const.URL, url);
 			Map<String, Object>json_model_map = JSON.parseObject(modelAction.getJson_model());
 			temp_map.put(Const.JSON_MODEL, json_model_map);
 			String str = JSON.toJSONString(temp_map);
@@ -492,5 +502,64 @@ public class ModelServiceImpl implements ModelService{
 			modelQuery.setModel_list(model_list);
 		}
 		return modelQuery;	
+	}
+
+	
+	//上传单张模板原图的请求,type=0的话，则需要返回img_str;type=1的话，不需要返回img_str
+	@Override
+	public String uploadModelOrigin(MultipartFile[]files,Integer type,HttpSession session) throws InvoiceException{
+		final Map<String, Object> ans_map = new HashMap<>();
+		//建立临时文件夹,"temp"+时间字符串， 文件夹的名字放到session中，模板完成之后，文件夹名字规范化 
+		String time_str = TimeUtil.getFileCurrentTime();
+		String dir = localConfig.getImagePath() + "image/model/temp_"+ time_str + "/";
+		File save_folder = new File(dir);
+		if (save_folder.exists() == false) {
+			save_folder.mkdirs();
+		}
+		//先获取原文件夹有多少个原图，按序号来命名
+		String[]origin_files = save_folder.list();
+		Integer k = origin_files.length + 1;
+		for(int i = 0 ; i < files.length; i++){
+			MultipartFile multipartFile = files[i];
+			String origin_file_name = multipartFile.getOriginalFilename();
+			String save_name = null;
+			System.out.println("原始文件名为" + origin_file_name);
+			//找到后缀名
+			int flag = origin_file_name.lastIndexOf(".") + 1;
+			String tail = origin_file_name.substring(flag, origin_file_name.length());
+			if(tail.equals("jpg")){
+				save_name = (k + ".jpg");
+				k++;
+			}
+			else if (tail.equals("png")) {
+				save_name = (k + ".png");
+				k++;
+			}
+			else if (tail.equals("bmp")) {
+				save_name = (k + ".bmp");
+				k++;
+			}
+			else {
+				throw new InvoiceException("提交的文件格式不正确！");
+			}
+			if(save_name != null){
+				try {
+					multipartFile.transferTo(new File(dir+save_name));
+				}catch (IOException e) {
+					throw new InvoiceException("保存文件出错！");
+				}
+				System.out.println("保存文件" + save_name +"成功");
+			}
+			if(i == 0 && type == 0 && save_name != null){
+				//第一张图的话，要返回img_str以及它的url（用于前端展示）
+				ans_map.put("img_str", "data:image/"+ tail +";base64," 
+				+ ImageUtil.GetImageStr(dir+"/"+save_name));
+				ans_map.put("url", localConfig.getIp()+"image/model/temp_"+time_str+save_name);
+			}
+		}
+		ans_map.put("success", "上传文件成功");
+		//将file_path存储在session中
+		session.setAttribute("file_path","image/model/temp_"+ time_str + "/");
+		return JSON.toJSONString(ans_map);
 	}
 }

@@ -1,5 +1,6 @@
 package com.hl.test;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.*;
 
 import java.io.File;
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -21,6 +23,7 @@ import com.hl.domain.Invoice;
 import com.hl.domain.Permission;
 import com.hl.domain.User;
 import com.hl.util.ImageUtil;
+import com.mysql.jdbc.TimeUtil;
 import com.sun.org.apache.bcel.internal.generic.NEW;
 import com.hl.util.Const;
 import com.hl.util.IOUtil;
@@ -125,6 +128,15 @@ public class ImageTest {
 		set.add(permission1);
 		set.add(permission2);
 		System.out.println(set);
+	}
+	
+	@Test
+	public void test14() throws Exception {
+		String folder_path = "E://";
+		String file_name = "1.jpg";
+		Scanner scanner = new Scanner(System.in);
+		String str = scanner.nextLine();
+		ImageUtil.generateImage(str, folder_path,file_name);
 	}
 	
 	

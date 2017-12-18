@@ -35,11 +35,9 @@
 
 	<!-- 这两个类用来启动基于Spring MVC的注解功能，将控制器与方法映射加入到容器中 -->
 	<!-- 配置处理器映射器 HandlerMapping -->
-	<bean
-		class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping" />
+	<!-- <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping" /> -->
 	<!-- 配置处理器适配器HandlerAdapter -->
-	<bean
-		class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter" />
+	<!-- <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter" /> -->
 
 	<!-- 配置视图解析器 -->
 	<!-- 对资源放行 (因为过滤器只拦截带action的，故不用放行了) -->

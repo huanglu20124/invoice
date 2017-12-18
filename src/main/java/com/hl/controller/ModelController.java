@@ -20,6 +20,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -31,6 +32,7 @@ import com.hl.domain.Model;
 import com.hl.domain.ModelAction;
 import com.hl.domain.ModelQuery;
 import com.hl.domain.SimpleResponse;
+import com.hl.exception.InvoiceException;
 import com.hl.service.InvoiceService;
 import com.hl.service.ModelService;
 import com.hl.util.Const;
@@ -67,7 +69,7 @@ public class ModelController {
 		//String url_suffix = "image/model/handle/" + TimeUtil.getYearMonthDir() + "/" + file_name;
 		String url_suffix = "image/model/handle/" + "201710" + "/" + file_name;
 		//设置给modelAction
-		modelAction.setUrl_suffix(url_suffix);
+		//modelAction.setUrl_suffix(url_suffix);
 		if (ImageUtil.generateImage(img_str, localConfig.getImagePath() + "image/model/handle/"+"201710",
 				file_name) == true) {
 			System.out.println("上传文件成功");
@@ -124,63 +126,11 @@ public class ModelController {
 	//上传发票模板原图
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/uploadModelOrigin.action", method = RequestMethod.POST)
-	public void uploadModelOrigin(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		request.setCharacterEncoding("utf-8");
-		response.setCharacterEncoding("utf-8");
+	@ResponseBody
+	public String uploadModelOrigin(HttpServletRequest request,@RequestParam("type")Integer type,
+			@RequestParam("file")MultipartFile[]files) throws InvoiceException{
 		System.out.println("接收到来自web端的上传发票原图请求");
-		final Map<String, Object> ans_map = new HashMap<>();
-		// 建立文件夹,子目录为年+月
-		File save_folder = new File(localConfig.getImagePath() + "image/model/original/" + "201710");
-		if (save_folder.exists() == false) {
-			save_folder.mkdirs();
-		}
-		// 获取全部文件
-		CommonsMultipartResolver cmr = new CommonsMultipartResolver(request.getServletContext());
-		if (cmr.isMultipart(request)) {
-			MultipartHttpServletRequest request2 = (MultipartHttpServletRequest) request;
-			Iterator<String> files = request2.getFileNames();
-			// 获取其他参数
-			while (files.hasNext()) {
-				MultipartFile file = request2.getFile(files.next());
-				String origin_file_name = FilenameUtils.getName(file.getOriginalFilename());
-				System.out.println("origin_file_name==" + origin_file_name);
-				String save_file_name = null;
-				String url_suffix = null;
-				if(origin_file_name.endsWith("jpg")){
-					save_file_name = UUID.randomUUID().toString() + ".jpg";
-					url_suffix = "image/model/original/"+"201710"+"/"+save_file_name;
-				}
-				else if(origin_file_name.endsWith("bmp")){
-					save_file_name = UUID.randomUUID().toString() + ".bmp";
-					url_suffix = "image/model/original/"+"201710"+"/"+save_file_name;
-				}
-				try {
-					//先保存bmp
-					File save_file = new File(save_folder, save_file_name);
-					FileOutputStream fos = new FileOutputStream(save_file);
-					InputStream ins = file.getInputStream();
-					IOUtil.inToOut(ins, fos);
-					IOUtil.close(ins, fos);
-					System.out.println("上传文件成功;");
-					//如果是bmp的话再保存jpg
-					if(origin_file_name.endsWith("bmp"))
-					    ImageUtil.bmpTojpg(localConfig.getImagePath() + url_suffix);
-					//重要！将文件url返回给web端
-					ans_map.put("file_name", ImageUtil.suffixToJpg(localConfig.getIp() + url_suffix));
-					String local_jpg = ImageUtil.suffixToJpg(localConfig.getImagePath() + url_suffix);
-					ans_map.put("img_str", "data:image/jpg;base64," + ImageUtil.GetImageStr(local_jpg));
-				} catch (Exception e) {
-					e.printStackTrace();
-					ans_map.put(Const.ERR, "上传文件失败");
-				}
-			}
-		} else {
-			ans_map.put(Const.ERR, "请求格式有错误");
-		}
-		PrintWriter writer = response.getWriter();
-		writer.write(JSON.toJSONString(ans_map));
-		writer.flush();
-		writer.close();
+		return modelService.uploadModelOrigin(files,type,request.getSession());
 	}
 
 	//一键清空模板

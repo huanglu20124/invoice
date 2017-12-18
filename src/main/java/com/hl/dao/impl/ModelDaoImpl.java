@@ -26,9 +26,9 @@ public class ModelDaoImpl extends JdbcDaoSupport implements ModelDao {
 		//获得json_model里的model_label
 		Map<String, Object>global_setting_map = (Map<String, Object>) json_map.get("global_setting");
 		String model_label = (String) global_setting_map.get("label");
-		getJdbcTemplate().update(sql,modelAction.getModel_id(),
+/*		getJdbcTemplate().update(sql,modelAction.getModel_id(),
 				json_model,modelAction.getAction_time(),
-				modelAction.getUrl_suffix(),model_label,modelAction.getImage_size(),UUID.randomUUID().toString());
+				modelAction.getUrl_suffix(),model_label,modelAction.getImage_size(),UUID.randomUUID().toString());*/
 	}
 
 	@Override
@@ -38,8 +38,8 @@ public class ModelDaoImpl extends JdbcDaoSupport implements ModelDao {
 		Map<String, Object>json_map = JSON.parseObject(modelAction.getJson_model());
 		Map<String, Object>global_setting_map = (Map<String, Object>) json_map.get("global_setting");
 		String model_label = (String) global_setting_map.get("label");
-		getJdbcTemplate().update(sql,modelAction.getJson_model(),modelAction.getUrl_suffix(),
-				model_label,com.hl.util.TimeUtil.getCurrentTime(),modelAction.getModel_id());	
+/*		getJdbcTemplate().update(sql,modelAction.getJson_model(),modelAction.getUrl_suffix(),
+				model_label,com.hl.util.TimeUtil.getCurrentTime(),modelAction.getModel_id());	*/
 	}
 	
 	@Override

@@ -152,7 +152,8 @@ public class SwitcherThread implements Runnable {
 		case 2://增加
 		{
 			//首先，将后缀变更为本地url
-			String url_suffix = modelAction.getUrl_suffix();
+			//String url_suffix = modelAction.getUrl_suffix();
+			String url_suffix = null;
 			//得到原图
 			String url_suffix_original = url_suffix.replaceAll("handle", "original");
 			//统一为jpg
@@ -189,7 +190,8 @@ public class SwitcherThread implements Runnable {
 		case 4: //修改
 		{
 			//首先，将后缀变更为本地url
-			String url_suffix = modelAction.getUrl_suffix();
+			//String url_suffix = modelAction.getUrl_suffix();
+			String url_suffix = null;
 			String absulote_path = ImageUtil.suffixToBmp(localConfig.getImagePath() + 
 					url_suffix.replaceAll("handle", "original"));//同时变更文件夹名
 			//得到model_id
