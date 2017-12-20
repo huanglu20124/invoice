@@ -11,6 +11,9 @@ import org.apache.log4j.Logger;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.alibaba.fastjson.JSON;
+import com.hl.domain.SimpleResponse;
+
 public class InvoiceExceptionResolver implements HandlerExceptionResolver {
 
 	public static Logger logger = Logger.getLogger(InvoiceExceptionResolver.class);
@@ -40,9 +43,8 @@ public class InvoiceExceptionResolver implements HandlerExceptionResolver {
 			PrintWriter writer;
 			try {
 				writer = response.getWriter();
-				writer.write(message);
+				writer.write(JSON.toJSONString(new SimpleResponse(null, invoiceException.getMessage())));
 				writer.flush();
-				System.out.println("json格式返回异常");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

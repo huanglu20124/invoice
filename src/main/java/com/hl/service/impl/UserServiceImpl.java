@@ -3,7 +3,6 @@ package com.hl.service.impl;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -183,7 +182,7 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public SimpleResponse removeGroupUser(Integer user_id,Integer group_id) {
-		SimpleResponse simpleResponse = new SimpleResponse();
+		SimpleResponse simpleResponse = new SimpleResponse(null,null);
 		try {
 			userDao.removeGroupUser(user_id,group_id);
 			simpleResponse.setSuccess("移出用户组成功");

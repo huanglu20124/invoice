@@ -1,16 +1,10 @@
 package com.hl.dao.impl;
 
-import java.io.File;
-import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
@@ -22,16 +16,9 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 
-import com.alibaba.fastjson.JSON;
 import com.hl.dao.InvoiceDao;
-import com.hl.domain.Action;
 import com.hl.domain.Invoice;
 import com.hl.domain.LocalConfig;
-import com.hl.domain.Model;
-import com.hl.domain.RecognizeAction;
-import com.hl.util.Const;
-import com.mysql.jdbc.TimeUtil;
-import com.sun.istack.FinalArrayList;
 
 public class InvoiceDaoImpl extends JdbcDaoSupport implements InvoiceDao{
 	

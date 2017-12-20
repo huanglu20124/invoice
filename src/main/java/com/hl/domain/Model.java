@@ -1,8 +1,5 @@
 package com.hl.domain;
 
-import java.util.Map;
-
-import com.alibaba.fastjson.JSON;
 
 //模板类
 public class Model {

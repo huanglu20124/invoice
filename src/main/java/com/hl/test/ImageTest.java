@@ -1,17 +1,13 @@
 package com.hl.test;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Scanner;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 
 import javax.annotation.Resource;
@@ -19,15 +15,11 @@ import javax.annotation.Resource;
 import org.junit.Test;
 
 import com.hl.dao.RedisDao;
-import com.hl.domain.Invoice;
 import com.hl.domain.Permission;
 import com.hl.domain.User;
 import com.hl.util.ImageUtil;
-import com.mysql.jdbc.TimeUtil;
-import com.sun.org.apache.bcel.internal.generic.NEW;
 import com.hl.util.Const;
 import com.hl.util.IOUtil;
-import net.sf.json.xml.XMLSerializer;
 
 public class ImageTest {
 
@@ -132,12 +124,33 @@ public class ImageTest {
 	
 	@Test
 	public void test14() throws Exception {
-		String folder_path = "E://";
-		String file_name = "1.jpg";
-		Scanner scanner = new Scanner(System.in);
-		String str = scanner.nextLine();
-		ImageUtil.generateImage(str, folder_path,file_name);
+		String folder_path = "E:/study_and_work/invoice/repo/票据扫描/增值税_origin";
+		File file = new File(folder_path);
+		String[]list = file.list();
+		System.out.println(list.length);
+		int k = 1;
+		for(String file_name : list){
+			File origin = new File("E:/study_and_work/invoice/repo/票据扫描/增值税_origin/" + file_name);
+			System.out.println(file_name);
+			if(origin.exists()){
+				origin.renameTo(new File("E:/study_and_work/invoice/repo/票据扫描/增值税/"+k+".jpg"));
+				//origin.deleteOnExit();
+				k++;
+			}else {
+				System.out.println("文件不存在");
+			}
+		}
 	}
 	
+	@Test
+	public void test15() throws Exception {
+		File file = new File("E:/study_and_work/invoice/repo/票据扫描/增值税/" + "test.txt");
+		FileWriter writer = new FileWriter(file);
+		for(int i = 346; i <= 690; i++){
+			writer.write(i+".jpg 1 943.40 中山大学 13903387\r\n");
+		}
+		writer.close();
+	}
 	
+
 }

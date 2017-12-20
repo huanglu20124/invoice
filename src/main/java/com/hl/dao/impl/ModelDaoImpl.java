@@ -1,13 +1,17 @@
 package com.hl.dao.impl;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 
 import com.alibaba.fastjson.JSON;
 import com.hl.dao.ModelDao;
@@ -18,28 +22,34 @@ import com.hl.util.Const;
 public class ModelDaoImpl extends JdbcDaoSupport implements ModelDao {
 
 	@Override
-	public void addModel(ModelAction modelAction) {
+	public int addModel(final ModelAction modelAction) {
 		//增加一个新模板
-		String sql = "insert into model values(?,?,?,0,?,?,?,?);";
-		String json_model = modelAction.getJson_model();
-		Map<String, Object>json_map = JSON.parseObject(json_model);
-		//获得json_model里的model_label
-		Map<String, Object>global_setting_map = (Map<String, Object>) json_map.get("global_setting");
-		String model_label = (String) global_setting_map.get("label");
-/*		getJdbcTemplate().update(sql,modelAction.getModel_id(),
-				json_model,modelAction.getAction_time(),
-				modelAction.getUrl_suffix(),model_label,modelAction.getImage_size(),UUID.randomUUID().toString());*/
+		final String sql = "insert into model values(?,?,?,0,?,?,?,?);";
+		KeyHolder keyHolder = new GeneratedKeyHolder();
+		//返回主键
+		getJdbcTemplate().update(new PreparedStatementCreator() {
+			@Override
+			public java.sql.PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+				java.sql.PreparedStatement psm =  connection.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
+				psm.setInt(1,modelAction.getModel_id());
+				psm.setString(2, JSON.toJSONString(modelAction.getJson_model()));
+				psm.setString(3, modelAction.getAction_time());
+				psm.setString(4, modelAction.getFile_path()+"model.jpg");
+				psm.setString(5, modelAction.getLabel());
+				psm.setInt(6, modelAction.getImage_size());
+				psm.setString(7, UUID.randomUUID().toString());
+				return psm;
+			}
+		},keyHolder);		
+		return keyHolder.getKey().intValue();
 	}
 
 	@Override
 	public void updateModel(ModelAction modelAction) {
-		String sql = "update model set json_model=?, model_url=?, model_label=?, model_register_time=?, where model_id=?";
+		String sql = "update model set json_model=?, model_label=? where model_id=?";
 		//获得json_model里的model_label
-		Map<String, Object>json_map = JSON.parseObject(modelAction.getJson_model());
-		Map<String, Object>global_setting_map = (Map<String, Object>) json_map.get("global_setting");
-		String model_label = (String) global_setting_map.get("label");
-/*		getJdbcTemplate().update(sql,modelAction.getJson_model(),modelAction.getUrl_suffix(),
-				model_label,com.hl.util.TimeUtil.getCurrentTime(),modelAction.getModel_id());	*/
+		getJdbcTemplate().update(sql,modelAction.getJson_model(),modelAction.getLabel(),
+				modelAction.getModel_id());
 	}
 	
 	@Override

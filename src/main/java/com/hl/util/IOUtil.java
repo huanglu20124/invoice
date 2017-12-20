@@ -1,9 +1,7 @@
 package com.hl.util;
 
-import static org.junit.Assert.*;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,12 +10,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.hadoop.hdfs.server.namenode.status_jsp;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
-import org.junit.Test;
 
 import com.alibaba.fastjson.JSON;
 
@@ -87,6 +82,7 @@ public class IOUtil {
 		Integer num =  new Integer((String)database_current_size.getData());
 		System.out.println("得到模板数量 :" + num);
 		Element element_invoice_info = root.element("invoice_info");
+		@SuppressWarnings("unchecked")
 		List<Element>elements = element_invoice_info.elements("_");
 		List<Map<String, Object>>json_model_list = new ArrayList<>();
 		for(int i = 0; i < num; i ++){
@@ -103,6 +99,7 @@ public class IOUtil {
 			json_model_map.put("global_setting",global_setting_map);
 			
 			Element element_info_area = element_root.element("info_area");
+			@SuppressWarnings("unchecked")
 			List<Element>roots_info_area = element_info_area.elements("_");
 			int area_num = roots_info_area.size();
 			System.out.println("area_num = " + area_num);
@@ -157,6 +154,7 @@ public class IOUtil {
 			}
 			FileWriter writer = new FileWriter(file);
 			writer.write(str);
+			writer.close();
 			System.out.println("写入本地文件测试");
 		} catch (Exception e) {
 			e.printStackTrace();

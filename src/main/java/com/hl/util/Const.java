@@ -69,6 +69,7 @@ public class Const {
 	public static final String RECOGNIZE_WAIT      = "recognize_wait"; //等待队列,只有操作队列为空时，才能执行这个
 	public static final String EXCEPTION_WAIT      = "exception_wait"; //异常队列,识别失败的发票
 	public static final String MANAGE_WAIT         = "manage_wait";     //操作队列，优先级最高,模板信息的增删改
+
 	
 	//用来通知切换任务线程的
 	public static final String THREAD_MSG          = "thread_msg";  //上锁的对象

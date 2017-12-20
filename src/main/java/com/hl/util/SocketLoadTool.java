@@ -3,12 +3,8 @@ package com.hl.util;
 import java.io.IOException;
 import java.net.Socket;
 
-import javax.annotation.Resource;
-
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import com.hl.domain.LocalConfig;
 
 @Component("socketListener")
 @Scope("singleton")

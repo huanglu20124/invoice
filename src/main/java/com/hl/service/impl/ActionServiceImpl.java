@@ -1,18 +1,15 @@
 package com.hl.service.impl;
 
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.Resource;
 
-import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.stereotype.Service;
 
 import com.hl.dao.ActionDao;
 import com.hl.domain.Action;
 import com.hl.domain.ActionQuery;
 import com.hl.service.ActionService;
-import com.sun.org.apache.bcel.internal.generic.I2F;
 
 @Service("actionService")
 public class ActionServiceImpl implements ActionService{

@@ -1,21 +1,14 @@
 package com.hl.controller;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,21 +16,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import com.alibaba.fastjson.JSON;
 import com.hl.domain.LocalConfig;
-import com.hl.domain.Model;
-import com.hl.domain.ModelAction;
 import com.hl.domain.ModelQuery;
 import com.hl.domain.SimpleResponse;
 import com.hl.exception.InvoiceException;
-import com.hl.service.InvoiceService;
 import com.hl.service.ModelService;
 import com.hl.util.Const;
-import com.hl.util.IOUtil;
-import com.hl.util.ImageUtil;
 import com.hl.util.IpUtil;
 import com.hl.websocket.SystemWebSocketHandler;
 
@@ -55,58 +41,32 @@ public class ModelController {
 	//增加发票模板，ajax上传，图片为Base64，
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/addModel.action", method = RequestMethod.POST)
-	public void addNewModel(HttpServletRequest request, HttpServletResponse response,String img_str,Integer type) throws IOException {
-		System.out.println("接收到来自web端的新增模板或修改模板的请求");
-		String action_str = request.getParameter("modelAction");
-		System.out.println("modelAction = " + action_str);
-		ModelAction modelAction = JSON.parseObject(action_str,ModelAction.class); 
-		Map<String, Object> ans_map = new HashMap<>();
-		// 用于工作人员的接口，上传处理过的图片
-		IOUtil.writeToLocal(img_str);
-		//System.out.println("file_name "+ request.getParameter("file_name"));
-		//名字来自客户端返回的
-		String file_name = ImageUtil.getFileName(request.getParameter("file_name"));
-		//String url_suffix = "image/model/handle/" + TimeUtil.getYearMonthDir() + "/" + file_name;
-		String url_suffix = "image/model/handle/" + "201710" + "/" + file_name;
-		//设置给modelAction
-		//modelAction.setUrl_suffix(url_suffix);
-		if (ImageUtil.generateImage(img_str, localConfig.getImagePath() + "image/model/handle/"+"201710",
-				file_name) == true) {
-			System.out.println("上传文件成功");
-			modelAction.setImage_size(ImageUtil.getImageSize(localConfig.getImagePath() + url_suffix));
-		} else {
-			ans_map.put(Const.ERR, "上传文件失败");
-			System.out.println("上传文件失败");
-		}
-		Integer thread_msg = (Integer) request.getServletContext().getAttribute(Const.THREAD_MSG);//获取上锁对象
-		if(type == 0){
-			//增加模板
-			modelAction.setMsg_id(2);
-		}else {
-			//修改模板
-			modelAction.setMsg_id(4);
-		}
-		modelAction.setUser_ip(IpUtil.getIpAddr(request));
-		modelService.addOrUpdateInvoiceModel(ans_map,modelAction,thread_msg);
-		 response.getWriter().write(JSON.toJSONString(ans_map));
+	@ResponseBody
+	public String addModel(HttpServletRequest request, HttpServletResponse response,String img_str,Integer type) throws InvoiceException{
+		System.out.println("接收到来自web端的新增模板的请求");
+		return modelService.addModel(request);
 	}
 
+	//修改发票模板
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/updateModel.action", method = RequestMethod.POST)
+	@ResponseBody
+	public String updateModel(HttpServletRequest request, HttpServletResponse response,String img_str,Integer type) throws InvoiceException{
+		System.out.println("接收到来自web端的修改模板的请求");
+		Integer thread_msg = (Integer) request.getServletContext().getAttribute(Const.THREAD_MSG);//获取上锁对象
+		return modelService.updateModel(request,thread_msg);
+	}
+	
 	// 删除发票模板，ajax上传
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/deleteModel.action", method = RequestMethod.POST)
-	public void deleteModel(HttpServletRequest request, HttpServletResponse response) throws IOException{
+	@ResponseBody
+	public String deleteModel(HttpServletRequest request,Integer user_id, Integer model_id) throws InvoiceException{
 		System.out.println("接收到删除单张模板的请求");
-		Map<String, Object> ans_map = new HashMap<>();
-		Integer user_id = new Integer(request.getParameter(Const.USER_ID));
-		Integer model_id = new Integer(request.getParameter(Const.MODEL_ID));
 		Integer thread_msg = (Integer) request.getServletContext().getAttribute(Const.THREAD_MSG);//获取上锁对象
 		System.out.println("model_id = " + model_id);
 		String user_ip = IpUtil.getIpAddr(request);
-		modelService.deleteInvoiceModel(ans_map,user_id,model_id,user_ip,thread_msg);
-		PrintWriter writer = response.getWriter();
-		writer.write(JSON.toJSONString(ans_map));
-		writer.flush();
-		writer.close();
+		return modelService.deleteModel(user_id,model_id,user_ip,thread_msg);
 	}
 
 	// 返回当前模板库全部信息,一次12条
@@ -157,11 +117,21 @@ public class ModelController {
 		if(modelQuery != null){
 			return JSON.toJSONString(modelQuery);
 		}else {
-			SimpleResponse simpleResponse = new SimpleResponse();
+			SimpleResponse simpleResponse = new SimpleResponse(null,null);
 			simpleResponse.setErr("请输入查询关键字");
 			return JSON.toJSONString(simpleResponse);
 		}
 	}
+	
+	//将该队列的modelAction加到manage队列中，通知线程切换
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/pushBatchModel.action", method = RequestMethod.POST)
+	@ResponseBody
+	public String pushBatchModel(HttpServletRequest request,String batch_id) throws InvoiceException{
+		Integer thread_msg = (Integer) request.getServletContext().getAttribute(Const.THREAD_MSG);//获取上锁对象
+		return modelService.pushBatchModel(batch_id,thread_msg);
+	}	
+	
 	
 	//特殊接口：将DataBase.xml文件里面的内容写入Mysql数据库，已经废弃
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问

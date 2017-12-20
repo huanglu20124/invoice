@@ -51,11 +51,10 @@ public class CheckUtil {
 			}
 			System.out.println("一次校验结果完毕,开始统计识别率");
 			for(String area_name : area_names){
-				List<Object>records_origin = redisDao.getRangeId(area_name);
-				int bottom = records_origin.size();
+				List<String>records= redisDao.getRangeId(area_name);
+				int bottom = records.size();
 				int count = 0;
-				for(Object object : records_origin){
-					String record = (String) object;
+				for(String record : records){
 					if(record.equals("1")){
 						count++;
 					}

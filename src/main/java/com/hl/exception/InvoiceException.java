@@ -11,6 +11,10 @@ package com.hl.exception;
  */
 public class InvoiceException extends Exception {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	//异常信息
 	private String message;
 	

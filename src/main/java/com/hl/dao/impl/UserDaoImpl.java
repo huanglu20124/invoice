@@ -9,7 +9,6 @@ import javax.annotation.Resource;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 
-import com.alibaba.fastjson.JSON;
 import com.hl.dao.UserDao;
 import com.hl.domain.Company;
 import com.hl.domain.Group;

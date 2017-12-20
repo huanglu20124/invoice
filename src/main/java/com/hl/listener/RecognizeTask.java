@@ -13,12 +13,10 @@ import com.hl.util.Const;
 
 public class RecognizeTask extends TimerTask{
 
-	private ServletContext servletContext;
 	private Logger logger;
 	private Integer last_count;
 	private RedisDao redisDao;
 	public RecognizeTask(ServletContext servletContext,Logger logger) {
-		this.servletContext = servletContext;
 		this.logger = logger;
 		last_count = 0;
 		ApplicationContext applicationContext = WebApplicationContextUtils.getRequiredWebApplicationContext(servletContext);

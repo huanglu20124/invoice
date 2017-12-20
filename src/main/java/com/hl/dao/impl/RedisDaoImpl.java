@@ -1,5 +1,6 @@
 package com.hl.dao.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.redis.core.RedisTemplate;
@@ -60,9 +61,14 @@ public class RedisDaoImpl implements RedisDao {
 	}
 
 	@Override
-	public List<Object> getRangeId(String array_name) {
+	public List<String> getRangeId(String array_name) {
 		//得到整个队列
-		return redisTemplate.opsForList().range(array_name, 0l, -1l);
+		List<Object>temps = redisTemplate.opsForList().range(array_name, 0l, -1l);
+		List<String>list = new ArrayList<>();
+		for(Object temp : temps){
+			list.add((String)temp);
+		}
+		return list;
 	}
 
 	@Override
