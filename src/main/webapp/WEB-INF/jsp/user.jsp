@@ -27,8 +27,8 @@
 					<p class="detect_div_hd flex flex-align-center">
 						<span class="flex-none" style="color: inherit; font-size: inherit; margin-left: 0px;">用户组管理</span>
 						<span class="flex-1">管理员可以编辑本单位的用户组权限</span>
-						<span class="flex-none text-primary" style="margin-right: 10px; display: inline-block; cursor: pointer;" title="增加用户组"><i class="fa fa-plus" aria-hidden="true"></i></span>
-						<span class="flex-none text-danger" title="删除用户组" style="cursor: pointer; margin-left: 0px;"><i class="fa fa-minus" aria-hidden="true"></i></span>
+						<span class="flex-none text-primary add_users" style="margin-right: 10px; display: inline-block; cursor: pointer;" title="增加用户组"><i class="fa fa-plus" aria-hidden="true"></i></span>
+						<span class="flex-none text-danger delete_users" title="删除用户组" style="cursor: pointer; margin-left: 0px;"><i class="fa fa-minus" aria-hidden="true"></i></span>
 					</p>
 
 			    </div>
@@ -302,6 +302,21 @@
 	    </div>
 	</div>
 
+	<div class="modal fade" id="confirmDelete" tabindex="-1" aria-hidden="true" style="margin: 0px auto; width: 450px;">
+		<div>
+	        <div class="modal-content">
+	        	<div class="modal-header">
+	        		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+	        		<h4 class="modal-title">确认删除用户组？</h4>
+	        	</div>
+	        	<div class="modal-footer">
+	                <button type="button" class="btn btn-danger" data-dismiss="modal" id="delete_confirm">确定</button>
+	                <button type="button" class="btn btn-default" data-dismiss="modal" id="delete_cancel">取消</button>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+
 	<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true" style="margin: 0px auto; width: 33%;">
 		<div>
 	        <div class="modal-content">
@@ -392,6 +407,17 @@
 				}
 
 				exitEdit();
+			})
+		}
+
+		//点击删除用户组的减号
+		function clickDeleteUsers() {
+			$(".delete_users").click(function(){
+				$(".users_div").each(function() {
+					console.log("users_div");
+					$(this).children("i.delete").css("opacity", "1");
+					// $(this).children("i.delete").toggle();
+				})	
 			})
 		}
 
@@ -543,7 +569,7 @@
 
 		//增加用户组
 		function addUsersGroup(temp_group) {
-			$(".users_div_container").append("<div class=\"users_div\"><i class=\"fa fa-users\" aria-hidden=\"true\"></i><div class=\"users_desc\"><p>"+temp_group.group_name+"</p><p>"+temp_group.group_id+"</p></div><div class=\"modal_menu\"><p class=\"startUsersGrant\">编辑权限</p><p class=\"startUsersMember\">编辑用户组成员</p></div></div>");
+			$(".users_div_container").append("<div class=\"users_div\"><i class=\"fa fa-users\" aria-hidden=\"true\"></i><div class=\"users_desc\"><p>"+temp_group.group_name+"</p><p>"+temp_group.group_id+"</p></div><div class=\"modal_menu\"><p class=\"startUsersGrant\">编辑权限</p><p class=\"startUsersMember\">编辑用户组成员</p></div><i class=\"fa fa-times-circle delete\" aria-hidden=\"true\"></i></div>");
 
 			$(".users_div_container .users_div:last-child").get(0).users_object = temp_group;
 			$(".users_div_container .users_div:last-child .startUsersGrant").click(function() {
@@ -556,6 +582,11 @@
 					clickStartUsersMember(btn_jq);
 				})($(this));
 			})
+			$(".users_div_container .users_div:last-child i.delete").click(function() {
+				console.log("here");
+				deleteUsersBtn($(this));
+			})
+
 
 			hoverUsers($(".users_div_container .users_div:last-child"));
 		}
@@ -914,6 +945,13 @@
 			})
 		}
 
+		//点击左上角交叉删除用户组
+		function deleteUsersBtn(users_jq) {
+			delete_confirm(0);
+			delete_cancel(0);
+			$("#confirmDelete").modal("show");
+		}
+
 		//点击左上角交叉删除用户
 		function deleteUserBtn(user_jq) {
 			// $(".deleteAlert").css("display", "block");
@@ -962,6 +1000,25 @@
 			})
 		}
 
+		//点击用户/用户组删除确认
+		function delete_confirm(type) {
+			$("#delete_confirm").unbind("click").click(function() {
+				if(type == 0) { // 0代表用户组
+					$(".users_div i.delete").css("opacity", 0);	
+				}
+				
+			})
+		}
+
+		//点击用户/用户组取消删除
+		function delete_cancel(type) {
+			$("#delete_cancel").unbind("click").click(function() {
+				if(type == 0) { // 0代表用户组
+					$(".users_div i.delete").css("opacity", 0);	
+				}
+			})
+		}
+
 		//判断user和group的权限
 		function justifyUserGroup(user_json) {
 			var hasUser = false, hasGroup = false;
@@ -999,6 +1056,7 @@
         	getUserGrant();
         	getUsersGrant();
 
+        	clickDeleteUsers();
         	clickUsersGrantSave();
         	clickUserGrantSave();
         })

@@ -65,13 +65,18 @@
 			    </div>
 			</div>
 
+			<div class="temp_save_muban muban_contain" style="display: none; margin-top: 20px;">
+				<p style="margin-bottom: 1em">模板上传队列</p	>
+			</div>
+
 			<form role="form" id="addImageForm" method="post" enctype="multipart/form-data">
+				<input type="hidden" name="type" id="upload_type" value="0" />
 				<div class="form-group">
-					<label for="inputImageFile">选择本地图片新增模板库</label>
-					<input type="file" name="origin_img" id="inputImageFile" />
+					<label for="inputImageFile" class="file_label" data-write="true">选择本地图片新增模板库</label>
+					<input type="file" name="file" id="inputImageFile" style="display: none;" onchange="fileHandler(this.files)" />
 					<!-- <p class="help-block">点击提交后可在原图上制作模板</p> -->
 				</div>
-				<button type="submit" class="btn btn-default" onclick="addImageSubmit()" data-write="true">提交图片并制作新的模板</button>
+				<!-- <button type="submit" class="btn btn-default" onclick="addImageSubmit()" data-write="true">提交图片并制作新的模板</button> -->
 				<button type="button" class="btn btn-danger" onclick="deleteAllMuban()" style="display: none;">清空模板库</button>
 			</form>
 		</div>
@@ -93,7 +98,7 @@
 	            	<div id="canvas_container" style="display: inline-block; vertical-align: top;">
 						<canvas id="myCanvas"></canvas>
 					</div>
-					<div style="width: 200px; display: inline-block; vertical-align: top; padding: 20px 0px 0px 20px;">
+					<div style="width: 200px; display: inline-block; vertical-align: top; padding: 20px 0px 0px 20px;" class="right_body">
 						<button type="button" class="btn btn-primary" style="width: 100%;" id="getEdit" data-write="true">启用编辑</button>
 						<form role="form" id="global_setting" style="margin-top: 20px;">
 						  <div class="form-group">
@@ -109,9 +114,31 @@
 						  	</div>
 					    	<input type="text" class="form-control" placeholder="请输入定额发票数值" id="dinge" name="dinge" disabled/>
 						  </div>
-						  <button type="button" class="btn btn-danger" data-dismiss="modal" id="delete_mb" style="width: 100%;">删除模板</button>
-	               		  <button type="submit" class="btn btn-primary" data-dismiss="modal" id="submit_modal" style="width: 100%; margin-top: 10px;">添加/修改模板</button>
+						  <div class="form-group">
+						  	<label for="biaoqian" class="control-label">新增标记</label>
+						  	<div class="checkbox">
+						  		<label>
+						  			<input type="checkbox" name="send_label">发送新增模板至算法端
+						  		</label>
+						  	</div>
+						  </div>
 						</form>
+						<div class="other_img_name_container" style="width: 100%; padding: 10px 0px; display: none; border-top: 1px solid rgba(200,200,200,0.5);">
+							<p style="margin-bottom: 0.5em;">选择的其它原图名称</p>
+							<div class="other_img_name"></div>
+						</div>
+						<form id="addMubanImg_form" style="width: 100%;" method="post" enctype="multipart/form-data" >
+							<input type="hidden" name="type" value="1" />
+							<input type="hidden" name="file_path" />
+							<div class="form-group" style="margin-bottom: 0px;">
+							<label for="add_other_img" class="file_label" data-write="true" style="text-align: center; width: 100%; font-weight: normal;">选择同类原图</label>
+							<input type="file" name="file" id="add_other_img" style="display: none;" multiple onchange="addHandler(this.files)" />
+							</div>
+						</form>
+						<button type="submit" class="btn btn-primary" data-dismiss="modal" id="submit_modal" style="width: 100%;">添加模板</button>
+						<button type="button" class="btn btn-primary" data-dismiss="modal" id="edit_modal" style="width: 100%; margin-top: 10px;">修改模板</button>
+						<button type="button" class="btn btn-danger" data-dismiss="modal" id="delete_mb" style="width: 100%; margin-top: 10px;">删除模板</button>
+						
 					</div>
 					<div class="hid_panel">
 						<span id="close"><img src="pic/close_disabled.png"/></span>
@@ -207,9 +234,11 @@
 		var paint_area=[]; //画图的区域
 		var final_paint_area = []; //备份记录最终画图区域
 		var temp_img_str; //保存当前返回的img_str
-		var addImage_filename; //记录服务器生成的新添图片的名字
+		var addImage_filename; //记录服务器生成的新添图片的名字或路径
+		var addImage_url; //记录服务器生成的新添图片的绝对主机路径
 		var index = -1, last_index= -1, cur_x, cur_y; //记录当前鼠标滑到的画图区域index及其坐标
-
+		var other_img_array = []; //记录当前新增的模板的相关原图
+		var batch_id; //暂存队列的batch_id
 
 		//储存服务器传过来的对象
 		var model_array = [];
@@ -273,9 +302,13 @@
 				$("#getEdit").get(0).disabled = false;
 	        	//$("#myCanvas").css("backgroundImage", "url(\'" + src + "\')");
 
-	        	$("#global_setting *").each(function(){
+	        	// $("#global_setting *").each(function(){
+	        	// 	$(this).get(0).disabled = true;
+	        	// })
+	        	$(".right_body *").not("#getEdit").each(function(){
 	        		$(this).get(0).disabled = true;
-	        	})
+	        	}) 
+
 	        	$("#setting_form *").each(function(){
 	        		$(this).get(0).disabled = true;
 	        	})
@@ -288,22 +321,33 @@
 	        	$("#close").addClass('disabled_button');
 	        	$("#certain").addClass('disabled_button');
 
+	        	$("#myModalLabel").text("操作图片");
+				$("#myModalLabel_progress ").css("display", "none");
+				$("#myModalLabel_progress .progress-bar").css("width", "0%");
+
 	        	flushListenFunction(); //激活画图前mousemove的监听函数
         	}
         	img.src = src;
-        	
         }
 
         function flushForm() { //激活所有表单，开启修改功能
-        	$("#global_setting *").not("#dinge").each(function(){
+        	// $("#global_setting *").not("#dinge").each(function(){
+        	// 	$(this).get(0).disabled = false;
+        	// })
+        	$(".right_body *").not("#dinge").each(function(){
         		$(this).get(0).disabled = false;
-        	})
+        	}) 
+
         	$("#setting_form *").each(function(){
         		$(this).get(0).disabled = false;
         	})
+
         	if($("#global_setting #dinge_checkbox").get(0).checked == true) {
+        		$("#dinge").get(0).disabled = false;
+        	} else {
         		$("#dinge").get(0).disabled = true;
         	}
+
         	$("#myCanvas").css("cursor", "crosshair");
         	up_done = true;
         	button_use = true;
@@ -368,7 +412,7 @@
 
         //判断模板图片是横图还是竖图
         function justifySize(width, height) {
-        	console.log("width: " + width + " height:" + height);
+        	console.log("width:" + width + " height:" + height);
         	if(width >= height) {
         		$("#myCanvas").get(0).width = invoice_width;
         		$("#myCanvas").get(0).height = invoice_height;
@@ -386,6 +430,69 @@
         	//还原画布上下文
         	cxt.strokeStyle = "#00ff36";
 			cxt.lineWidth = 2;
+        }
+
+        //上传图片处理函数
+        function fileHandler(files) {
+        	// console.log(files[0].name);
+        	var file = files[0];
+        	var imageType = /^image\//;
+    
+			if (imageType.test(file.type)) {
+				var img = new Image();
+				img.onload = function() {
+					justifySize(img.width, img.height);
+					other_img_array.splice(0, other_img_array.length);
+					$("#myModal").modal("show");
+					// console.log(img.src);
+					// $("#test_img").get(0).src = img.src;
+					console.log($("#addImageForm input[name='type']").val());
+					$("#addImageForm").submit();
+					// cxt.drawImage(img, 0, 0, $("#myCanvas").get(0).width, $("#myCanvas").get(0).height);
+					// $("#copy_fapiao").css("backgroundImage", "url(" + data.img_str + ")");
+					// $("#myCanvas").css("backgroundImage", "url(" + img.src + ")");
+					addImageSubmit();
+
+					window.URL.revokeObjectURL(image_src);
+				}
+
+				// var reader = new FileReader();
+				// reader.onload = (function(aImg) { 
+				// 	return function(e) { aImg.src = e.target.result; }; 
+				// })(img);
+				// reader.readAsDataURL(file);
+				
+				var image_src = window.URL.createObjectURL(file);
+				img.src = image_src;
+	        } else {
+	        	alert("请选择图片文件");
+	        }
+        }
+
+        //上传其它原图处理函数
+        function addHandler(files) {
+        	var imageType = /^image\//;
+        	var temp_array = [];
+        	var standard = true;
+        	for(var i = 0; i < files.length; i++) {
+				if (imageType.test(files[0].type)) {
+					temp_array.push(files[0].name);
+
+				} else {
+					alert("请选择图片文件");
+					standard = false;
+					break;
+				}
+        	}
+        	if(standard == true) {
+        		other_img_array = temp_array;
+        		for(var i in other_img_array) {
+        			$(".other_img_name").append("<span>" + other_img_array[i] + "</span>");
+        		}
+        		$(".other_img_name_container").css("display", "block");
+        		$("#addMubanImg_form").submit();
+        	}
+        	temp_array = null;
         }
 
         //点击搜索按钮
@@ -426,7 +533,7 @@
 		//提交新增图片按钮 
 		function addImageSubmit() {
 			// var file = $("#inputImageFile").val();
-			console.log($("#inputImageFile").val());
+			// console.log($("#inputImageFile").val());
 			// var temp_img = new Image();
 			// temp_img.onload = function() {
 			// 	console.log(temp_img.width + " " + temp_img.height);
@@ -483,6 +590,14 @@
 			json_model = JSON.parse(jq_Muban.get(0).json_model);
 			tellConsole(json_model, 0);
 			muban_type = 1;
+
+			if(jq_Muban.other_img_array == undefined) {
+				$(".other_img_name_container").css("display", "none");
+				$(".other_img_name").html("");
+				other_img_array.splice(0, other_img_array.length);
+			} else {
+				$(".other_img_name_container").css("display", "block");
+			}
 
 			//讲json_model的内容push进paint_area并设置global setting
 	 		if(json_model.money != undefined) {
@@ -570,16 +685,49 @@
 			$(".thumbnail_muban").append("<div><img /><p>1</p></div>");
 			$(".thumbnail_muban div:last-child").addClass("ku_img_container");	
 			$(".thumbnail_muban div:last-child p").addClass("ku_img_id");
-			console.log(model_array_object.model_label);
+			// console.log(model_array_object.model_label);
 			$(".thumbnail_muban div:last-child p").text(model_array_object.model_label);
+			$(".thumbnail_muban div:last-child img").addClass("ku_img");
+			$(".thumbnail_muban div:last-child img").get(0).onload = function() {
+				if($(this).get(0).width > $(this).get(0).height) {
+					$(this).get(0).style.height = parseFloat($(this).width() * parseFloat(invoice_height / invoice_width)) + "px";	
+				} else {
+					var width_str = parseFloat(invoice_height / invoice_height_ver * invoice_width_ver / invoice_width)*100 + "%";
+					$(this).get(0).style.width = width_str;
+					$(this).get(0).style.height = parseFloat($(this).width() * parseFloat(invoice_height_ver / invoice_width_ver)) + "px";
+				}
+			}
 			$(".thumbnail_muban div:last-child img").get(0).src = model_array_object.model_url;
 			$(".thumbnail_muban div:last-child img").get(0).model_url = model_array_object.model_url;
 			$(".thumbnail_muban div:last-child img").get(0).file_name = model_array_object.file_name;
-			$(".thumbnail_muban div:last-child img").addClass("ku_img");	
-			$(".thumbnail_muban div:last-child img").get(0).style.height = parseFloat($(".muban_contain div:last-child img").width() * parseFloat(invoice_height / invoice_width)) + "px";
 			$(".thumbnail_muban div:last-child img").get(0).json_model = model_array_object.json_model;
 			$(".thumbnail_muban div:last-child img").get(0).model_id = model_array_object.model_id;
 			$(".thumbnail_muban div:last-child img").unbind("click").click(function() {
+				clickMuban($(this));
+			})
+		}
+
+		//暂存新增的model入temp_save_muban中
+		function addToTempSaveMuban(model_array_object) {
+			$(".temp_save_muban").append("<div><img /><p>1</p></div>");
+			$(".temp_save_muban div:last-child").addClass("ku_img_container");	
+			$(".temp_save_muban div:last-child p").addClass("ku_img_id");
+			// console.log(model_array_object.model_label);
+			$(".temp_save_muban div:last-child p").text(model_array_object.json_model.global_setting.model_label);
+			$(".temp_save_muban div:last-child img").addClass("ku_img");
+			$(".temp_save_muban div:last-child img").get(0).onload = function() {
+				if($(this).get(0).width > $(this).get(0).height) {
+					$(this).get(0).style.height = parseFloat($(this).width() * parseFloat(invoice_height / invoice_width)) + "px";	
+				} else {
+					var width_str = parseFloat(invoice_height / invoice_height_ver * invoice_width_ver / invoice_width)*100 + "%";
+					$(this).get(0).style.width = width_str;
+					$(this).get(0).style.height = parseFloat($(this).width() * parseFloat(invoice_height_ver / invoice_width_ver)) + "px";
+				}
+			}
+			$(".temp_save_muban div:last-child img").get(0).src = model_array_object.model_url;
+			$(".temp_save_muban div:last-child img").get(0).json_model = model_array_object.json_model;
+			$(".temp_save_muban div:last-child img").get(0).other_img_array = model_array_object.other_img_array;
+			$(".temp_save_muban div:last-child img").unbind("click").click(function() {
 				clickMuban($(this));
 			})
 		}
@@ -776,42 +924,38 @@
 			$("#myCanvas").get(0).width = invoice_width;
 		}
 
-		$(document).ready(function() {
-			// loadxml("config.xml");
-			// connectEndpoint();
-			// WebsocketJustify();
-			// 判断权限
-        	justifyUserGrant(user_json);
-        	justifyRW(user_json);
-
-			//初始化canvas
-			initCanvasModal();			
-
-			//ajaxForm配置添加图片按钮
-
+		function initAjaxForm() {
 			var options = { 
 		        // target:        '#output1',   // target element(s) to be updated with server response 
 		        // beforeSubmit:  showRequest,  // pre-submit callback 
 		        success: function(res){  // post-submit callback 
 		        	tellConsole(res,2);
 		        	var res1 = JSON.parse(res);
-		        	addImage_filename = res1.file_name;
-		        	tellConsole(res1.file_name,3);
-		        	var img_temp = new Image();
-		        	img_temp.onload = function() {
-
-		        		justifySize(img_temp.width, img_temp.height);
-
-			        	temp_img_str = res1.img_str;
-			        	$("#myCanvas").get(0).style.backgroundImage = "url(\'" + res1.file_name + "\')";
-						$("#myModalLabel_progress .progress-bar").css("width", "100%");
-						setTimeout(function(){
-							$("#myModalLabel_progress ").css("display", "none");
-							$("#myModalLabel").text("操作图片");
+		        	if(res1.err != undefined) {
+		        		$("#myModalLabel").text("加载图片失败");
+		        		setTimeout(function(){
+							$("#myModal").modal("hide");
 						}, 1000);	
+		        	} else {
+			        	addImage_filename = res1.file_path;
+			        	$("#addMubanImg_form input[name='file_path']").val(res1.file_path);
+			        	addImage_url = res1.url;
+			        	tellConsole(res1.url,3);
+			        	var img_temp = new Image();
+			        	img_temp.onload = function() {
+
+			        		// justifySize(img_temp.width, img_temp.height);
+
+				        	temp_img_str = res1.img_str;
+				        	$("#myCanvas").get(0).style.backgroundImage = "url(\'" + res1.img_str + "\')";
+							$("#myModalLabel_progress .progress-bar").css("width", "100%");
+							setTimeout(function(){
+								$("#myModalLabel_progress ").css("display", "none");
+								$("#myModalLabel").text("操作图片");
+							}, 1000);	
+			        	}
+			        	img_temp.src = res1.url;	
 		        	}
-		        	img_temp.src = res1.file_name;
-		        	
 		        },  
 		 
 		        // other available options: 
@@ -824,9 +968,43 @@
 		        // $.ajax options can be used here too, for example: 
 		        //timeout:   3000 
 		    }; 
-		    // bind form using 'ajaxForm' 
-		    $('#addImageForm').ajaxForm(options);
 
+		    var options_other = {
+		    	success: function(res){  // post-submit callback 
+		        	tellConsole(res,2);
+		        	var res1 = JSON.parse(res);
+		        	if(res1.sucess != undefined) {
+		        		tellConsole("success", 2);	
+		        	} else {
+			        	tellConsole("error", 2);
+		        	}
+		        },  
+		 
+		        // other available options: 
+		        url: "http://"+ip2+"/invoice/uploadModelOrigin.action",       // override for form's 'action' attribute 
+		        //type:      type        // 'get' or 'post', override for form's 'method' attribute 
+		        //dataType:  null        // 'xml', 'script', or 'json' (expected server response type) 
+		        //clearForm: true        // clear all form fields after successful submit 
+		        resetForm: true        // reset the form after successful submit
+		    } 
+		    $('#addImageForm').ajaxForm(options);
+		    $("#addMubanImg_form").ajaxForm(options_other);
+		}
+
+		$(document).ready(function() {
+			// loadxml("config.xml");
+			// connectEndpoint();
+			// WebsocketJustify();
+			// 判断权限
+        	justifyUserGrant(user_json);
+        	justifyRW(user_json);
+
+			//初始化canvas
+			initCanvasModal();			
+
+			//ajaxForm配置添加图片按钮
+			initAjaxForm();
+		    
 			//一次获取12条发票模板的请求（首次查询）
 			$.ajax({
 				async: true,
@@ -855,6 +1033,7 @@
 					tellConsole("首次获取12条发票模板错误", 1);
 				}
 			})
+
 
 			// 回车进行搜索
 			$("#searchproduct").on("focus", function(){
@@ -1115,12 +1294,153 @@
 				$("#progressModal").modal('show');
 			})
 
-			//点击增加/修改模板
+			//点击增加模板
 			$("#submit_modal").click(function(){
 				cxt.clearRect(0,0, c.width, c.height);
 				var temp_img = new Image();
 				temp_img.onload = function() {
-					cxt.drawImage(temp_img, 0,0,invoice_width, invoice_height);
+					cxt.drawImage(temp_img, 0,0,$("#myCanvas").get(0).width, $("#myCanvas").get(0).height);
+					getPaint(paint_area, cxt);
+					var canvas_url = c.toDataURL();
+					if(muban_type == 1) edited_canvas_url = canvas_url;
+					//alert(canvas_url);
+
+					var area_ = [1,0,0,0,0,0,0,0], money_ = null, head_ = null, date_ = null, time_ = null, id_card_ = null, detail_ = null, invoice_id_ = null;
+					//获取各个区域的表单信息变成json_model信息
+					for(var i = 0; i < paint_area.length; i++){
+						if(paint_area[i].quyu == 'money') {
+							area_[1] = 1;
+							money_ = paint_area[i];
+						}
+						else if(paint_area[i].quyu == 'head') {
+							area_[2] = 1;
+							head_ = paint_area[i];
+						}
+						else if(paint_area[i].quyu == 'date') {
+							area_[3] = 1;
+							date_ = paint_area[i];
+						}
+						else if(paint_area[i].quyu == 'time') {
+							area_[4] = 1;
+							time_ = paint_area[i];
+						}
+						else if(paint_area[i].quyu == 'id_card') {
+							area_[5] = 1;
+							id_card_ = paint_area[i];
+						}
+						else if(paint_area[i].quyu == 'detail') {
+							area_[6] = 1;
+							detail_ = paint_area[i];
+						}
+						else if(paint_area[i].quyu == 'invoice_id') {
+							area_[7] = 1;
+							invoice_id_ = paint_area[i];
+						} 
+					}
+
+					temp_json_model = {
+			 			global_setting:{
+							label: $("input[name='biaoqian']").val(),
+							quota: $("input#dinge_checkbox").get(0).checked ? parseInt($("input[name='dinge']").val()) : 0,
+							area_bitmap: area_.join("")	
+						},
+						money: money_,
+						head: head_,
+						date: date_,
+						time: time_,
+						id_card: id_card_,
+						detail: detail_,
+						invoice_id: invoice_id_
+			 		};
+
+					$.ajax({
+						url: "http://" + ip2 + "/invoice/addModel.action",
+						type: "POST",
+						dataType: "text",
+						data: {
+							modelAction: JSON.stringify({
+								user_id: user_id,
+								json_model: temp_json_model,
+						 		model_id: muban_type == 0 ? null : temp_click_jq_img.get(0).model_id,
+						 		file_path: addImage_filename,
+						 		batch_id : batch_id == undefined ? null : batch_id,
+						 		company_id: 1
+							}),
+							img_str: canvas_url,						
+					 		// file_name: addImage_filename,			 		
+					 		type: 1
+					 	},
+						success: function(res, status) {
+							tellConsole(res, 0);
+							res1 = JSON.parse(res);
+							if(res1.err != undefined) { 
+								$("#progressModal h4").text("添加/修改模板失败");
+								$("#progressModal .progress-bar").addClass("progress-bar-danger");
+								$("#progressModal .btn").get(0).disabled = false;
+							}
+							else {
+								$("#progressModal .progress-bar").get(0).style.width = "60%";
+
+								if($("input[name='send_label']").get(0).checked == true) {
+									$.ajax({
+										type: 'POST',
+										url: "http://" + ip2 + "/invoice/pushBatchModel.action",
+										data: {
+											batch_id: batch_id
+										},
+										success: function(res) {
+											$("#progressModal .progress-bar").get(0).style.width = "80%";
+										},
+										error: function(err) {
+											
+										}
+									})
+								} else {
+									$("#progressModal .progress-bar").get(0).style.width = "100%";
+								}
+
+								if(res1.batch_id != undefined) {
+									var temp_model_object = {
+										json_model : temp_json_model,
+										batch_id: res1.batch_id,
+										other_img_array: other_img_array,
+										model_url : res1.url
+									}
+									$(".temp_save_muban").css("display", "block");
+									addToTempSaveMuban(temp_model_object);
+								}
+							}
+						},
+						error: function(e) {
+							tellConsole(e, 1);
+							$("#progressModal h4").text("添加/修改模板失败");
+							$("#progressModal .progress-bar").addClass("progress-bar-danger");
+							$("#progressModal .btn").get(0).disabled = false;
+						}
+					})	
+
+					//清除表单及重置画布和paint_area
+					cxt.clearRect(0,0,c.width,c.height);
+					paint_area=[];
+					$("#global_setting").get(0).reset();
+					tellConsole("finish", 4);
+				}
+				temp_img.crossOrigin = "anonymous"; //允许跨域
+				// temp_img.src = $("#myCanvas").css("backgroundImage").split("url")[1].replace("(", "").replace(")","");
+				temp_img.src = temp_img_str;
+
+				//显示进度条
+				$("#progressModal h4").text("正在添加/修改...");
+    			$("#progressModal .progress-bar").get(0).style.width = "40%";
+				// $("#progressModal").modal('show');
+			})
+
+			//点击修改模板
+			$("#edit_modal").click(function(){
+				cxt.clearRect(0,0, c.width, c.height);
+				var temp_img = new Image();
+				temp_img.onload = function() {
+					cxt.drawImage(temp_img, 0,0,$("#myCanvas").get(0).width, $("#myCanvas").get(0).height);
 					getPaint(paint_area, cxt);
 					var canvas_url = c.toDataURL();
 					if(muban_type == 1) edited_canvas_url = canvas_url;
@@ -1244,6 +1564,19 @@
 				paint_area=[];
 				$("#global_setting").get(0).reset();
 				$("#myCanvas").css("backgroundImage", "url(\'\')");
+
+				if(paint_area.length == 0) {
+					$.ajax({
+						type: 'POST',
+						url: "http://" + ip2 + "/invoice/cancelAddModel.action",
+						data: {
+							file_path : addImage_filename
+						},
+						success: function(res) {
+							console.log(res);
+						}
+					})	
+				}
 			})
 
 			//点击确定进度条窗口

@@ -14,6 +14,33 @@ a:link, a:visited {
 	color: #000000;
 }
 
+.file_label {
+	padding: 7px 12px;
+    line-height: 20px;
+    position: relative;
+    cursor: pointer;
+    color: #888;
+    background: #fafafa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+    display: inline-block
+}
+
+.file_label:hover {
+	color: #444;
+    background: #eee;
+    border-color: #ccc;
+}
+
+#user_login .input-group-addon {
+	width: 40px !important;
+}
+
+#user_login .input-group-addon+input {
+	width: 340px !important;
+}
+
 .aside_nav_list a:link, .aside_nav_list a:visited {
 	text-decoration: none;
 	color: #565961;
@@ -328,14 +355,9 @@ aside {
 }
 
 .tab-content form button {
-	width: 45%;
-	margin-right: 5%;
-	margin-top: 30px;
-}
-
-.tab-content form button:last-of-type {
-	width: 45%;
+	width: 90%;
 	margin-right: 0px;
+	margin-top: 10px;
 }
 
 .tab-content form .input-group {
@@ -776,7 +798,7 @@ aside {
 	position: relative;
 }
 
-.users_member_div i, .company_div i {
+.users_member_div i, .company_div i, .users_div i.delete {
 	display: inline-block;
 	position: absolute;
 	opacity: 0;
@@ -786,7 +808,7 @@ aside {
 	color: red;
 }
 
-.users_member_div i:hover, .company_div i:hover {
+.users_member_div i:hover, .company_div i:hover, .users_div i.delete:hover {
 	color: #9f0000;
 }
 
