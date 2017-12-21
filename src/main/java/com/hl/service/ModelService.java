@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import org.springframework.web.multipart.MultipartFile;
 import com.hl.domain.ModelAction;
 import com.hl.domain.ModelQuery;
@@ -22,7 +21,9 @@ public interface ModelService {
 	public void broadcastClearModel(InputStream inputStream, Integer integer);
 	public void rewriteJsonModel()throws Exception;
 	public ModelQuery searchModelLabel(Integer page,Integer user_id, String keyword);
-	public String uploadModelOrigin(MultipartFile[]files,Integer type,HttpSession session) throws InvoiceException;
+	public String uploadModelOrigin(MultipartFile[]files,Integer type,String file_path) throws InvoiceException;
 	public String pushBatchModel(String batch_id,Integer thread_msg)throws InvoiceException ;
 	public String updateModel(HttpServletRequest request, Integer thread_msg) throws InvoiceException;
+	public String cancelAddModel(String file_path);
+	public String getModelQueue(String batch_id);
 }

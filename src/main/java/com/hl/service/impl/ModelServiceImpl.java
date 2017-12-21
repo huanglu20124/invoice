@@ -12,8 +12,8 @@ import java.util.UUID;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
+import org.apache.log4j.Logger;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
@@ -70,6 +70,8 @@ public class ModelServiceImpl implements ModelService{
 	@Resource(name = "localConfig")
 	private LocalConfig localConfig;
 	
+	private static Logger logger = Logger.getLogger(ModelServiceImpl.class);
+	
 	// ajax处理web请求
 	@Override
 	public String addModel(HttpServletRequest request) throws InvoiceException{
@@ -83,12 +85,13 @@ public class ModelServiceImpl implements ModelService{
 		@SuppressWarnings("unchecked")
 		Map<String, Object>global_setting_map = (Map<String, Object>)modelAction.getJson_model().get("global_setting");
 		String label = (String) global_setting_map.get("label");
-		modelAction.setLabel(label);
+		modelAction.setModel_label(label);
 		
 		//从获取文件路径
-		String origin_file_path = (String)request.getSession().getAttribute("file_path");
+		String origin_file_path = modelAction.getFile_path();
+		
 		if(origin_file_path == null) throw new InvoiceException("服务器错误，session中找不到file_path");
-		String file_path = "image/model/"+modelAction.getLabel()+"-"+TimeUtil.getFileCurrentTime()+"/";
+		String file_path = "image/model/"+modelAction.getModel_label()+"-"+TimeUtil.getFileCurrentTime()+"/";
 		//重命名文件夹
 		File origin = new File(localConfig.getImagePath() + origin_file_path);
 		origin.renameTo(new File(localConfig.getImagePath() + file_path));
@@ -132,6 +135,8 @@ public class ModelServiceImpl implements ModelService{
 		Map<String, Object>ans_map = new HashMap<>();
 		ans_map.put(Const.SUCCESS, "已加入队列，等待算法服务器处理");
 		ans_map.put("batch_id",batch_id);
+		ans_map.put("url", localConfig.getIp() + file_path + "original/1.jpg");
+		ans_map.put("action_id", modelAction.getAction_id());
 		System.out.println("增发票模板的请求已加入队列，等待算法服务器处理");
 		return JSON.toJSONString(ans_map);
 	}
@@ -150,7 +155,7 @@ public class ModelServiceImpl implements ModelService{
 		@SuppressWarnings("unchecked")
 		Map<String, Object>global_setting_map = (Map<String, Object>)modelAction.getJson_model().get("global_setting");
 		String label = (String) global_setting_map.get("label");
-		modelAction.setLabel(label);
+		modelAction.setModel_label(label);
 		
 		//从数据库查询原文件仓库路径
 		String model_url = modelDao.getModelUrl(model_id);
@@ -163,7 +168,7 @@ public class ModelServiceImpl implements ModelService{
 		dir.renameTo(new File(localConfig.getImagePath() + file_path));
 		modelAction.setFile_path(file_path);
 		//生成模板框图，先将原文件删除
-		File originImage = new File(localConfig+file_path+"model.jpg");
+		File originImage = new File(localConfig.getImagePath()+file_path+"model.jpg");
 		if(originImage.exists())originImage.delete();
 		if (ImageUtil.generateImage(img_str, localConfig.getImagePath() + file_path,
 				"model.jpg") == true) {
@@ -269,7 +274,9 @@ public class ModelServiceImpl implements ModelService{
 			modelAction.setAction_time(TimeUtil.getCurrentTime());
 			String url = localConfig.getIp()  + modelAction.getFile_path() + "model.jpg";// 变为网络url
 			map.put("url", url);
-			map.put("label", modelAction.getLabel());
+			map.put("model_label", modelAction.getModel_label());
+			map.put("model_register_time", TimeUtil.getCurrentTime());
+			map.put("image_size", modelAction.getImage_size());
 			k++;
 			//准备写入数据库
 			int status = (int)map.get("status");
@@ -573,31 +580,30 @@ public class ModelServiceImpl implements ModelService{
 		return modelQuery;	
 	}
 
-	
 	//上传单张模板原图的请求,type=0的话，则需要返回img_str;type=1的话，不需要返回img_str
 	@Override
-	public String uploadModelOrigin(MultipartFile[]files,Integer type,HttpSession session) throws InvoiceException{
+	public String uploadModelOrigin(MultipartFile[]files,Integer type,String file_path) throws InvoiceException{
 		final Map<String, Object> ans_map = new HashMap<>();
 		//type=0的话，则是上传原图，开始操作模板，所以要建立文件夹
-		String file_path = null;
 		if(type == 0){
 			//建立临时文件夹路径,"temp"+时间字符串， 文件夹的名字放到session中，模板完成之后，文件夹名字规范化 
 			String time_str = TimeUtil.getFileCurrentTime();
 			file_path = "image/model/temp_"+ time_str + "/";
-			//将file_path存储在session中
-			session.setAttribute("file_path","image/model/temp_"+ time_str + "/");
-		}else {
-			//从session中获取文件路径
-			file_path = (String)session.getAttribute("file_path");
+			//将file_path返回给客户端
+			ans_map.put("file_path", "image/model/temp_"+ time_str + "/");
 		}
-		if(file_path == null) throw new InvoiceException("服务器错误，无法从session中获取有效的文件存储路径");
+		if(file_path == null) throw new InvoiceException("file_path");
 		File save_folder = new File(localConfig.getImagePath() + file_path);
 		if (save_folder.exists() == false) {
 			save_folder.mkdirs();
 		}
+		//创建original文件夹
+		File original = new File(localConfig.getImagePath() + file_path + "original/");
+		original.mkdirs();
 		//先获取原文件夹有多少个原图，按序号来命名
-		String[]origin_files = save_folder.list();
+		String[]origin_files = original.list();
 		Integer k = origin_files.length + 1;
+		System.out.println("k=" + k);
 		for(int i = 0 ; i < files.length; i++){
 			MultipartFile multipartFile = files[i];
 			String origin_file_name = multipartFile.getOriginalFilename();
@@ -623,8 +629,9 @@ public class ModelServiceImpl implements ModelService{
 			}
 			if(save_name != null){
 				try {
-					multipartFile.transferTo(new File(localConfig + file_path + "original/" + save_name));
+					multipartFile.transferTo(new File(localConfig.getImagePath() + file_path + "original/" + save_name));
 				}catch (IOException e) {
+					e.printStackTrace();
 					throw new InvoiceException("保存文件出错！");
 				}
 				System.out.println("保存文件" + save_name +"成功");
@@ -632,8 +639,8 @@ public class ModelServiceImpl implements ModelService{
 			if(i == 0 && type == 0 && save_name != null){
 				//第一张图的话，要返回img_str以及它的url（用于前端展示）
 				ans_map.put("img_str", "data:image/"+ tail +";base64," 
-				+ ImageUtil.GetImageStr(localConfig + file_path +"/"+save_name));
-				ans_map.put("url", localConfig.getIp()+file_path+save_name);
+				+ ImageUtil.GetImageStr(localConfig.getImagePath() + file_path +"original/" + save_name));
+				ans_map.put("url", localConfig.getIp()+file_path+"original/"+save_name);
 				System.out.println("返回img_str");
 			}
 		}
@@ -641,7 +648,6 @@ public class ModelServiceImpl implements ModelService{
 		return JSON.toJSONString(ans_map);
 	}
 
-	
 	//将该队列的modelAction加到manage队列中，通知线程切换
 	@Override
 	public String pushBatchModel(String batch_id,Integer thread_msg)throws InvoiceException {
@@ -663,5 +669,45 @@ public class ModelServiceImpl implements ModelService{
 		Map<String, Object>map = new HashMap<>();
 		map.put("success", "操作成功，等待服务器响应");
 		return JSON.toJSONString(manage_size);
+	}
+
+	//取消操作，删除文件
+	@Override
+	public String cancelAddModel(String file_path) {
+		logger.info("file_path=" + file_path);
+		if(file_path != null){
+			File dir = new File(localConfig.getImagePath() + file_path);
+			logger.info(localConfig.getImagePath() + file_path);
+			if(dir.exists()){
+				deleteDir(dir);
+				logger.info("要删除原文件！");
+			}else {
+				logger.info("要删除的文件不存在！");
+			}		   
+		}
+		return "{}";
+	}
+	
+    private static boolean deleteDir(File dir) {
+        if (dir.isDirectory()) {
+            String[] children = dir.list();
+            //递归删除目录中的子目录下
+            for (int i=0; i<children.length; i++) {
+                boolean success = deleteDir(new File(dir, children[i]));
+                if (!success) {
+                    return false;
+                }
+            }
+        }
+        // 目录此时为空，可以删除
+        return dir.delete();
+    }
+
+	
+  //根据session中存储的batch_id获取队列
+    @Override
+	public String getModelQueue(String batch_id) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

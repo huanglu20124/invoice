@@ -170,7 +170,7 @@ public class SwitcherThread implements Runnable {
 			File dir = new File(localConfig.getImagePath() + file_path  + "original/");
 			String[] temps = dir.list();
 			for (String temp : temps) {
-				origins.add(localConfig.getImagePath() + file_path + temp);
+				origins.add(localConfig.getImagePath() + file_path + "original/" + temp);
 			}
 			// 得到json_model，加入图片url
 			Map<String, Object> json_model = modelAction.getJson_model();
@@ -218,7 +218,7 @@ public class SwitcherThread implements Runnable {
 				File dir = new File(localConfig.getImagePath() + file_path + "original/");
 				String[] temps = dir.list();
 				for (String temp : temps) {
-					origins.add(localConfig.getImagePath() + file_path + temp);
+					origins.add(localConfig.getImagePath() + file_path + "original/" + temp);
 				}
 				// 得到json_model，加入图片url
 				Map<String, Object> json_model = action.getJson_model();

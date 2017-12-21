@@ -1,6 +1,8 @@
 package com.hl.test;
 
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
@@ -150,6 +152,12 @@ public class ImageTest {
 			writer.write(i+".jpg 1 943.40 中山大学 13903387\r\n");
 		}
 		writer.close();
+	}
+	
+	@Test
+	public void test16() throws Exception {
+		File file = new File("E:/study_and_work/project_data/invoice/image/model/temp_20171221113107/");
+		System.out.println(file.exists());
 	}
 	
 

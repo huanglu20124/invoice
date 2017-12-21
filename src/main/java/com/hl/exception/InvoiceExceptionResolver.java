@@ -37,8 +37,8 @@ public class InvoiceExceptionResolver implements HandlerExceptionResolver {
 		logger.error(message);
 		//判断是否是ajax请求
 		if((request.getHeader("accept").contains("application/json")) ||
-			(request.getHeader("X-Requested-With") != null) ||
-			(request.getHeader("X-Requested-With").contains("XMLHttpRequest"))){
+			((request.getHeader("X-Requested-With") != null) &&
+			(request.getHeader("X-Requested-With").contains("XMLHttpRequest")))){
 			//异步请求
 			PrintWriter writer;
 			try {

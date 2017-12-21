@@ -1,4 +1,4 @@
-package com.hl.controller;
+ package com.hl.controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -8,6 +8,7 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -73,6 +74,7 @@ public class ModelController {
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/getAllModel.action", method = RequestMethod.POST)
 	public void getAllModel(HttpServletRequest request, HttpServletResponse response)throws IOException{
+		System.out.println(request.getSession().getId());
 		System.out.println("接收到来自web端的返回当前模板库全部信息的请求");
 		request.setCharacterEncoding("utf-8");
 		response.setCharacterEncoding("utf-8");
@@ -90,9 +92,11 @@ public class ModelController {
 	public String uploadModelOrigin(HttpServletRequest request,@RequestParam("type")Integer type,
 			@RequestParam("file")MultipartFile[]files) throws InvoiceException{
 		System.out.println("接收到来自web端的上传发票原图请求");
-		return modelService.uploadModelOrigin(files,type,request.getSession());
+		System.out.println("session_id=" + request.getSession().getId());
+		String file_path = request.getParameter("file_path");
+		return modelService.uploadModelOrigin(files,type,file_path);
 	}
-
+ 
 	//一键清空模板
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/deleteAllModel.action", method = RequestMethod.POST)
@@ -132,6 +136,25 @@ public class ModelController {
 		return modelService.pushBatchModel(batch_id,thread_msg);
 	}	
 	
+	//关掉画模板的窗口
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/cancelAddModel.action", method = RequestMethod.POST)
+	@ResponseBody
+	public String cancelAddModel(String file_path) throws InvoiceException{
+		System.out.println("收到删除上传原图的请求");
+		return modelService.cancelAddModel(file_path);
+	}		
+
+	//根据session中存储的batch_id获取队列
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/getModelQueue.action", method = RequestMethod.POST)
+	@ResponseBody
+	public String getModelQueue(HttpSession session) throws InvoiceException{
+		System.out.println("收到获取提交模板队列的请求");
+		String batch_id = (String)session.getAttribute("batch_id");
+		return modelService.getModelQueue(batch_id);
+	}
+			
 	
 	//特殊接口：将DataBase.xml文件里面的内容写入Mysql数据库，已经废弃
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问

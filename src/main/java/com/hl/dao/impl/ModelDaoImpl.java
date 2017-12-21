@@ -35,7 +35,7 @@ public class ModelDaoImpl extends JdbcDaoSupport implements ModelDao {
 				psm.setString(2, JSON.toJSONString(modelAction.getJson_model()));
 				psm.setString(3, modelAction.getAction_time());
 				psm.setString(4, modelAction.getFile_path()+"model.jpg");
-				psm.setString(5, modelAction.getLabel());
+				psm.setString(5, modelAction.getModel_label());
 				psm.setInt(6, modelAction.getImage_size());
 				psm.setString(7, UUID.randomUUID().toString());
 				return psm;
@@ -48,7 +48,7 @@ public class ModelDaoImpl extends JdbcDaoSupport implements ModelDao {
 	public void updateModel(ModelAction modelAction) {
 		String sql = "update model set json_model=?, model_label=? where model_id=?";
 		//获得json_model里的model_label
-		getJdbcTemplate().update(sql,modelAction.getJson_model(),modelAction.getLabel(),
+		getJdbcTemplate().update(sql,modelAction.getJson_model(),modelAction.getModel_label(),
 				modelAction.getModel_id());
 	}
 	
