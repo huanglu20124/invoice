@@ -93,7 +93,7 @@
 
 	<!-- 欢迎界面 -->
 	<welcome-file-list>
-		<welcome-file>login.jsp</welcome-file>
+		<welcome-file>queue.action</welcome-file>
 	</welcome-file-list>
 
 

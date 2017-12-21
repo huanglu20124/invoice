@@ -1,6 +1,11 @@
+<%@page import="com.hl.domain.Company"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8" import="com.alibaba.fastjson.JSON"%>
 <!DOCTYPE html>
+<%
+   Company company = (Company)session.getAttribute("company");
+   System.out.println(company.getCompany_logo());
+%>
 <html>
 <head>
 	<title></title>
@@ -8,7 +13,7 @@
 </head>
 <body>
 	<header class="flex flex-align-center">
-        <img src="pic/logo.png" style="height: 100%; vertical-align: middle;" class="flex-none" />
+        <img src="<%=company.getCompany_logo()%>" style="height: 100%; vertical-align: middle;" class="flex-none" />
         <span style="margin-left: 0.5em; font-size: 18px; padding-left: 1em; border-left: 2px solid rgba(200,200,200,0.5); color: #6a6e76;" class="flex-1">智能发票识别监控平台</span>
         <span class="flex-none own_user_name" style="margin-right: 1.5em; font-size: 16px; color: #6a6e76;"></span>
         <span class="btn-group flex-none" style="margin-right: 20px;">

@@ -79,7 +79,7 @@
 	<!-- 模态框（Modal） -->
 	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style=" padding-left: 0px; margin: 0px auto;">
 	    <div>
-	        <div class="modal-content" style="overflow: auto; width: 100%;">
+	        <div class="modal-content" style="overflow: auto; width: 1400px;">
 	            <div class="modal-header">
 	                <button type="button" class="close" data-dismiss="modal" aria-hidden="true" id="close_modal">&times;</button>
 	                <h4 class="modal-title" id="myModalLabel" style="display: inline-block; vertical-align: middle; width: auto; margin-right: 10px;">操作图片</h4>
@@ -368,13 +368,20 @@
 
         //判断模板图片是横图还是竖图
         function justifySize(width, height) {
+        	console.log("width: " + width + " height:" + height);
         	if(width >= height) {
         		$("#myCanvas").get(0).width = invoice_width;
         		$("#myCanvas").get(0).height = invoice_height;
+        		$("#myCanvas").css("backgroundSize", invoice_width+"px "+invoice_height+"px");
+        		$("#myCanvas").parent().css("width", invoice_width+"px");
+        		$("#myCanvas").parent().css("height", invoice_height+"px");
         	}
         	else {
         		$("#myCanvas").get(0).width = invoice_width_ver;
         		$("#myCanvas").get(0).height = invoice_height_ver;
+        		$("#myCanvas").css("backgroundSize", invoice_width_ver+"px "+invoice_height_ver+"px");
+        		$("#myCanvas").parent().css("width", invoice_width_ver+"px");
+        		$("#myCanvas").parent().css("height", invoice_height_ver+"px");
         	}
         	//还原画布上下文
         	cxt.strokeStyle = "#00ff36";

@@ -23,7 +23,7 @@ a:link, a:visited {
 	border: 1px solid #000; 
 	cursor: crosshair; 
 	background: url('') no-repeat center;
-		/*background-size: cover;*/ 
+	background-size: cover; 
 	background-size: 1160px 817px;
 }
 
