@@ -20,7 +20,7 @@
 			<li class="active">
 				<a href="#user" data-toggle="tab">用户登录</a>
 			</li>
-			<li><a href="#manager" data-toggle="tab">管理员登录</a></li>
+			<!-- <li><a href="#manager" data-toggle="tab">管理员登录</a></li> -->
 		</ul>
 		<div class="tab-content">
 			<div class="tab-pane fade in active" id="user">
@@ -33,11 +33,14 @@
 			            <span class="input-group-addon"><i class="fa fa-lock"></i></span>
 			            <input type="password" class="form-control" placeholder="请输入密码" name="user_password">
 			        </div>
+			        <div class="input-group">
+			            <span class="input-group-addon"><i class="fa fa-bank" aria-hidden="true"></i></span>
+			            <input type="text" class="form-control" placeholder="请输入单位id" name="company_id">
+			        </div>
 			        <button type="sumbit" class="btn btn-primary">登录</button>
-			        <button type="sumbit" class="btn btn-default">注册</button>
 				</form>
 			</div>
-			<div class="tab-pane fade" id="manager">
+			<!-- <div class="tab-pane fade" id="manager">
 				<form role="form">
 					<div class="input-group">
 			            <span class="input-group-addon"><i class="fa fa-info" aria-hidden="true"></i></span>
@@ -50,15 +53,34 @@
 			        <button type="sumbit" class="btn btn-primary">登录</button>
 			        <button type="sumbit" class="btn btn-default">注册</button>
 				</form>
-			</div>
+			</div> -->
 		</div>
+		<!-- <div class="tab-content">
+			<div class="tab-pane fade in active" id="user">
+				<form role="form" id="user_login" action="${pageContext.request.contextPath}/login.action" method="POST">
+					<div class="input-group">
+			            <span class="input-group-addon"><i class="fa fa-info" aria-hidden="true"></i></span>
+			            <input type="text" class="form-control" placeholder="请输入用户账号" name="user_name">
+			        </div>
+			        <div class="input-group">
+			            <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+			            <input type="password" class="form-control" placeholder="请输入密码" name="user_password">
+			        </div>
+			        <div class="input-group">
+			            <span class="input-group-addon"><i class="fa fa-bank" aria-hidden="true"></i></span>
+			            <input type="text" class="form-control" placeholder="请输入单位id" name="company_id">
+			        </div>
+			        <button type="sumbit" class="btn btn-primary">登录</button>
+				</form>
+			</div>
+		</div> -->
 	</main>
 
 	<script type="text/javascript">
 		$(document).ready(function(){
 			var height = parseFloat($(".login_hd").get(0).offsetHeight);
 			$(".login_hd").css("marginTop", -height/2 + "px");
-			var height_ = parseFloat($("main").get(0).offsetHeight)+100;
+			var height_ = parseFloat($("main").get(0).offsetHeight)+document.documentElement.clientHeight*0.1;
 			var width_ = parseFloat($("main").get(0).offsetWidth);
 			$("main").css("marginTop", -height_/2 + "px");
 			$("main").css("marginLeft", -width_/2 + "px");

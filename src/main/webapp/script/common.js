@@ -262,7 +262,7 @@ function connectEndpoint(){
         
         // model.jsp
         else if(window.location.href.indexOf("model.action") != -1){
-            if(data.msg_id == 2) {
+            if(data.msg_id == 2) { //单图新增
                 //新增成功
                 if(data.status == 0) {
                     $("#progressModal h4").text("添加模板成功");
@@ -270,13 +270,18 @@ function connectEndpoint(){
                     setTimeout(function(){$("#progressModal").modal('hide');}, 2000);
                     //增加图片至模板库
                     console.log(data.model_label);
-                    addImgMuban(data.url, temp_json_model, data.id, data.model_register_time, data.image_size, data.model_label);
+                    addImgMuban(data.url, temp_json_model, data.id, data.model_register_time, data.image_size, data.label);
 
                     //模板数相应增加
                     var muban_num = parseInt($("#muban_num").text());
                     muban_num += 1;
                     $("#muban_num").text(muban_num.toString());
                     
+                    $(".temp_save_muban").css("display", "none");
+                    $(".temp_save_muban *").not("p").each(function(){
+                        $(this).remove();
+                    });
+
                 }
                 //新增失败
                 else {
@@ -284,6 +289,9 @@ function connectEndpoint(){
                     $("#progressModal .progress-bar").addClass("progress-bar-danger");
                     $("#progressModal .btn").get(0).disabled = false;
                 }
+            }
+            else if(data.msg_id == 6) { //多图新增
+
             }
 
             //删除模板返回msg_id = 3
@@ -647,8 +655,8 @@ function grantSwitch(table_jq, permissions, j) {
 //模态框垂直居中
 function ModalVerticalAlign(modal_jq) {
     // console.log(document.documentElement.clientHeight + " " + modal_jq.offsetHeight);
-    console.log("init here " + parseFloat($(modal_jq).width()) + " " + document.documentElement.clientWidth);
-    console.log("init here " + parseFloat($(modal_jq).height()) + " " + document.documentElement.clientHeight);
+    // console.log("init here " + parseFloat($(modal_jq).width()) + " " + document.documentElement.clientWidth);
+    // console.log("init here " + parseFloat($(modal_jq).height()) + " " + document.documentElement.clientHeight);
     if(parseFloat($(modal_jq).width()) > document.documentElement.clientWidth){
         $(modal_jq).css("width", document.documentElement.clientWidth+"px");
         $(modal_jq).find(".modal-content").css("width", document.documentElement.clientWidth+"px");
