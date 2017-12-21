@@ -3,7 +3,6 @@ package com.hl.service.impl;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,11 +11,14 @@ import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
+import org.apache.log4j.Logger;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.socket.TextMessage;
 
 import com.alibaba.fastjson.JSON;
@@ -26,16 +28,17 @@ import com.hl.dao.ModelDao;
 import com.hl.dao.RedisDao;
 import com.hl.dao.UserDao;
 import com.hl.domain.Action;
-import com.hl.domain.ActionQuery;
 import com.hl.domain.LocalConfig;
 import com.hl.domain.Model;
 import com.hl.domain.ModelAction;
 import com.hl.domain.ModelQuery;
 import com.hl.domain.ResponseMessage;
 import com.hl.domain.User;
+import com.hl.exception.InvoiceException;
 import com.hl.service.ModelService;
 import com.hl.util.Const;
 import com.hl.util.ImageUtil;
+import com.hl.util.IpUtil;
 import com.hl.util.MessageUtil;
 import com.hl.util.SocketLoadTool;
 import com.hl.util.TimeUtil;
@@ -67,52 +70,148 @@ public class ModelServiceImpl implements ModelService{
 	@Resource(name = "localConfig")
 	private LocalConfig localConfig;
 	
+	private static Logger logger = Logger.getLogger(ModelServiceImpl.class);
+	
 	// ajax处理web请求
 	@Override
-	public void addOrUpdateInvoiceModel(Map<String, Object>ans_map, ModelAction modelAction,Integer thread_msg){
+	public String addModel(HttpServletRequest request) throws InvoiceException{
+		String action_str = request.getParameter("modelAction");
+		String img_str = request.getParameter("img_str");
+
+		System.out.println("modelAction = " + action_str);
+		ModelAction modelAction = JSON.parseObject(action_str,ModelAction.class);
+		
+		//提取出模板名称
+		@SuppressWarnings("unchecked")
+		Map<String, Object>global_setting_map = (Map<String, Object>)modelAction.getJson_model().get("global_setting");
+		String label = (String) global_setting_map.get("label");
+		modelAction.setModel_label(label);
+		
+		//从获取文件路径
+		String origin_file_path = modelAction.getFile_path();
+		
+		if(origin_file_path == null) throw new InvoiceException("服务器错误，session中找不到file_path");
+		String file_path = "image/model/"+modelAction.getModel_label()+"-"+TimeUtil.getFileCurrentTime()+"/";
+		//重命名文件夹
+		File origin = new File(localConfig.getImagePath() + origin_file_path);
+		origin.renameTo(new File(localConfig.getImagePath() + file_path));
+		modelAction.setFile_path(file_path);//关键，要设置给modelAction
+		
+		//生成模板框图
+		if (ImageUtil.generateImage(img_str, localConfig.getImagePath() + file_path,
+				"model.jpg") == true) {
+			System.out.println("上传文件成功");
+			modelAction.setImage_size(ImageUtil.getImageSize(localConfig.getImagePath()+file_path+"model.jpg"));
+		} else {
+			System.out.println("上传文件失败");
+			throw new InvoiceException("保存图片失败");
+		}
+		//增加模板(将单张模板的请求的情况包括进去)
+		modelAction.setMsg_id(6);
+		modelAction.setUser_ip(IpUtil.getIpAddr(request));
 		// 首先进行权限判断
 		User user = userDao.getUserById(modelAction.getUser_id());
 		// 添加新的发票模型
 		// 1生成一条行为，插入action表，并获取返回的action_id
 		Integer action_id = null;
-		if(modelAction.getModel_id() == null){
-			modelAction.setDescription("增加模板[]");
-		}else {
-			modelAction.setDescription("修改模板["+modelAction.getModel_id()+"]");
-		}
+		modelAction.setDescription("增加模板[]");
 		action_id = actionDao.addAction(modelAction);
 		//补全modelAction的一些参数
 		modelAction.setAction_id(action_id);
 		modelAction.setAction_time(TimeUtil.getCurrentTime());
 		modelAction.setUser_name(user.getUser_name());
 		modelAction.setCompany_name(user.getCompany_name());
-		redisDao.leftPush(Const.MANAGE_WAIT, action_id.toString());// 加入到操作队列
+		//获得批处理id，如果为null的话，说明是第一次，需要创建；如果不是null的话，则说明要加入到批处理队里中，key为batch_id
+		String batch_id = null;
+		if((batch_id = modelAction.getBatch_id()) == null){
+			batch_id = UUID.randomUUID().toString();
+			modelAction.setBatch_id(batch_id);
+		}
+		redisDao.leftPush(batch_id, action_id.toString() );// 加入到增加模板队列,
 		// key为action_id,value为modelAction
 		redisDao.addKey(action_id.toString(), JSON.toJSONString(modelAction));
 		//添加到索引库
 		//actionDao.solrAddUpdateAction(modelAction);
-		// 3.获取两个队列长度
+		Map<String, Object>ans_map = new HashMap<>();
+		ans_map.put(Const.SUCCESS, "已加入队列，等待算法服务器处理");
+		ans_map.put("batch_id",batch_id);
+		ans_map.put("url", localConfig.getIp() + file_path + "original/1.jpg");
+		ans_map.put("action_id", modelAction.getAction_id());
+		System.out.println("增发票模板的请求已加入队列，等待算法服务器处理");
+		return JSON.toJSONString(ans_map);
+	}
+
+	//ajax处理web请求
+	@Override
+	public String updateModel(HttpServletRequest request, Integer thread_msg) throws InvoiceException {
+		//修改模板
+		String action_str = request.getParameter("modelAction");
+		String img_str = request.getParameter("img_str");
+		System.out.println("modelAction = " + action_str);
+		ModelAction modelAction = JSON.parseObject(action_str,ModelAction.class);
+		Integer model_id = modelAction.getModel_id();
+		if(model_id == null)throw new InvoiceException("修改模板失败，model_id为空");
+		//提取出模板名称
+		@SuppressWarnings("unchecked")
+		Map<String, Object>global_setting_map = (Map<String, Object>)modelAction.getJson_model().get("global_setting");
+		String label = (String) global_setting_map.get("label");
+		modelAction.setModel_label(label);
+		
+		//从数据库查询原文件仓库路径
+		String model_url = modelDao.getModelUrl(model_id);
+		int flag = model_url.lastIndexOf("/");
+		String origin_file_path = model_url.substring(0, flag+1);
+		File dir = new File(localConfig.getImagePath() + origin_file_path);
+		if(!dir.exists()) throw new InvoiceException("修改模板失败，原图片文件不存在！");
+		//更新文件夹名字
+		String file_path = label + "_" +TimeUtil.getFileCurrentTime() + "/";
+		dir.renameTo(new File(localConfig.getImagePath() + file_path));
+		modelAction.setFile_path(file_path);
+		//生成模板框图，先将原文件删除
+		File originImage = new File(localConfig.getImagePath()+file_path+"model.jpg");
+		if(originImage.exists())originImage.delete();
+		if (ImageUtil.generateImage(img_str, localConfig.getImagePath() + file_path,
+				"model.jpg") == true) {
+			System.out.println("上传文件成功");
+			modelAction.setImage_size(ImageUtil.getImageSize(localConfig.getImagePath()+file_path+"model.jpg"));
+		} else {
+			System.out.println("上传文件失败");
+			throw new InvoiceException("保存图片失败");
+		}
+		//修改模板
+		modelAction.setMsg_id(4);
+		modelAction.setUser_ip(IpUtil.getIpAddr(request));
+		// 首先进行权限判断
+		User user = userDao.getUserById(modelAction.getUser_id());
+		// 添加新的发票模型
+		// 1生成一条行为，插入action表，并获取返回的action_id
+		Integer action_id = null;
+		modelAction.setDescription("修改模板[]");
+		action_id = actionDao.addAction(modelAction);
+		//补全modelAction的一些参数
+		modelAction.setAction_id(action_id);
+		modelAction.setAction_time(TimeUtil.getCurrentTime());
+		modelAction.setUser_name(user.getUser_name());
+		modelAction.setCompany_name(user.getCompany_name());
+		//加入到操作队列
+		redisDao.leftPush(Const.MANAGE_WAIT, action_id.toString());
+		redisDao.addKey(action_id.toString(), JSON.toJSONString(modelAction));
 		Long recognize_size = redisDao.getWaitSize(); // 识别队列
 		Long manage_size = redisDao.getManageSize();// 操作队列
-		System.out.println("当前识别队列的数量为：" + recognize_size);
-		System.out.println("当前操作队列的数量为：" + manage_size);
 		if (recognize_size == 0l && manage_size == 1l) {
 			// 10.通知切换线程
 			synchronized (thread_msg) {
 				thread_msg.notifyAll();
 			}
-
 		}
-		ans_map.put(Const.SUCCESS, "已加入队列，等待算法服务器处理");
-		System.out.println("增加或修改发票模板的请求已加入队列，等待算法服务器处理");
-		ans_map.put("recognize_size", recognize_size);
-		ans_map.put("manage_size", manage_size);
+		Map<String, Object>map = new HashMap<>();
+		map.put("success", "操作成功，等待服务器响应");
+		return JSON.toJSONString(map);
 	}
-
+	
 	// ajax处理web请求
 	@Override
-	public void deleteInvoiceModel(Map<String, Object> ans_map, Integer user_id, Integer model_id, String user_ip,Integer thread_msg) {
-		// 首先进行权限判断
+	public String deleteModel(Integer user_id, Integer model_id, String user_ip,Integer thread_msg) {
 		User user = userDao.getUserById(user_id);
 		// 删除发票模板
 		// 1生成一条行为，插入action表，并获取返回的action_id
@@ -128,6 +227,11 @@ public class ModelServiceImpl implements ModelService{
 		action.setModel_id(model_id);
 		Integer action_id = actionDao.addAction(action);
 		action.setAction_id(action_id);
+		//从数据库查询原文件仓库路径
+		String model_url = modelDao.getModelUrl(model_id);
+		int flag = model_url.lastIndexOf("/");
+		String file_path = model_url.substring(0, flag+1);
+		action.setFile_path(file_path);
 		redisDao.leftPush(Const.MANAGE_WAIT, action_id.toString());// 加入到操作队列
 		// key为action_id，value为图片url以及msg_id=2,还有json_model
 		redisDao.addKey(action_id.toString(), JSON.toJSONString(action));
@@ -143,65 +247,56 @@ public class ModelServiceImpl implements ModelService{
 			}
 
 		}
-		ans_map.put(Const.SUCCESS, "已加入操作队列，等待算法服务器处理");
-		ans_map.put("recognize_size", recognize_size);
-		ans_map.put("manage_size", manage_size);
+		Map<String, Object>map = new HashMap<>();
+		map.put(Const.SUCCESS, "已加入操作队列，等待算法服务器处理");
+		return JSON.toJSONString(map);
 	}
 	
-	// websocket返回处理结果 msg_id = 2
 	@Override
-	public void broadcastAddNewModel(InputStream inputStream, ModelAction modelAction) {
-		Integer action_id = modelAction.getAction_id();
-		// 首先，更新action开始跑算法的时间
-		modelAction.setAction_time(TimeUtil.getCurrentTime());
-		//更新到索引库
-		//actionDao.solrAddUpdateAction(modelAction);
-		
-		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
-		String url = ImageUtil.suffixToJpg(localConfig.getIp() + modelAction.getUrl_suffix());// 变为网络url
-		// 处理增加模板的结果
+	public void broadcastAddModelMul(InputStream inputStream, List<ModelAction>batch_list) {
+		//批处理增加模板的结果
+		ResponseMessage message = null;
 		try {
-			ResponseMessage message = MessageUtil.getMessage(inputStream);
-			String json_str = message.getJson_str();
-			// 1.解析json，先将结果直接返回给web端
-			Map<String, Object> response_map = JSON.parseObject(json_str);
-			int status = (int) response_map.get("status");
-			String temp_str = message.getFinalMessage(action_id);
-			Map<String, Object> temp_map = JSON.parseObject(temp_str);
-			temp_map.put(Const.URL, url);
-			String str = JSON.toJSONString(temp_map);
-			System.out.println(str);
-			systemWebSocketHandler.sendMessageToUsers(new TextMessage(str),new int[]{3});
-			// 同时得到model_id
-			Integer model_id = null;
-			// 2.成功的话，model表加入一个新model,model_id主键由算法端决定
+			message = MessageUtil.getMessage(inputStream);
+		} catch (IOException e) {
+			System.out.println("接收消息时异常");
+			e.printStackTrace();
+		}
+		String json_str = message.getJson_str();
+		
+		//要返回给前端的信息
+		@SuppressWarnings("unchecked")
+		List<Map<String, Object>>ans_list = (List<Map<String, Object>>) JSON.parse(json_str);
+		int k = 0;
+		for(ModelAction modelAction : batch_list){		
+			Map<String, Object>map = ans_list.get(k);
+			// 首先，更新全部action开始跑算法的时间
+			modelAction.setAction_time(TimeUtil.getCurrentTime());
+			String url = localConfig.getIp()  + modelAction.getFile_path() + "model.jpg";// 变为网络url
+			map.put("url", url);
+			map.put("model_label", modelAction.getModel_label());
+			map.put("model_register_time", TimeUtil.getCurrentTime());
+			map.put("image_size", modelAction.getImage_size());
+			k++;
+			//准备写入数据库
+			int status = (int)map.get("status");
+			// 成功的话，model表加入一个新model,model_id主键由算法端决定
 			if (status == 0) {
-				model_id = (int) response_map.get("id");
-				Integer image_size = ImageUtil.getImageSize(localConfig.getImagePath() + modelAction.getUrl_suffix());
+				int model_id = (int) map.get("id");
+				map.put("model_id", model_id);
 				//更新部分信息
 				modelAction.setModel_id(model_id);
-				modelAction.setImage_size(image_size);
-				modelAction.setDescription("增加模板["+modelAction.getModel_id()+"]");
 				modelDao.addModel(modelAction);
+				actionDao.updateActionDescription(modelAction.getAction_id(), 
+						"增加模板["+modelAction.getModel_id()+"]");
 				//更新到索引库
 				//actionDao.solrAddUpdateAction(modelAction);
 			}
-			// 4. 弹出队列头，删除key
-			redisDao.pop(Const.MANAGE_WAIT);
-			System.out.println(action_id + "弹出操作队列");
-			if (status < 0) {
-				// 识别失败，加入异常发票队列
-				redisDao.leftPush(Const.EXCEPTION_WAIT, action_id + "");
-			} else {
-				redisDao.deleteKey(action_id + "");
-			}
-
-		} catch (IOException e) {
-			e.printStackTrace();
-			err_map.put(Const.ERR, "接受算法服务器数据异常");
-			systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(err_map)),new int[]{3});
 		}
-
+		//将批处理结果发送给前端
+		systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(ans_list)),
+				new int[]{3});
+		
 	}
 
 	// websocket返回处理结果 msg_id = 4
@@ -209,7 +304,7 @@ public class ModelServiceImpl implements ModelService{
 	public void broadcastUpdateModel(InputStream inputStream, ModelAction modelAction) {
 		Integer action_id = modelAction.getAction_id();		
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
-		String url = ImageUtil.suffixToJpg(localConfig.getIp() + modelAction.getUrl_suffix());// 将后缀变为网络url
+		String url = localConfig.getIp()+modelAction.getFile_path()+"model.jpg";
 		// 处理增加模板的结果
 		try {
 			ResponseMessage message = MessageUtil.getMessage(inputStream);
@@ -220,32 +315,23 @@ public class ModelServiceImpl implements ModelService{
 			String temp_str = message.getFinalMessage(action_id);
 			Map<String, Object> temp_map = JSON.parseObject(temp_str);
 			temp_map.put(Const.URL, url);
-			Map<String, Object>json_model_map = JSON.parseObject(modelAction.getJson_model());
-			temp_map.put(Const.JSON_MODEL, json_model_map);
+			Map<String, Object>json_model = modelAction.getJson_model();
+			temp_map.put(Const.JSON_MODEL, json_model);
 			String str = JSON.toJSONString(temp_map);
 			if (status == 0) {
 				// 2.model表更新该model
 				modelDao.updateModel(modelAction);
+				temp_map.put("success", "修改模板成功");
 			}
 			//更新数据库及索引库
 			modelAction.setDescription("修改模板["+modelAction.getModel_id()+"]");
 			actionDao.updateActionDescription(modelAction.getAction_id(), modelAction.getDescription());
 			//actionDao.solrAddUpdateAction(modelAction);
-			// 4. 弹出队列头，删除key
-			redisDao.pop(Const.MANAGE_WAIT);
-			System.out.println(action_id + "弹出操作队列");
-			if (status < 0) {
-				// 识别失败，加入异常发票队列
-				redisDao.leftPush(Const.EXCEPTION_WAIT, action_id + "");
-			} else {
-				redisDao.deleteKey(action_id + "");
-			}
 			//延时一秒，将结果推送给前端
 			try {
 				systemWebSocketHandler.sendMessageToUsers(new TextMessage(str.getBytes("utf-8")),new int[]{3});
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		} catch (IOException e) {
@@ -263,7 +349,7 @@ public class ModelServiceImpl implements ModelService{
 		Integer action_id = modelAction.getAction_id();
 		Integer model_id = modelAction.getModel_id();
 		//actionDao.solrAddUpdateAction(modelAction);
-		
+	    
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
 		// 处理删除模板的结果
 		try {
@@ -274,13 +360,13 @@ public class ModelServiceImpl implements ModelService{
 			int status = (int) response_map.get("status");
 			System.out.println(message + "---" + systemWebSocketHandler);
 			systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)),new int[]{3});
-			// 2.model表删除该model,其他携带该外键的行全部更新
-			String url_suffix = null;
+			// model表删除该model,其他携带该外键的行全部更新			
 			// 这个url用来后面删除图片文件
 			if (status == 0) {
 				// 找到图片文件,删除全部本地文件
-				url_suffix = modelDao.getModelUrl(model_id);
-				ImageUtil.deleteAllModelImage(localConfig.getImagePath(), url_suffix);
+				String file_path = modelAction.getFile_path();
+				File dir = new File(localConfig.getImagePath() + file_path);
+				dir.delete();
 				// 找到全部携带该model_id的invoice，设置外键为null
 				invoiceDao.deleteInvoiceForeginModel(model_id);
 				// 删除model
@@ -352,8 +438,6 @@ public class ModelServiceImpl implements ModelService{
 	@Override
 	public void getAllModel(Map<String, Object> ans_map, Integer user_id, Integer page) {
 		// 返回当前模板库全部信息,一次12条
-		// 首先进行权限判断
-		User user = userDao.getUserById(user_id);
 		List<Model> model_list = modelDao.getTwelveModel(page);
 		Collections.reverse(model_list);
 		// 将url_suffix转为网络url
@@ -416,6 +500,7 @@ public class ModelServiceImpl implements ModelService{
 		Integer num = new Integer((String) database_current_size.getData());
 		System.out.println("得到模板数量 = " + num);
 		Element element_invoice_info = root.element("invoice_info");
+		@SuppressWarnings("unchecked")
 		List<Element> elements = element_invoice_info.elements("_");
 		List<String> json_model_list = new ArrayList<>();
 		for (int i = 0; i < num; i++) {
@@ -432,6 +517,7 @@ public class ModelServiceImpl implements ModelService{
 			json_model_map.put("global_setting", global_setting_map);
 
 			Element element_info_area = element_root.element("info_area");
+			@SuppressWarnings("unchecked")
 			List<Element> roots_info_area = element_info_area.elements("_");
 			int area_num = roots_info_area.size();
 			System.out.println("area_num = " + area_num);
@@ -492,5 +578,136 @@ public class ModelServiceImpl implements ModelService{
 			modelQuery.setModel_list(model_list);
 		}
 		return modelQuery;	
+	}
+
+	//上传单张模板原图的请求,type=0的话，则需要返回img_str;type=1的话，不需要返回img_str
+	@Override
+	public String uploadModelOrigin(MultipartFile[]files,Integer type,String file_path) throws InvoiceException{
+		final Map<String, Object> ans_map = new HashMap<>();
+		//type=0的话，则是上传原图，开始操作模板，所以要建立文件夹
+		if(type == 0){
+			//建立临时文件夹路径,"temp"+时间字符串， 文件夹的名字放到session中，模板完成之后，文件夹名字规范化 
+			String time_str = TimeUtil.getFileCurrentTime();
+			file_path = "image/model/temp_"+ time_str + "/";
+			//将file_path返回给客户端
+			ans_map.put("file_path", "image/model/temp_"+ time_str + "/");
+		}
+		if(file_path == null) throw new InvoiceException("file_path");
+		File save_folder = new File(localConfig.getImagePath() + file_path);
+		if (save_folder.exists() == false) {
+			save_folder.mkdirs();
+		}
+		//创建original文件夹
+		File original = new File(localConfig.getImagePath() + file_path + "original/");
+		original.mkdirs();
+		//先获取原文件夹有多少个原图，按序号来命名
+		String[]origin_files = original.list();
+		Integer k = origin_files.length + 1;
+		System.out.println("k=" + k);
+		for(int i = 0 ; i < files.length; i++){
+			MultipartFile multipartFile = files[i];
+			String origin_file_name = multipartFile.getOriginalFilename();
+			String save_name = null;
+			System.out.println("原始文件名为" + origin_file_name);
+			//找到后缀名
+			int flag = origin_file_name.lastIndexOf(".") + 1;
+			String tail = origin_file_name.substring(flag, origin_file_name.length());
+			if(tail.equals("jpg")){
+				save_name = (k + ".jpg");
+				k++;
+			}
+			else if (tail.equals("png")) {
+				save_name = (k + ".png");
+				k++;
+			}
+			else if (tail.equals("bmp")) {
+				save_name = (k + ".bmp");
+				k++;
+			}
+			else {
+				throw new InvoiceException("提交的文件格式不正确！");
+			}
+			if(save_name != null){
+				try {
+					multipartFile.transferTo(new File(localConfig.getImagePath() + file_path + "original/" + save_name));
+				}catch (IOException e) {
+					e.printStackTrace();
+					throw new InvoiceException("保存文件出错！");
+				}
+				System.out.println("保存文件" + save_name +"成功");
+			}
+			if(i == 0 && type == 0 && save_name != null){
+				//第一张图的话，要返回img_str以及它的url（用于前端展示）
+				ans_map.put("img_str", "data:image/"+ tail +";base64," 
+				+ ImageUtil.GetImageStr(localConfig.getImagePath() + file_path +"original/" + save_name));
+				ans_map.put("url", localConfig.getIp()+file_path+"original/"+save_name);
+				System.out.println("返回img_str");
+			}
+		}
+		ans_map.put("success", "上传文件成功");
+		return JSON.toJSONString(ans_map);
+	}
+
+	//将该队列的modelAction加到manage队列中，通知线程切换
+	@Override
+	public String pushBatchModel(String batch_id,Integer thread_msg)throws InvoiceException {
+		//得到batch_id队列全部action_id
+		List<String>action_ids = redisDao.getRangeId(batch_id.toString());
+		if(action_ids == null || action_ids.size() == 0) 
+			throw new InvoiceException("没有模板操作要加入队列");
+		//只在manage队列中加入第一张，后面的全部从增加模板缓冲队列中拿
+		redisDao.leftPush(Const.MANAGE_WAIT, action_ids.get(0).toString());
+		//redisDao.deleteKey(batch_id.toString());
+		Long recognize_size = redisDao.getWaitSize(); // 识别队列
+		Long manage_size = redisDao.getManageSize();// 操作队列
+		if (recognize_size == 0l && manage_size == 1l) {
+			// 10.通知切换线程
+			synchronized (thread_msg) {
+				thread_msg.notifyAll();
+			}
+		}
+		Map<String, Object>map = new HashMap<>();
+		map.put("success", "操作成功，等待服务器响应");
+		return JSON.toJSONString(manage_size);
+	}
+
+	//取消操作，删除文件
+	@Override
+	public String cancelAddModel(String file_path) {
+		logger.info("file_path=" + file_path);
+		if(file_path != null){
+			File dir = new File(localConfig.getImagePath() + file_path);
+			logger.info(localConfig.getImagePath() + file_path);
+			if(dir.exists()){
+				deleteDir(dir);
+				logger.info("要删除原文件！");
+			}else {
+				logger.info("要删除的文件不存在！");
+			}		   
+		}
+		return "{}";
+	}
+	
+    private static boolean deleteDir(File dir) {
+        if (dir.isDirectory()) {
+            String[] children = dir.list();
+            //递归删除目录中的子目录下
+            for (int i=0; i<children.length; i++) {
+                boolean success = deleteDir(new File(dir, children[i]));
+                if (!success) {
+                    return false;
+                }
+            }
+        }
+        // 目录此时为空，可以删除
+        return dir.delete();
+    }
+
+	
+  //根据session中存储的batch_id获取队列
+    @Override
+	public String getModelQueue(String batch_id) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

@@ -7,7 +7,6 @@ import org.apache.solr.client.solrj.SolrServerException;
 
 import com.hl.domain.Action;
 import com.hl.domain.ActionQuery;
-import com.hl.domain.RecognizeAction;
 
 public interface ActionDao {
 

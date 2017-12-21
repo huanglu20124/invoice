@@ -3,6 +3,12 @@ package com.hl.domain;
 public class SimpleResponse {
 	private String success;
 	private String err;
+	
+	public SimpleResponse(String success,String err) {
+		this.err = err;
+		this.success = success;
+	}
+	
 	public String getSuccess() {
 		return success;
 	}

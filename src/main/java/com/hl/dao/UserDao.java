@@ -1,6 +1,5 @@
 package com.hl.dao;
 
-import java.util.Collection;
 import java.util.List;
 
 import com.hl.domain.Company;

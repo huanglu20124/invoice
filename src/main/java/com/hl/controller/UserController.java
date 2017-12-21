@@ -1,4 +1,4 @@
-package com.hl.controller;
+ package com.hl.controller;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -8,26 +8,18 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.naming.AuthenticationException;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
-import org.apache.log4j.Logger;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.IncorrectCredentialsException;
 import org.apache.shiro.authc.UnknownAccountException;
-import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -49,7 +41,6 @@ public class UserController {
 	@Resource(name = "userService")
 	private UserService userService;
 
-	private static Logger logger = Logger.getLogger(UserController.class);
 	//用户登录,和shiro中的配置文件一致
 	@RequestMapping(value = "/login.action")
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
@@ -152,8 +143,8 @@ public class UserController {
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/registerUser.action", method = RequestMethod.POST)
 	public void registerUser(HttpServletRequest request,HttpServletResponse response){
-		String user_str = request.getParameter("user");
-		User user = JSON.parseObject(user_str,User.class);
+/*		String user_str = request.getParameter("user");
+		User user = JSON.parseObject(user_str,User.class);*/
 		//以后再写
 	}
 	

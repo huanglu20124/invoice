@@ -1,10 +1,8 @@
 package com.hl.shiro;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.Resource;
 
@@ -19,8 +17,6 @@ import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.util.ByteSource;
-
-import com.alibaba.fastjson.JSON;
 import com.hl.dao.UserDao;
 import com.hl.domain.Permission;
 import com.hl.domain.User;

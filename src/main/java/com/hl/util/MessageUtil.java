@@ -5,10 +5,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.springframework.web.socket.TextMessage;
-
-import com.alibaba.fastjson.JSON;
 import com.hl.domain.ResponseMessage;
 import com.hl.websocket.SystemWebSocketHandler;
 

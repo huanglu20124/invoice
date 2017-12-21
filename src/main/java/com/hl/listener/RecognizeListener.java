@@ -7,7 +7,6 @@ import org.apache.log4j.Logger;
 
 public class RecognizeListener implements ServletContextListener{
 
-	private Integer last_count = 0;
 	private RecognizeTimer timer;
 	private static Logger logger = Logger.getLogger(RecognizeListener.class);
 	@Override

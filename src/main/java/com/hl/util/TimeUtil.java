@@ -1,7 +1,5 @@
 package com.hl.util;
 
-import java.io.Closeable;
-import java.io.File;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -15,6 +13,13 @@ public class TimeUtil {
 	public static String getCurrentTime(){
 		Date d = new Date();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String dateNowStr = sdf.format(d);
+		return dateNowStr;
+	}
+	public static String getFileCurrentTime(){
+		//用于文件命名的
+		Date d = new Date();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
 		String dateNowStr = sdf.format(d);
 		return dateNowStr;
 	}

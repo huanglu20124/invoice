@@ -1,13 +1,12 @@
 package com.hl.dao;
 
 import java.util.List;
-import java.util.Map;
 
 import com.hl.domain.Model;
 import com.hl.domain.ModelAction;
 
 public interface  ModelDao {
-	void addModel(ModelAction modelAction);
+	int addModel(ModelAction modelAction);
 	void updateModel(ModelAction modelAction);
 	void deleteModel(int model_id);
 	List<String> getAllModelUrl();

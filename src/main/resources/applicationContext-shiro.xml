@@ -30,7 +30,6 @@
 				<!-- 请求 logout.action地址，shiro去清除session -->
 				<!-- /logout.action = logout -->
 				<!-- /*.action = authc 所有url都必须认证通过才可以访问(这里记得与前端测试的时候，要关闭认证) -->
-				/*.action = authc
 			</value>
 		</property>
 	</bean>

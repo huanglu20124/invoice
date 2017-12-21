@@ -5,9 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -17,9 +15,7 @@ import java.util.UUID;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
-import org.apache.hadoop.mapred.gethistory_jsp;
 import org.apache.log4j.Logger;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
@@ -37,18 +33,15 @@ import com.alibaba.fastjson.JSON;
 import com.hl.dao.RedisDao;
 import com.hl.domain.Invoice;
 import com.hl.domain.LocalConfig;
-import com.hl.domain.ModelAction;
 import com.hl.domain.RecognizeAction;
 import com.hl.domain.TestCase;
 import com.hl.domain.User;
 import com.hl.service.InvoiceService;
 import com.hl.util.ImageUtil;
 import com.hl.util.IpUtil;
-import com.hl.util.CheckUtil;
 import com.hl.util.Const;
 import com.hl.util.IOUtil;
 import com.hl.websocket.SystemWebSocketHandler;
-import com.sun.org.apache.regexp.internal.recompile;
 
 /**
  * 发票系统控制器
@@ -145,6 +138,7 @@ public class InvoiceController {
 		List<String>url_suffixs = new ArrayList<>();
 		RecognizeAction recognizeAction = JSON.parseObject(request.getParameter("recognizeAction"), RecognizeAction.class);
 		TestCase testCase = JSON.parseObject(request.getParameter("testCase"),TestCase.class);
+		@SuppressWarnings("unchecked")
 		List<String>img_strs = (List<String>) JSON.parse(img_str_list);
 		if(img_str_list != null){
 			System.out.println("收到" + img_strs.size() + "张图片" );
@@ -209,7 +203,6 @@ public class InvoiceController {
 		System.out.println("接收到打开监控台的请求");
 		request.setCharacterEncoding("utf-8");
 		response.setCharacterEncoding("utf-8");
-		Map<String, Object> ans_map = new HashMap<>();
 		Integer delay = (Integer) request.getServletContext().getAttribute("delay");
 		if(delay == null){
 			delay = 0;
@@ -254,7 +247,6 @@ public class InvoiceController {
 		response.setCharacterEncoding("utf-8");
 		Map<String, Object>ans_map = new HashMap<>();
 		Integer user_id = new Integer(request.getParameter(Const.USER_ID));
-		Integer thread_msg = (Integer) request.getServletContext().getAttribute(Const.THREAD_MSG);//获取上锁对象
 		Integer delay = new Integer(request.getParameter("delay"));
 		invoiceService.UpdateRecognizeSpeed(ans_map,user_id,delay,request.getServletContext());
 		PrintWriter writer = response.getWriter();

@@ -3,7 +3,6 @@ package com.hl.service.impl;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -96,7 +95,6 @@ public class UserServiceImpl implements UserService{
 	    	public_permission_set.addAll(permissions);
 	    }
 	    List<Permission>public_permissions = new ArrayList<Permission>(public_permission_set);
-	    
 		//最后进行记录，一个公有权限的所属用户组
 	    Map<Permission, List<String>>map = new HashMap<>();
 	    for(int i = 0; i < groups_permissions.size(); i++){
@@ -104,7 +102,7 @@ public class UserServiceImpl implements UserService{
 	    	for(Permission permission : permissions){
 	    		List<String>list = map.get(permission);
 	    		if(list == null) list = new ArrayList<>();
-	    		  list.add(groups.get(i).getGroup_name());
+	    		list.add(groups.get(i).getGroup_name());
 	    		map.put(permission, list);
 	    	}
 	    }
@@ -184,7 +182,7 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public SimpleResponse removeGroupUser(Integer user_id,Integer group_id) {
-		SimpleResponse simpleResponse = new SimpleResponse();
+		SimpleResponse simpleResponse = new SimpleResponse(null,null);
 		try {
 			userDao.removeGroupUser(user_id,group_id);
 			simpleResponse.setSuccess("移出用户组成功");

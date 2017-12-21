@@ -1,14 +1,11 @@
 package com.hl.util;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.UnknownHostException;
-import java.rmi.Remote;
 
 public class SocketUtil { 
 	public static void close(Socket socket,InputStream in, OutputStream out, BufferedReader reader, PrintWriter writer){

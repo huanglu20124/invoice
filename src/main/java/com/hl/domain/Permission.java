@@ -1,7 +1,7 @@
 package com.hl.domain;
 
 import java.util.List;
- 
+
 public class Permission {
 	private Integer permission_id; //权限id
 	private String  permission_name;//权限名称
@@ -48,4 +48,15 @@ public class Permission {
 	public void setOrigin_groups(List<String> origin_groups) {
 		this.origin_groups = origin_groups;
 	}
+
+	@Override
+	public String toString() {
+		return permission_id+"---"+permission_name;
+	}
+	
+	@Override
+	public int hashCode() {
+		return permission_id.hashCode();
+	}
+
 }

@@ -1,20 +1,16 @@
 package com.hl.dao.impl;
 
 import java.io.IOException;
-import java.nio.channels.SelectableChannel;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
 
-import org.apache.hadoop.classification.InterfaceAudience.Private;
-import org.apache.mahout.common.distance.CosineDistanceMeasure;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -31,10 +27,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import com.hl.dao.ActionDao;
 import com.hl.domain.Action;
 import com.hl.domain.ActionQuery;
-import com.hl.domain.Model;
-import com.hl.domain.RecognizeAction;
 import com.hl.util.Const;
-import com.hl.util.TimeUtil;
 
 public class ActionDaoImpl extends JdbcDaoSupport implements ActionDao{
 	

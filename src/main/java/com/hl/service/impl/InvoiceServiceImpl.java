@@ -1,12 +1,10 @@
 package com.hl.service.impl;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -16,11 +14,7 @@ import java.util.UUID;
 import javax.annotation.Resource;
 import javax.servlet.ServletContext;
 
-import org.dom4j.Document;
-import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.socket.TextMessage;
 import com.alibaba.fastjson.JSON;
 import com.hl.dao.ActionDao;
@@ -31,8 +25,6 @@ import com.hl.dao.UserDao;
 import com.hl.domain.Action;
 import com.hl.domain.Invoice;
 import com.hl.domain.LocalConfig;
-import com.hl.domain.Model;
-import com.hl.domain.ModelAction;
 import com.hl.domain.OcrResult;
 import com.hl.domain.RecognizeAction;
 import com.hl.domain.RecognizeConsole;
@@ -47,7 +39,6 @@ import com.hl.util.MessageUtil;
 import com.hl.util.SocketLoadTool;
 import com.hl.util.TimeUtil;
 import com.hl.websocket.SystemWebSocketHandler;
-import com.sun.org.apache.bcel.internal.generic.NEW;
 
 @Service("invoiceService")
 public class InvoiceServiceImpl implements InvoiceService {
@@ -208,12 +199,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 							invoice.setInvoice_status(0);
 							invoice.setRecognize_time(TimeUtil.getCurrentTime());
 							//得到region_list
-							List<Object> region_list_origin = redisDao.getRangeId(Const.RECOGNIZE_PROCESS);
-							List<String> region_list = new ArrayList<>();
-							// 变成String。。
-							for (Object object : region_list_origin) {
-								region_list.add((String) object);
-							}
+							List<String> region_list = redisDao.getRangeId(Const.RECOGNIZE_PROCESS);
 							Collections.reverse(region_list);
 							invoice.setRegion_list(JSON.toJSONString(region_list));
 							if(isWrong) {
@@ -334,13 +320,12 @@ public class InvoiceServiceImpl implements InvoiceService {
 	public String broadcastRecognizeWaitFirst() {
 		// 连接建立后，立刻向用户返回识别队列的信息（头1024个）
 		Map<String, Object> ans_map = new HashMap<>();
-		List<Object> recognize_wait_origin = redisDao.getRangeId(Const.RECOGNIZE_WAIT);
+		List<String> recognize_wait_origin = redisDao.getRangeId(Const.RECOGNIZE_WAIT);
 		int recognize_size = recognize_wait_origin.size();
 		// 在数据库里查询，返回一个action的主要信息
 		if (recognize_wait_origin != null && recognize_size != 0) {
 			List<Invoice> recognize_wait = new ArrayList<>();
-			for (Object temp : recognize_wait_origin) {
-				String uuid = (String) temp;
+			for (String uuid : recognize_wait_origin) {
 				String invoice_str = (String) redisDao.getValue(uuid);
 				Invoice invoice = JSON.parseObject(invoice_str,Invoice.class);
 				recognize_wait.add(invoice);
@@ -404,12 +389,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 	// websocket返回处理结果 msg_id = 204
 	@Override
 	public void broadcastRegionList(){
-		List<Object> region_list_origin = redisDao.getRangeId(Const.RECOGNIZE_PROCESS);
-		List<String> region_list = new ArrayList<>();
-		// 变成String。。
-		for (Object object : region_list_origin) {
-			region_list.add((String) object);
-		}
+		List<String> region_list = redisDao.getRangeId(Const.RECOGNIZE_PROCESS);
 		Collections.reverse(region_list);
 		System.out.println("region_list = " + region_list);
 		Map<String, Object>temp = new HashMap<>();
@@ -435,8 +415,6 @@ public class InvoiceServiceImpl implements InvoiceService {
 	@Override
 	public void UpdateRecognizeSpeed(Map<String, Object> ans_map, Integer user_id, Integer delay,
 			ServletContext servletContext) {
-		// 首先进行权限判断
-		User user = userDao.getUserById(user_id);
 		servletContext.setAttribute(Const.DELAY, delay);
 		ans_map.put(Const.SUCCESS, "成功调整速度");
 	}
