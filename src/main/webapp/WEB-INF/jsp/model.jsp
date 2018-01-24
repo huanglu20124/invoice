@@ -38,8 +38,17 @@
 			</div>
 			<div class="panel panel-default panel-box-shadow">
 			    <div class="panel-body muban_contain">
-			    	<div class="thumbnail_muban" style="padding-top: 15px;">
-				  		<div style="display:none"></div>
+			    	<div class="thumbnail_muban_container">
+				    	<div class="thumbnail_muban" style="padding-top: 15px;">
+					  		<div style="display:none"></div>
+						</div>
+						<div class="page_foot">
+							<span class="left_page"><<</span>
+							<span class="page_desc">
+								当前页数 <span class="cur_page">1</span>/<span class="all_page">1</span>
+							</span>
+							<span class="right_page">>></span>
+						</div>
 					</div>
 					<div class="list_muban" style="display: none;">
 						<div style="display:none"></div>
@@ -1096,7 +1105,6 @@
 						//alert(res1.model_list[i].json_model);
 						addImgMuban(res1.model_list[i].model_url, res1.model_list[i].origin_url, res1.model_list[i].json_model, res1.model_list[i].model_id, res1.model_list[i].model_register_time, res1.model_list[i].image_size, res1.model_list[i].model_label);
 					}
-					
 					var muban_num = res1.model_list.length;
 					$("#muban_num").text(muban_num.toString());
 
