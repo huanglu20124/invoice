@@ -9,7 +9,7 @@
 		172.18.92.142
 	-->
     <!-- <connect_ip>172.18.92.209:8080</connect_ip> -->
-    <connect_ip>172.18.92.209:8080</connect_ip>
+    <connect_ip>192.168.1.69:8080</connect_ip>
 	<root_host>invoice</root_host>
 	<invoice_width>1160</invoice_width>
 	<invoice_height>817</invoice_height>

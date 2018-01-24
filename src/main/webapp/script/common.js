@@ -185,6 +185,35 @@ function handleShow(data) {
     }     
 }
 
+function handleAddMuban(data) {
+    //新增成功
+    if(data.status == 0) {
+        $("#progressModal h4").text("添加模板成功");
+        $("#progressModal .progress-bar").get(0).style.width = "100%";
+        setTimeout(function(){$("#progressModal").modal('hide');}, 1000);
+        //增加图片至模板库
+        // console.log(data.model_label);
+        addImgMuban(data.model_url, data.origin_url, temp_json_model, data.id, data.model_register_time, data.image_size, data.model_label);
+
+        //模板数相应增加
+        var muban_num = parseInt($("#muban_num").text());
+        muban_num += 1;
+        $("#muban_num").text(muban_num.toString());
+        
+        $(".temp_save_muban").css("display", "none");
+        $(".temp_save_muban *").not("p").each(function(){
+            $(this).remove();
+        });
+
+    }
+    //新增失败
+    else {
+        $("#progressModal h4").text("添加模板失败");
+        $("#progressModal .progress-bar").addClass("progress-bar-danger");
+        $("#progressModal .btn").get(0).disabled = false;
+    }
+}
+
 //連接websocket
 function connectEndpoint(){
 
@@ -195,7 +224,7 @@ function connectEndpoint(){
     var img_list = [];
 
     ws.onmessage = function(evt) {
-        //alert(evt.data);
+        //alert(evt.data)
         tellConsole(evt.data, 3);
         var data = JSON.parse(evt.data);
         //所有页面都接收到的请求
@@ -263,35 +292,15 @@ function connectEndpoint(){
         // model.jsp
         else if(window.location.href.indexOf("model.action") != -1){
             if(data.msg_id == 2) { //单图新增
-                //新增成功
-                if(data.status == 0) {
-                    $("#progressModal h4").text("添加模板成功");
-                    $("#progressModal .progress-bar").get(0).style.width = "100%";
-                    setTimeout(function(){$("#progressModal").modal('hide');}, 2000);
-                    //增加图片至模板库
-                    console.log(data.model_label);
-                    addImgMuban(data.url, temp_json_model, data.id, data.model_register_time, data.image_size, data.label);
-
-                    //模板数相应增加
-                    var muban_num = parseInt($("#muban_num").text());
-                    muban_num += 1;
-                    $("#muban_num").text(muban_num.toString());
-                    
-                    $(".temp_save_muban").css("display", "none");
-                    $(".temp_save_muban *").not("p").each(function(){
-                        $(this).remove();
-                    });
-
-                }
-                //新增失败
-                else {
-                    $("#progressModal h4").text("添加模板失败");
-                    $("#progressModal .progress-bar").addClass("progress-bar-danger");
-                    $("#progressModal .btn").get(0).disabled = false;
-                }
+                console.log("websocket: " + data.msg_id);
+                console.log(data);
+                handleAddMuban(data);
+                
             }
             else if(data.msg_id == 6) { //多图新增
-
+                for(var i = 0; i < data.list.length; i++) {
+                    handleAddMuban(data.list[i]);
+                }
             }
 
             //删除模板返回msg_id = 3
@@ -330,6 +339,7 @@ function connectEndpoint(){
                     // alert(edited_canvas_url);s
                     ChangeInfo(temp_click_jq_img.get(0).model_id, "model_url", edited_canvas_url);
                     ChangeInfo(temp_click_jq_img.get(0).model_id, "json_model", data.json_model);
+                    ChangeInfo(temp_click_jq_img.get(0).model_id, "model_label", data.json_model.global_setting.label);
                 }
                 //修改失败
                 else {
