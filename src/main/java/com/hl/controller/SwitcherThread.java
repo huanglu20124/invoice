@@ -167,10 +167,11 @@ public class SwitcherThread implements Runnable {
 			String file_path = modelAction.getFile_path();
 			// 得到全部原图
 			List<String> origins = new ArrayList<>();
-			File dir = new File(localConfig.getImagePath() + file_path  + "original/");
+			File dir = new File(localConfig.getImagePath() + file_path);
 			String[] temps = dir.list();
 			for (String temp : temps) {
-				origins.add(localConfig.getImagePath() + file_path + "original/" + temp);
+				if(!temp.contains("model"))//排除掉模板图片
+				origins.add(localConfig.getImagePath() + file_path + temp);
 			}
 			// 得到json_model，加入图片url
 			Map<String, Object> json_model = modelAction.getJson_model();
@@ -191,6 +192,10 @@ public class SwitcherThread implements Runnable {
 		case 5:// 清空
 			MessageUtil.sendMessage(outputStream, 5, null, systemWebSocketHandler);
 			System.out.println(action_id + "发送了清空发票模板请求");
+			// 4. 弹出队列头，删除key
+			redisDao.pop(Const.MANAGE_WAIT);
+			System.out.println(action_id + "弹出操作队列");
+			redisDao.deleteKey(action_id + "");
 			modelService.broadcastClearModel(inputStream, new Integer(action_id));
 			break;
 			
@@ -208,42 +213,41 @@ public class SwitcherThread implements Runnable {
 				batch_list.add(action);
 			}
 			// 准备批量发送
-			List<Map<String, Object>> msg_list = new ArrayList<>();
+			Map<String, Object>final_map = new HashMap<>();
+			List<Map<String, Object>> json_model_list = new ArrayList<>();
 			for (ModelAction action : batch_list) {
-				Map<String, Object> msg_map = new HashMap<>();
 				// 先得到文件仓库路径
 				String file_path = action.getFile_path();
 				// 得到全部原图
 				List<String> origins = new ArrayList<>();
-				File dir = new File(localConfig.getImagePath() + file_path + "original/");
+				File dir = new File(localConfig.getImagePath() + file_path);
 				String[] temps = dir.list();
 				for (String temp : temps) {
-					origins.add(localConfig.getImagePath() + file_path + "original/" + temp);
+					if(!temp.contains("model"))//排除掉模板图片
+					origins.add(localConfig.getImagePath() + file_path + temp);
 				}
 				// 得到json_model，加入图片url
 				Map<String, Object> json_model = action.getJson_model();
 				json_model.put(Const.URL, origins);
-				// 另外json_model还要包一层。
-				msg_map.put(Const.JSON_MODEL, json_model);
-				msg_list.add(msg_map);
+				json_model.put("image_num", origins.size());
+				json_model_list.add(json_model);
 			}
-			if(msg_list.size() == 1){
+			if(json_model_list.size() == 1){
 				//发送单张模板的请求
-				MessageUtil.sendMessage(outputStream, 2, JSON.toJSONString(msg_list.get(0)), systemWebSocketHandler);
+				final_map.put(Const.JSON_MODEL,json_model_list.get(0));
+				MessageUtil.sendMessage(outputStream, 2, JSON.toJSONString(final_map), systemWebSocketHandler);
 				logger.info("发送了新增单张发票模板请求");
 			}else {
-				MessageUtil.sendMessage(outputStream, 6, JSON.toJSONString(msg_list), systemWebSocketHandler);
+				final_map.put(Const.JSON_MODEL, json_model_list);
+				MessageUtil.sendMessage(outputStream, 6, JSON.toJSONString(final_map), systemWebSocketHandler);
 				logger.info("发送了批处理新增发票模板请求，处理数量为" + batch_list.size());
 			}
-			//弹出队列头该modelAction
-			redisDao.pop(Const.MANAGE_WAIT);
-			//删除全部相关key
-			for(String temp : action_ids){
-				redisDao.deleteKey(temp);
-			}			
-			redisDao.deleteKey(modelAction.getBatch_id().toString());
 			// 调用service层的方法处理增加模板的结果
-			modelService.broadcastAddModelMul(inputStream, batch_list);
+			if(batch_list.size() == 1){
+				modelService.broadcastAddModelSingle(inputStream,batch_list.get(0));
+			}else {
+				modelService.broadcastAddModelMul(inputStream, batch_list);
+			}		
 		}
 			break;
 		default:

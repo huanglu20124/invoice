@@ -40,7 +40,7 @@
 	<!-- <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter" /> -->
 
 	<!-- 配置视图解析器 -->
-	<!-- 对资源放行 (因为过滤器只拦截带action的，故不用放行了) -->
+	<!-- 对资源放行-->
 	<mvc:resources location="/" mapping="/*.html" />
 	<mvc:resources location="/" mapping="/*.bmp" />
 	<mvc:resources location="/" mapping="/*.xml" />

@@ -175,26 +175,6 @@ public class InvoiceController {
 		response.getWriter().write(JSON.toJSONString(ans_map));
 	}
 
-	//点击一张图片，获得它的imgStr
-	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
-	@RequestMapping(value = "/getImgStr.action", method = RequestMethod.POST)
-	public void getImgStr(HttpServletRequest request, HttpServletResponse response)throws IOException{
-		System.out.println("接收到发送模板图片imgStr的请求");
-		Map<String, Object> ans_map = new HashMap<>();
-		String url = request.getParameter(Const.URL);
-		System.out.println(url);
-		String url_suffix = ImageUtil.getUrlSuffix(url);
-		String local_path = localConfig.getImagePath() + url_suffix;
-		//获得原图
-		String original_path = local_path.replace("handle", "original");
-		String img_str = ImageUtil.GetImageStr(original_path);
-		ans_map.put(Const.IMG_STR, "data:image/jpg;base64,"+ img_str);
-		PrintWriter writer = response.getWriter();
-		writer.write(JSON.toJSONString(ans_map));
-		writer.flush();
-		writer.close();
-	}
-
 	//打开监控台，发送一些重要的信息给前端
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/openConsole.action", method = RequestMethod.POST)

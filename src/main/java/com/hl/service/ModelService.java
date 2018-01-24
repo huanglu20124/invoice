@@ -26,4 +26,8 @@ public interface ModelService {
 	public String updateModel(HttpServletRequest request, Integer thread_msg) throws InvoiceException;
 	public String cancelAddModel(String file_path);
 	public String getModelQueue(String batch_id);
+	public String getImgStr(String url)throws InvoiceException;
+	public String broadcastAddModelSingle(InputStream inputStream, ModelAction modelAction);
+	public String deleteCacheModel(Integer action_id);
+	public String updateCacheModel(ModelAction parseObject, String img_str)throws InvoiceException;
 }

@@ -78,12 +78,13 @@ public class SystemWebSocketHandler implements WebSocketHandler {
  
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-        if(session.isOpen()){
+/*        if(session.isOpen()){
             session.close();
         }
-        users.remove(session);
-        System.out.println("传输异常，websocket会话关闭");
-        log.debug("handleTransportError" + exception.getMessage());
+        users.remove(session);*/
+        System.out.println("传输异常");
+        log.error("handleTransportError" + exception.getMessage());
+        exception.printStackTrace();
     }
  
     @Override

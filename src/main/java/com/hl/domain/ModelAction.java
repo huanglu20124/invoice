@@ -9,15 +9,21 @@ public class ModelAction extends Action{
 	private Map<String, Object> json_model;//改为map类型
 	private Integer model_id;
 	//模板所在文件夹，例"image/model/增值税发票-20171110004814/"
-	//后面加model.jpg即得到模板图片，加/original/1.jpg得到一张原图
+	//后面加model.jpg即得到模板图片，加1.jpg得到一张原图
 	private String file_path;
 	//批处理队列id，uuid生成，客户端确认之后，按照顺序将批处理队列的东西按顺序加到manage队列里
-	//处理一个ModelAction的时候，扫描original下面的文件夹，将原图打包发给算法端
+	//处理一个ModelAction的时候,将原图打包发给算法端
 	private String batch_id;
 	//模板名称，前端发过来的时候要提取出来，赋值
 	private String model_label;
 	//存储原图的名字
 	public List<String>origins;
+	
+	//用于前端展示的
+	//原图url
+	public String origin_url;
+	//模板url
+	public String model_url; 
 	
 	public Integer getImage_size() {
 		return image_size;
@@ -61,6 +67,19 @@ public class ModelAction extends Action{
 	}
 	public void setOrigins(List<String> origins) {
 		this.origins = origins;
+	}
+	
+	public String getOrigin_url() {
+		return origin_url;
+	}
+	public void setOrigin_url(String origin_url) {
+		this.origin_url = origin_url;
+	}
+	public String getModel_url() {
+		return model_url;
+	}
+	public void setModel_url(String model_url) {
+		this.model_url = model_url;
 	}
 	
 	

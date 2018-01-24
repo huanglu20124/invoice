@@ -8,6 +8,7 @@ public class Model {
 	private String model_register_time;
 	private Integer model_register_counter;
 	private String model_url;
+	private String origin_url;
 	private String model_label;
 	private Integer image_size;
 	private String model_uuid;//模板唯一id
@@ -60,9 +61,11 @@ public class Model {
 	public void setModel_uuid(String model_uuid) {
 		this.model_uuid = model_uuid;
 	}
-
-
-	
-	
+	public String getOrigin_url() {
+		return origin_url;
+	}
+	public void setOrigin_url(String origin_url) {
+		this.origin_url = origin_url;
+	}
 	
 }

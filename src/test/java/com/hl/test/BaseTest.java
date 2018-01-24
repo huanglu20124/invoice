@@ -1,13 +1,12 @@
 package com.hl.test;
 
-import static org.junit.Assert.*;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-commons.xml",
@@ -15,6 +14,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 	"classpath:applicationContext-dataBase.xml",
 	"classpath:applicationContext-shiro.xml",
 	"classpath:springmvc-context.xml"})
+@WebAppConfiguration
 public class BaseTest {
 	@Before
 	public void init() {

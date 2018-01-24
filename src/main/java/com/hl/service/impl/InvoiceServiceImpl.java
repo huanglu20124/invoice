@@ -303,6 +303,10 @@ public class InvoiceServiceImpl implements InvoiceService {
 						redisDao.leftPush(Const.RECOGNIZE_PROCESS, message.getFinalMessage(action_id));
 						// 过程信息，直接转交给前端
 						systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)),new int[]{2});
+					}else if (message.getMsg_id() == -1) {
+						System.out.println("该发票没有相关分类");
+						systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)),new int[]{2});
+						break;
 					}
 				}
 

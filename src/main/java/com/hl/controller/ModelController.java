@@ -1,5 +1,6 @@
  package com.hl.controller;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -9,7 +10,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,11 +20,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.alibaba.fastjson.JSON;
 import com.hl.domain.LocalConfig;
+import com.hl.domain.ModelAction;
 import com.hl.domain.ModelQuery;
 import com.hl.domain.SimpleResponse;
 import com.hl.exception.InvoiceException;
 import com.hl.service.ModelService;
 import com.hl.util.Const;
+import com.hl.util.ImageUtil;
 import com.hl.util.IpUtil;
 import com.hl.websocket.SystemWebSocketHandler;
 
@@ -132,9 +134,19 @@ public class ModelController {
 	@RequestMapping(value = "/pushBatchModel.action", method = RequestMethod.POST)
 	@ResponseBody
 	public String pushBatchModel(HttpServletRequest request,String batch_id) throws InvoiceException{
+		System.out.println("收到提交全部模板的请求batch_id=" + batch_id);
 		Integer thread_msg = (Integer) request.getServletContext().getAttribute(Const.THREAD_MSG);//获取上锁对象
 		return modelService.pushBatchModel(batch_id,thread_msg);
 	}	
+	
+	//点击一张模板，获得它的imgStr
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/getImgStr.action", method = RequestMethod.POST)
+	@ResponseBody
+	public String getImgStr(String url)throws InvoiceException{
+		System.out.println("接收到发送模板图片imgStr的请求");
+		return modelService.getImgStr(url);
+	}
 	
 	//关掉画模板的窗口
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
@@ -152,10 +164,10 @@ public class ModelController {
 	public String getModelQueue(HttpSession session) throws InvoiceException{
 		System.out.println("收到获取提交模板队列的请求");
 		String batch_id = (String)session.getAttribute("batch_id");
+		if(batch_id == null) throw new InvoiceException("session中的batch_id为空!");
 		return modelService.getModelQueue(batch_id);
 	}
-			
-	
+	 		
 	//特殊接口：将DataBase.xml文件里面的内容写入Mysql数据库，已经废弃
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/rewriteJsonModel.action", method = RequestMethod.POST)
@@ -177,5 +189,24 @@ public class ModelController {
 		writer.close();
 	}
 
+	//删除缓冲队列中的一张模板
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/deleteCacheModel.action", method = RequestMethod.POST)
+	@ResponseBody
+	public String deleteCacheModel(Integer action_id) throws InvoiceException{
+		System.out.println("收到删除缓冲队列中的一张模板的请求");
+		return modelService.deleteCacheModel(action_id);
+	}
+	
+	//修改缓冲队列中的一张模板
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/updateCacheModel.action", method = RequestMethod.POST)
+	@ResponseBody
+	public String updateCacheModel(String modelAction, String img_str) throws InvoiceException{
+		System.out.println("收到修改缓冲队列中的一张模板的请求");
+		return modelService.updateCacheModel(JSON.parseObject(modelAction, ModelAction.class),img_str);
+	}	
+	
+	
 	
 }
