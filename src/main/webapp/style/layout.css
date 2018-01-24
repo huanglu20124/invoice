@@ -24,13 +24,21 @@ a:link, a:visited {
     border: 1px solid #ddd;
     border-radius: 4px;
     overflow: hidden;
-    display: inline-block
+    display: inline-block;
+    vertical-align: top;
 }
 
 .file_label:hover {
 	color: #444;
     background: #eee;
     border-color: #ccc;
+}
+
+.file_label_disabled:hover {
+	cursor: default;
+    color: #888;
+    background: #fafafa;
+    border-color: #ddd;
 }
 
 #user_login .input-group-addon {
@@ -272,6 +280,7 @@ aside {
 	margin-right: 2%;
 	display: inline-block;
 	margin-bottom: 20px;
+	vertical-align: top;
 }
 
 .fault_img:last-of-type, .ku_img_container:last-of-type {
