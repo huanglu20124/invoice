@@ -11,7 +11,7 @@ import com.hl.domain.RecognizeAction;
 import com.hl.domain.TestCase;
 
 public interface InvoiceService {
-	public void addRecognizeInvoice(Map<String, Object> ans_map, RecognizeAction action,TestCase testCase,List<String>url_suffixs,Integer thread_msg);
+	public String addRecognizeInvoice(RecognizeAction action,TestCase testCase,List<String>url_suffixs,Integer thread_msg);
 	public void broadcastRecognizeProcess(InputStream inputStream,OutputStream outputStream,Integer delay);
 	public String broadcastRecognizeWaitFirst();
 	public String openConsole(Integer delay);
@@ -20,4 +20,5 @@ public interface InvoiceService {
 	public void UpdateRecognizeSpeed(Map<String, Object> ans_map, Integer user_id,Integer delay,ServletContext servletContext);
 	public void broadcastRegionList();
 	public List<Invoice> getTwentyFaultQueue(Integer page);
+	public String clearRecognizeQueue();
 }

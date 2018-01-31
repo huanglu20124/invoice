@@ -29,6 +29,7 @@ import com.hl.domain.OcrResult;
 import com.hl.domain.RecognizeAction;
 import com.hl.domain.RecognizeConsole;
 import com.hl.domain.ResponseMessage;
+import com.hl.domain.SimpleResponse;
 import com.hl.domain.TestCase;
 import com.hl.domain.User;
 import com.hl.service.InvoiceService;
@@ -69,8 +70,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 
 	// ajax处理web请求
 	@Override
-	public void addRecognizeInvoice(Map<String, Object> ans_map, RecognizeAction recognizeAction,
-			TestCase testCase,List<String>url_suffixs,Integer thread_msg) {
+	public String  addRecognizeInvoice(RecognizeAction recognizeAction,TestCase testCase,
+			List<String>url_suffixs,Integer thread_msg) {
+		Map<String, Object>ans_map = new HashMap<>();
 		// 获得当前用户，首先进行权限判断
 		User user = userDao.getUserById(recognizeAction.getUser_id());
 		//获得发票列表
@@ -139,7 +141,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 		ans_map.put(Const.SUCCESS, "已加入队列，等待算法服务器处理");
 		ans_map.put("recognize_size", recognize_size);
 		ans_map.put("manage_size", manage_size);
-
+		return JSON.toJSONString(ans_map);
 	}
 
 	// websocket返回处理结果 msg_id = 1, 100, 101, 102
@@ -158,7 +160,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 		broadcastNextRecognize(invoice);
 		// 将后缀转换为本地硬盘路径
 		String url_suffix = invoice.getInvoice_url();
-		String absolute_path = ImageUtil.suffixToBmp(localConfig.getImagePath() + url_suffix);
+		String absolute_path = localConfig.getImagePath() + url_suffix;
 		//补充协议json信息
 		Map<String, Object> msg_map = new HashMap<>();
 		msg_map.put(Const.URL, absolute_path);
@@ -305,6 +307,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 						systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)),new int[]{2});
 					}else if (message.getMsg_id() == -1) {
 						System.out.println("该发票没有相关分类");
+						// 弹出队列头，同时删除key(如果正常识别的话，如果不能，则加到异常队列)
+						redisDao.pop(Const.RECOGNIZE_WAIT);
+						redisDao.deleteKey(uuid);
 						systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)),new int[]{2});
 						break;
 					}
@@ -429,6 +434,21 @@ public class InvoiceServiceImpl implements InvoiceService {
 	public List<Invoice> getTwentyFaultQueue(Integer page) {
 		List<Invoice>list = invoiceDao.getTwentyFaultInvoice(page);
 		return list;
+	}
+
+	
+	@Override
+	public String clearRecognizeQueue() {
+		List<String>recognize_list = redisDao.getRangeId(Const.RECOGNIZE_WAIT);
+		if(recognize_list != null && recognize_list.size() > 0){
+			for(String uuid : recognize_list){
+				//删除一张发票的缓存
+				redisDao.deleteKey(uuid);
+			}
+		}
+		redisDao.deleteKey(Const.RECOGNIZE_WAIT);
+		redisDao.deleteKey(Const.RECOGNIZE_PROCESS);
+		return JSON.toJSONString(new SimpleResponse("清除成功！", null));
 	}
 
 	

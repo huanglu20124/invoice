@@ -76,12 +76,12 @@ public class SwitcherThread implements Runnable {
 		this.servletContext = servletContext;
 		this.algorithmSocket = socketLoadTool.getAlgorithmSocket();
 		try {
-			if (algorithmSocket != null) {
-				System.out.println("SwitcherThread成功连接到算法服务器");
+			if (algorithmSocket != null && algorithmSocket.isConnected()) {
+				logger.info("SwitcherThread成功连接到算法服务器");
 				outputStream = algorithmSocket.getOutputStream();
 				inputStream = algorithmSocket.getInputStream();
 			} else {
-				System.out.println("SwitcherThread成功连接到算法服务器失败");
+				logger.info("SwitcherThread成功连接到算法服务器失败");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -92,31 +92,61 @@ public class SwitcherThread implements Runnable {
 
 	@Override
 	public void run() {
-		System.out.println("新建SwitcherThread，开始执行");
+		logger.info("新建SwitcherThread，开始执行");
 		synchronized (thread_msg) {
 			while (true) {
 				wait_size = redisDao.getWaitSize();
 				manage_size = redisDao.getManageSize();
 				if (wait_size == 0l && manage_size == 0l) {
-					System.out.println("SwitcherThread睡眠,等待新请求加入两个队列");
+					logger.info("SwitcherThread睡眠,等待新请求加入两个队列");
 					try {
 						thread_msg.wait();
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
-					System.out.println("SwitcherThread被唤醒");
+					logger.info("SwitcherThread被唤醒");
 				}
 				// 重新读
 				wait_size = redisDao.getWaitSize();
 				manage_size = redisDao.getManageSize();
 				if (manage_size != 0l) {
-					switchManageModel();
+					try {
+						if(algorithmSocket.isConnected()){
+							switchManageModel();
+						}else {
+							logger.info("与算法端的连接被关闭，线程休眠");
+							try {
+								thread_msg.wait();
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+						}
+						logger.info("SwitcherThread被唤醒");
+					} catch (Exception e) {
+						logger.error("执行操作队列任务中出错");
+					}
+					
 				}
 				// 重新读
 				wait_size = redisDao.getWaitSize();
 				manage_size = redisDao.getManageSize();
 				if (wait_size != 0l && manage_size == 0) {
-					switchRecognizeInvoice();
+					try {
+						if(algorithmSocket.isConnected()){
+							switchRecognizeInvoice();
+						}else {
+							logger.info("与算法端的连接被关闭，线程休眠");
+							try {
+								thread_msg.wait();
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+						}
+						logger.info("SwitcherThread被唤醒");
+					} catch (Exception e) {
+						logger.error("执行识别队列任务中出错");
+					}
+					
 				}
 			}
 		}
@@ -225,6 +255,7 @@ public class SwitcherThread implements Runnable {
 				for (String temp : temps) {
 					if(!temp.contains("model"))//排除掉模板图片
 					origins.add(localConfig.getImagePath() + file_path + temp);
+					logger.info("添加了模板原图" + file_path + temp);
 				}
 				// 得到json_model，加入图片url
 				Map<String, Object> json_model = action.getJson_model();

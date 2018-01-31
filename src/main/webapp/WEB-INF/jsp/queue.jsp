@@ -36,8 +36,10 @@
 					</div>
 			    </div>
 			</div>
-
+			
 			<button type="button" class="btn btn-danger" onclick="deleteTempSaveList()" style="margin-top: 20px;">清空缓冲队列</button>
+			
+			<input type="file" onchange="addImgs()" id="analog_img" multiple/>
 		</div>
 	</main>
 
@@ -92,7 +94,7 @@
 	        </div>
 	    </div>
 	</div>
-
+	
 	<div class="modal fade" id="progressModal" tabindex="-1" aria-hidden="true" style="margin: 0px auto; width: 33%;">
 		<div>
 	        <div class="modal-content">
@@ -114,10 +116,46 @@
 	        </div>
 	    </div>
 	</div>
-
+	
 	<script type="text/javascript" src="script/common.js"></script>
 	<script type="text/javascript">
 
+		//发送图片
+		function addImgs() {
+			console.log($('#analog_img').get(0).files);
+			var invoice_list = [];
+			var formData = new FormData();
+			for(var i = 0; i < $('#analog_img').get(0).files.length; i++) {
+				invoice_list.push({
+					invoice_image_id : "00",
+					invoice_note: "中山大学"
+				})				
+				formData.append("file", $('#analog_img').get(0).files[i]);
+			}
+			var recognize = {
+				user_id : 1,
+				company_id : 1,
+				invoice_list: invoice_list
+			}
+			
+			formData.append("recognizeAction", JSON.stringify(recognize));
+			console.log(formData);
+			$.ajax({
+		        url: "http://" + ip2 + "/invoice/recognizeImage.action",
+		        type: 'POST',
+		        data: formData,
+		        cache: false,
+		        processData: false,
+		        contentType: false,
+		        success : function(data) {
+		            console.log(data);
+		        },
+		        error: function(err) {
+		        	console.log("error");
+		        }
+		    });
+		}
+	
        //jsp加入
        var user_json = <%=JSON.toJSONString(request.getAttribute("user"))%>
         //生成随机数
@@ -128,13 +166,13 @@
 			return(Min + parseFloat(Rand * Range));   
 		}  
 
-		//清空上传队列
+      //清空上传队列
 		function deleteTempSaveList() {
 			$("#progressModal h4").text("正在清空");
 			$("#progressModal .progress-bar").get(0).style.width = "40%";
 			$("#progressModal").modal('show');
 			$.ajax({
-				url: "http://" + ip2 + "/clearRecognizeQueue.action",
+				url: "http://" + ip2 + "/invoice/clearRecognizeQueue.action",
 				type: 'POST',
 				success: function(res,status) {
 					$("#progressModal h4").text("清空上传队列成功");
@@ -155,7 +193,7 @@
 				}
 			})
 		}
-
+        
         $(document).ready(function(){
         	// 判断权限
         	justifyUserGrant(user_json);

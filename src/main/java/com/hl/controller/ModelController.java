@@ -3,6 +3,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,6 +30,7 @@ import com.hl.util.Const;
 import com.hl.util.ImageUtil;
 import com.hl.util.IpUtil;
 import com.hl.websocket.SystemWebSocketHandler;
+import com.mysql.fabric.xmlrpc.base.Array;
 
 @Controller
 public class ModelController {
@@ -84,6 +86,7 @@ public class ModelController {
 		Integer user_id = new Integer(request.getParameter(Const.USER_ID));
 		Integer page = new Integer(request.getParameter("page"));
 		modelService.getAllModel(ans_map,user_id,page);
+		System.out.println(JSON.toJSONString(ans_map));
 		response.getWriter().write(JSON.toJSONString(ans_map));
 	}
 
@@ -164,8 +167,16 @@ public class ModelController {
 	public String getModelQueue(HttpSession session) throws InvoiceException{
 		System.out.println("收到获取提交模板队列的请求");
 		String batch_id = (String)session.getAttribute("batch_id");
-		if(batch_id == null) throw new InvoiceException("session中的batch_id为空!");
-		return modelService.getModelQueue(batch_id);
+		if(batch_id == null){
+			//throw new InvoiceException("session中的batch_id为空!");
+			Map<String, Object>ansMap = new HashMap<>();
+			ansMap.put("list", new ArrayList<>());
+			//System.out.println(JSON.toJSONString(ansMap));
+			return JSON.toJSONString(ansMap);
+		}else {
+			return modelService.getModelQueue(batch_id);
+		}
+		
 	}
 	 		
 	//特殊接口：将DataBase.xml文件里面的内容写入Mysql数据库，已经废弃

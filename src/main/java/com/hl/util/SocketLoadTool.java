@@ -27,7 +27,7 @@ public class SocketLoadTool {
 			customerSocket = new Socket("127.0.0.1", 9000);
 			System.out.println("与客户端成功建立连接");
 		} catch (IOException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 			System.out.println("与客户端成功建立连接失败");
 		}
 	}
