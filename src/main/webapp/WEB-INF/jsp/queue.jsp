@@ -37,7 +37,7 @@
 			    </div>
 			</div>
 			
-			<button type="button" class="btn btn-danger" onclick="deleteTempSaveList()" style="margin-top: 20px;">清空缓冲队列</button>
+			<button type="button" class="btn btn-danger" onclick="deleteTempSaveList()" style="margin: 15px;">清空缓冲队列</button>
 			
 			<input type="file" onchange="addImgs()" id="analog_img" multiple/>
 		</div>

@@ -27,6 +27,12 @@
 
 			<div class="panel_hd_line flex flex-align-end">
 				<span class="flex-1" style="font-size: 16px;">共<span id="muban_num">0</span>张模板</span>
+				<span class="flex-none" style="font-size: 16px; margin-right: 0.8em;" onclick="zoom(1)">
+					<i class="fa fa-search-plus" aria-hidden="true"></i>
+				</span>
+				<span class="flex-none" style="font-size: 16px;" onclick="zoom(0)">
+					<i class="fa fa-search-minus" aria-hidden="true"></i>
+				</span>
 				<span class="flex-none" style="font-size: 14px; margin-left: 2em;">
 	        		查看方式:<select id="show_type" class="form-control" style="display: inline-block; width: 8em; height: 25px; margin-left: 0.5em; padding: 0em 0.5em; font-size: 13.5px;" onchange="changeShowType()">
 	        			<option selected>缩略图</option>
@@ -242,6 +248,7 @@
 		var index = -1, last_index= -1, cur_x, cur_y; //记录当前鼠标滑到的画图区域index及其坐标
 		var other_img_array = []; //记录当前新增的模板的相关原图
 		var batch_id; //暂存队列的batch_id
+		var option_width; //长图的补长
 
 		//储存服务器传过来的对象
 		var model_array = [];
@@ -295,6 +302,32 @@
         //init paint
         var up_done=false, button_use=false; //up_done表示是否可以开始绘图, button_use表示打勾、打叉按钮是否可用
         var muban_type = 0; //记录是修改还是增加模板
+        var zoom = [8, 13, 18, 23, 28], zoom_index = 3; //图片纵深大小级别
+
+        //调整ku_img_container长宽
+        function adjustKuImg() {
+        	$(".ku_img_container .ku_img").each(function() {
+				if($(this).get(0).image_whsize >= 1) {
+					$(this).get(0).style.height = parseFloat($(this).width() * parseFloat(invoice_height / invoice_width)) + "px";	
+				} else {
+					var width_str = parseFloat(invoice_height / invoice_height_ver * invoice_width_ver / invoice_width)*100 + "%";
+					$(this).get(0).style.width = width_str;
+					$(this).get(0).style.height = parseFloat($(this).width() * parseFloat(invoice_height_ver / invoice_width_ver)) + "px";
+				}
+			})
+        }
+
+        //调整图片的宽度
+        function zoom(type) {
+        	if(type == 1) { // zoom in
+        		$(".ku_img_container").css("width", zoom[++zoom_index] + "%");
+        		adjustKuImgContainer();
+
+        	} else { //zoom out
+        		$(".ku_img_container").css("width", zoom[--zoom_index] + "%");
+        		adjustKuImgContainer();
+        	}
+        }
 
         function initPaintForm(src) { //初始化全局及局部表单，在未启动编辑之前禁用修改功能
         	
@@ -383,7 +416,7 @@
 						$(".hid_panel").css({
 							"display": "block",
 							"top": paint_area[index].large_y,
-							"right": $(".modal-body").width()-paint_area[index].large_x
+							"right": $(".modal-body").width()-(paint_area[index].large_x + option_width)
 						});
 					}
 					else {
@@ -404,7 +437,7 @@
 				if(index != -1){
 					$(".setting_panel").css("display", "block");
 					$(".setting_panel").css("top", paint_area[index].large_y+"px");
-					$(".setting_panel").css("left", paint_area[index].large_x+"px");
+					$(".setting_panel").css("left", paint_area[index].large_x+option_width+"px");
 					if(change == false){
 						$(".setting_panel select[name='quyu']").val(paint_area[index].quyu);
 						$(".setting_panel select[name='bg_color']").val(paint_area[index].bg_color);
@@ -428,6 +461,7 @@
         		$("#myCanvas").get(0).height = invoice_height;
         		$("#myCanvas").css("backgroundSize", invoice_width+"px "+invoice_height+"px");
         		$("#myCanvas").parent().css("borderStyle", "none");
+        		option_width = 0;
         		// $("#myCanvas").parent().css("width", invoice_width+"px");
         		// $("#myCanvas").parent().css("height", invoice_height+"px");
         	}
@@ -436,6 +470,7 @@
         		$("#myCanvas").get(0).height = invoice_height_ver;
         		$("#myCanvas").css("backgroundSize", invoice_width_ver+"px "+invoice_height_ver+"px");
         		$("#myCanvas").parent().css("border", "1px solid rgb(229,229,229)");
+        		option_width = $("#myCanvas").get(0).offsetLeft;
         		// $("#myCanvas").parent().css("height", invoice_height_ver+"px");
         	}
         	//还原画布上下文
@@ -714,6 +749,7 @@
 			$(".thumbnail_muban div:last-child p").text(model_array_object.model_label);
 			$(".thumbnail_muban div:last-child img").addClass("ku_img");
 			$(".thumbnail_muban div:last-child img").get(0).onload = function() {
+				$(this).get(0).image_whsize = $(this).get(0).width / $(this).get(0).height;
 				if($(this).get(0).width > $(this).get(0).height) {
 					$(this).get(0).style.height = parseFloat($(this).width() * parseFloat(invoice_height / invoice_width)) + "px";	
 				} else {
@@ -1070,15 +1106,16 @@
 			window.onresize = function(event) {
 				initCanvasModal();
 				justifySize(canvas_width, canvas_height);
-				$(".thumbnail_muban div img").each(function() {
-					if($(this).get(0).width > $(this).get(0).height) {
-						$(this).get(0).style.height = parseFloat($(this).width() * parseFloat(invoice_height / invoice_width)) + "px";	
-					} else {
-						var width_str = parseFloat(invoice_height / invoice_height_ver * invoice_width_ver / invoice_width)*100 + "%";
-						$(this).get(0).style.width = width_str;
-						$(this).get(0).style.height = parseFloat($(this).width() * parseFloat(invoice_height_ver / invoice_width_ver)) + "px";
-					}
-				})
+				adjustKuImg();
+				// $(".thumbnail_muban div img").each(function() {
+				// 	if($(this).get(0).width > $(this).get(0).height) {
+				// 		$(this).get(0).style.height = parseFloat($(this).width() * parseFloat(invoice_height / invoice_width)) + "px";	
+				// 	} else {
+				// 		var width_str = parseFloat(invoice_height / invoice_height_ver * invoice_width_ver / invoice_width)*100 + "%";
+				// 		$(this).get(0).style.width = width_str;
+				// 		$(this).get(0).style.height = parseFloat($(this).width() * parseFloat(invoice_height_ver / invoice_width_ver)) + "px";
+				// 	}
+				// })
 			}
 
 			// 判断权限
@@ -1120,7 +1157,7 @@
 			})
 
 			//获取发送队列
-			  $.ajax({
+			$.ajax({
 			 	url: "http://"+ip2+"/invoice/getModelQueue.action",
 			 	type : 'POST',
 			 	cache : false,
@@ -1151,7 +1188,7 @@
 			 	error : function() {
 			 		tellConsole("首次获取12条发票模板错误", 1);
 		    	}
-			 })
+			})
 
 
 			// 回车进行搜索
@@ -1232,7 +1269,7 @@
 							$(".hid_panel").css({
 								"display": "block",
 								"top": large_y,
-								"right": $(".modal-body").width()-large_x
+								"right": $(".modal-body").width()-(large_x+option_width)
 							});
 							$(".hid_panel img").mouseenter(function(){
 								$(this).css("margin-bottom", "1px");
@@ -1250,7 +1287,7 @@
 								if(index != -1){
 									$(".setting_panel").css("display", "block");
 									$(".setting_panel").css("top", paint_area[index].large_y+"px");
-									$(".setting_panel").css("left", paint_area[index].large_x+"px");
+									$(".setting_panel").css("left", paint_area[index].large_x+option_width+"px");
 									if(change == false){
 										$(".setting_panel select[name='quyu']").val(paint_area[index].quyu);
 										$(".setting_panel select[name='bg_color']").val(paint_area[index].bg_color);
