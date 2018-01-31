@@ -216,6 +216,15 @@ public class InvoiceController {
 	
 	//调整发票识别速度的请求
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/clearRecognizeQueue.action", method = RequestMethod.POST)
+	@ResponseBody	
+	public String clearRecognizeQueue(){
+		System.out.println("清空识别队列的请求");
+		return invoiceService.clearRecognizeQueue();
+	}
+	
+	//清空缓冲队列的请求
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/changeSpeed.action", method = RequestMethod.POST)
 	public void changeSpeed(HttpServletRequest request, HttpServletResponse response) throws IOException{
 		System.out.println("接收到调整发票识别速度的请求");
@@ -229,7 +238,8 @@ public class InvoiceController {
 		writer.write(JSON.toJSONString(ans_map));
 		writer.flush();
 		writer.close();
-	}
+	}	
+	
 	
 	//特殊接口：更换模板图片url中的ip，已经废弃
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
@@ -245,7 +255,8 @@ public class InvoiceController {
 		writer.close();
 	}
 
-
+	
+	
 	//jsp接口
 	@RequestMapping(value = "/model.action", method = RequestMethod.GET)
 	public ModelAndView paintAction(){

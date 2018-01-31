@@ -37,6 +37,8 @@
 			    </div>
 			</div>
 			
+			<button type="button" class="btn btn-danger" onclick="deleteTempSaveList()" style="margin-top: 20px;">清空缓冲队列</button>
+			
 			<input type="file" onchange="addImgs()" id="analog_img" multiple/>
 		</div>
 	</main>
@@ -92,7 +94,29 @@
 	        </div>
 	    </div>
 	</div>
-
+	
+	<div class="modal fade" id="progressModal" tabindex="-1" aria-hidden="true" style="margin: 0px auto; width: 33%;">
+		<div>
+	        <div class="modal-content">
+	        	<div class="modal-header">
+	        		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+	        		<h4 class="modal-title">正在清空...</h4>
+	        	</div>
+	        	<div class="modal-body">
+	        		<div class="progress progress-striped active">
+					    <div class="progress-bar" role="progressbar" aria-valuenow="60" 
+					        aria-valuemin="0" aria-valuemax="100" style="width: 40%;">
+					        <span class="sr-only">40% 完成</span>
+					    </div>
+					</div>
+	        	</div>
+	        	<div class="modal-footer">
+	                <button type="button" class="btn btn-default" data-dismiss="modal" disabled id="certain_progress">确定</button>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+	
 	<script type="text/javascript" src="script/common.js"></script>
 	<script type="text/javascript">
 
@@ -142,6 +166,34 @@
 			return(Min + parseFloat(Rand * Range));   
 		}  
 
+      //清空上传队列
+		function deleteTempSaveList() {
+			$("#progressModal h4").text("正在清空");
+			$("#progressModal .progress-bar").get(0).style.width = "40%";
+			$("#progressModal").modal('show');
+			$.ajax({
+				url: "http://" + ip2 + "/invoice/clearRecognizeQueue.action",
+				type: 'POST',
+				success: function(res,status) {
+					$("#progressModal h4").text("清空上传队列成功");
+        			$("#progressModal .progress-bar").get(0).style.width = "100%";
+					setTimeout(function(){
+						$("#progressModal").modal('hide');
+						$("#progressModal .progress-bar").get(0).style.width = "40%";
+					}, 1500);
+					$(".temp_save_muban .ku_img_container").each(function() {
+						$(this).remove();
+					})
+				},		
+				error: function(err) {
+					$("#progressModal h4").text("清空上传队列失败");
+					$("#progressModal .progress-bar").addClass("progress-bar-danger");
+					$("#progressModal .btn").get(0).disabled = false;
+					console.log("清空上传队列失败");
+				}
+			})
+		}
+        
         $(document).ready(function(){
         	// 判断权限
         	justifyUserGrant(user_json);

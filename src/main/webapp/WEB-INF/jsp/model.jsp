@@ -584,7 +584,10 @@
 					$("#progressModal h4").text("清空模板库成功");
         			$("#progressModal .progress-bar").get(0).style.width = "100%";
         			$("#muban_num").text("0");
-					setTimeout(function(){$("#progressModal").modal('hide');}, 1500);
+					setTimeout(function(){
+						$("#progressModal").modal('hide');
+						$("#progressModal .progress-bar").get(0).style.width = "40%";
+					}, 1500);
 					$(".muban_contain").html("");
 				},
 				error: function() {

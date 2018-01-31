@@ -29,6 +29,7 @@ import com.hl.domain.OcrResult;
 import com.hl.domain.RecognizeAction;
 import com.hl.domain.RecognizeConsole;
 import com.hl.domain.ResponseMessage;
+import com.hl.domain.SimpleResponse;
 import com.hl.domain.TestCase;
 import com.hl.domain.User;
 import com.hl.service.InvoiceService;
@@ -433,6 +434,21 @@ public class InvoiceServiceImpl implements InvoiceService {
 	public List<Invoice> getTwentyFaultQueue(Integer page) {
 		List<Invoice>list = invoiceDao.getTwentyFaultInvoice(page);
 		return list;
+	}
+
+	
+	@Override
+	public String clearRecognizeQueue() {
+		List<String>recognize_list = redisDao.getRangeId(Const.RECOGNIZE_WAIT);
+		if(recognize_list != null && recognize_list.size() > 0){
+			for(String uuid : recognize_list){
+				//删除一张发票的缓存
+				redisDao.deleteKey(uuid);
+			}
+		}
+		redisDao.deleteKey(Const.RECOGNIZE_WAIT);
+		redisDao.deleteKey(Const.RECOGNIZE_PROCESS);
+		return JSON.toJSONString(new SimpleResponse("清除成功！", null));
 	}
 
 	

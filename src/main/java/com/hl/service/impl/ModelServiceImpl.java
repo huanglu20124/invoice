@@ -880,9 +880,10 @@ public class ModelServiceImpl implements ModelService {
 		if (!dir.exists())
 			throw new InvoiceException("修改模板失败，原图片文件不存在！");
 		// 更新文件夹名字
-		String file_path = label + "_" + TimeUtil.getFileCurrentTime() + "/";
+		String file_path = origin.getFile_path();
+/*		String file_path = label + "_" + TimeUtil.getFileCurrentTime() + "/";
 		dir.renameTo(new File(localConfig.getImagePath() + file_path));
-		modelAction.setFile_path(file_path);
+		modelAction.setFile_path(file_path);*/
 		modelAction.setModel_url(localConfig.getIp() + file_path + "model.jpg");
 		modelAction.setOrigin_url(localConfig.getIp() + file_path + "0.jpg");
 		// 生成模板框图，先将原文件删除
