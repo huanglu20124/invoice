@@ -46,9 +46,11 @@ public class ModelDaoImpl extends JdbcDaoSupport implements ModelDao {
 
 	@Override
 	public void updateModel(ModelAction modelAction) {
-		String sql = "update model set json_model=?, model_label=? where model_id=?";
+		String sql = "update model set json_model=?, model_label=?, model_url=? where model_id=?";
 		//获得json_model里的model_label
-		getJdbcTemplate().update(sql,modelAction.getJson_model(),modelAction.getModel_label(),
+		getJdbcTemplate().update(sql,JSON.toJSONString(modelAction.getJson_model()),
+				modelAction.getModel_label(),
+				modelAction.getModel_url(),
 				modelAction.getModel_id());
 	}
 	

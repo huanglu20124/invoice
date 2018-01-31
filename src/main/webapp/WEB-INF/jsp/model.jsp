@@ -65,7 +65,7 @@
 						  </thead>
 						  <tbody style="font-size: 13px; line-height: 1.5em;">
 							    <!-- <tr><td>Eric</td><td>2017.8.17</td><td>180KB</td><td>jpg</td></tr>
-							    <tr><td>Tywen</td><td>2016.9.17</td><td>280KB</td><td>jpg</td></tr>
+							    <tr><td>Tywen</td><td>2m 016.9.17</td><td>280KB</td><td>jpg</td></tr>
 							    <tr><td>Ponyo</td><td>2017.9.17</td><td>140KB</td><td>png</td></tr> -->
 							    
 						  </tbody>
@@ -652,6 +652,7 @@
 					url: jq_Muban.get(0).origin_url
 				},
 				success: function(res) {
+					//console.log(res);
 					res1 = JSON.parse(res);
 					temp_img_str = res1.img_str;
 					// alert(res1.img_str);
@@ -731,6 +732,7 @@
 
 		//暂存新增的model入temp_save_muban中
 		function addToTempSaveMuban(model_array_object) {
+			console.log("model_array_object.origin_url=" + model_array_object.origin_url);
 			$(".temp_save_muban").append("<div><img /><p></p></div>");
 			$(".temp_save_muban div:last-child").addClass("ku_img_container");	
 			$(".temp_save_muban div:last-child p").addClass("ku_img_id");
@@ -1115,37 +1117,38 @@
 			})
 
 			//获取发送队列
-			// $.ajax({
-			// 	url: "http://"+ip2+"/invoice/getModelQueue.action",
-			// 	type : 'POST',
-			// 	cache : false,
-			// 	success : function(res, status) {
-			// 		tellConsole(res,2);
-			// 		var res1 = JSON.parse(res);
+			  $.ajax({
+			 	url: "http://"+ip2+"/invoice/getModelQueue.action",
+			 	type : 'POST',
+			 	cache : false,
+			 	success : function(res, status) {
+			 		tellConsole(res,-1);
+			 		var res1 = JSON.parse(res);
 					
-			// 		//添加模板img元素
-			// 		for(var i = 0; i < res1.list.length; i++) {
-			// 			var data = res1.list[i];
-			// 			var temp_model_object = {
-			// 				action_id: data.action_id,
-			// 				json_model : data.json_model,
-			// 				batch_id: data.batch_id,
-			// 				other_img_array: data.origins,
-			// 				model_url : data.model_url,
-			// 				orgin_url : data.orgin_url
-			// 			}
-			// 			$(".temp_save_muban").css("display", "block");
-			// 			addToTempSaveMuban(temp_model_object);
-			// 		}
+			 		//添加模板img元素
+			 		for(var i = 0; i < res1.list.length; i++) {
+			 			var data = res1.list[i];
+			 			console.log(data);
+			 			var temp_model_object = {
+			 				action_id: data.action_id,
+			 				json_model : data.json_model,
+			 				batch_id: data.batch_id,
+			 				other_img_array: data.origins,
+			 				model_url : data.model_url,
+							origin_url : data.origin_url
+			 			}
+			 			$(".temp_save_muban").css("display", "block");
+			 			addToTempSaveMuban(temp_model_object);
+					}
 					
-			// 		var muban_num = res1.model_list.length;
-			// 		$("#muban_num").text(muban_num.toString());
+			 		//var muban_num = res1.list.length;
+			 		//$("#muban_num").text(muban_num.toString());
 
-			// 	},
-			// 	error : function() {
-			// 		tellConsole("首次获取12条发票模板错误", 1);
-			// 	}
-			// })
+			 	},
+			 	error : function() {
+			 		tellConsole("首次获取12条发票模板错误", 1);
+		    	}
+			 })
 
 
 			// 回车进行搜索
@@ -1636,12 +1639,11 @@
 							else {
 								$("#progressModal .progress-bar").get(0).style.width = "80%";
 							}
-
+		                    console.log("model_url=" + res1.model_url);
 							if(temp_click_flag == 0) {
 								$("#progressModal h4").text("修改模板成功");
 			                    $("#progressModal .progress-bar").get(0).style.width = "100%";
 			                    setTimeout(function(){$("#progressModal").modal('hide');}, 2000);
-			                    console.log(res1.model_url);
 			                    changeTempSaveMuban(temp_click_jq_img.get(0).action_id, "model_url", res1.model_url);
 			                    changeTempSaveMuban(temp_click_jq_img.get(0).action_id, "json_model", temp_json_model);
 			                    changeTempSaveMuban(temp_click_jq_img.get(0).action_id, "model_label", temp_json_model.global_setting.label);

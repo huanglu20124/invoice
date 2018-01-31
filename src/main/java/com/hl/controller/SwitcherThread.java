@@ -225,6 +225,7 @@ public class SwitcherThread implements Runnable {
 				for (String temp : temps) {
 					if(!temp.contains("model"))//排除掉模板图片
 					origins.add(localConfig.getImagePath() + file_path + temp);
+					logger.info("添加了模板原图" + file_path + temp);
 				}
 				// 得到json_model，加入图片url
 				Map<String, Object> json_model = action.getJson_model();

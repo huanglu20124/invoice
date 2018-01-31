@@ -36,6 +36,8 @@
 					</div>
 			    </div>
 			</div>
+			
+			<input type="file" onchange="addImgs()" id="analog_img" multiple/>
 		</div>
 	</main>
 
@@ -94,6 +96,42 @@
 	<script type="text/javascript" src="script/common.js"></script>
 	<script type="text/javascript">
 
+		//发送图片
+		function addImgs() {
+			console.log($('#analog_img').get(0).files);
+			var invoice_list = [];
+			var formData = new FormData();
+			for(var i = 0; i < $('#analog_img').get(0).files.length; i++) {
+				invoice_list.push({
+					invoice_image_id : "00",
+					invoice_note: "中山大学"
+				})				
+				formData.append("file", $('#analog_img').get(0).files[i]);
+			}
+			var recognize = {
+				user_id : 1,
+				company_id : 1,
+				invoice_list: invoice_list
+			}
+			
+			formData.append("recognizeAction", JSON.stringify(recognize));
+			console.log(formData);
+			$.ajax({
+		        url: "http://" + ip2 + "/invoice/recognizeImage.action",
+		        type: 'POST',
+		        data: formData,
+		        cache: false,
+		        processData: false,
+		        contentType: false,
+		        success : function(data) {
+		            console.log(data);
+		        },
+		        error: function(err) {
+		        	console.log("error");
+		        }
+		    });
+		}
+	
        //jsp加入
        var user_json = <%=JSON.toJSONString(request.getAttribute("user"))%>
         //生成随机数

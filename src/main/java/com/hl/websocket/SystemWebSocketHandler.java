@@ -49,7 +49,10 @@ public class SystemWebSocketHandler implements WebSocketHandler {
 		//返回最新的报错发票数量
 		Map<String, Object>map = new HashMap<>();
 		map.put("msg_id", 205);
-		map.put("fault_num", new Integer((String)redisDao.getValue("fault_num")));
+		String fault_num = (String)redisDao.getValue("fault_num");
+		if(fault_num != null){
+			map.put("fault_num", new Integer(fault_num));
+		}
 		session.sendMessage(new TextMessage(JSON.toJSONString(map)));
     }
     //接收消息，（可选）返回消息
@@ -82,9 +85,9 @@ public class SystemWebSocketHandler implements WebSocketHandler {
             session.close();
         }
         users.remove(session);*/
-        System.out.println("传输异常");
-        log.error("handleTransportError" + exception.getMessage());
-        exception.printStackTrace();
+        //System.out.println("传输异常");
+        //log.error("handleTransportError" + exception.getMessage());
+        //exception.printStackTrace();
     }
  
     @Override

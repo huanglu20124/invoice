@@ -34,6 +34,7 @@ import com.hl.domain.Model;
 import com.hl.domain.ModelAction;
 import com.hl.domain.ModelQuery;
 import com.hl.domain.ResponseMessage;
+import com.hl.domain.SimpleResponse;
 import com.hl.domain.User;
 import com.hl.exception.InvoiceException;
 import com.hl.service.ModelService;
@@ -145,10 +146,11 @@ public class ModelServiceImpl implements ModelService {
 		ans_map.put("origin_url", origin_url);
 		ans_map.put("model_url", model_url);
 		ans_map.put("action_id", modelAction.getAction_id());
-		ans_map.put("json_model", modelAction.getJson_model());
+		ans_map.put("json_model", JSON.toJSONString(modelAction.getJson_model()));
 		// 最后一件事，把batch_id保存到session中
 		request.getSession().setAttribute("batch_id", batch_id);
 		System.out.println("增发票模板的请求已加入队列，等待算法服务器处理");
+		logger.info("增加模板的返回:\r\n" +JSON.toJSONString(ans_map));
 		return JSON.toJSONString(ans_map);
 	}
 
@@ -169,18 +171,19 @@ public class ModelServiceImpl implements ModelService {
 				.get("global_setting");
 		String label = (String) global_setting_map.get("label");
 		modelAction.setModel_label(label);
-
 		// 从数据库查询原文件仓库路径
 		String model_url = modelDao.getModelUrl(model_id);
 		int flag = model_url.lastIndexOf("/");
-		String origin_file_path = model_url.substring(0, flag + 1);
-		File dir = new File(localConfig.getImagePath() + origin_file_path);
+		String file_path = model_url.substring(0, flag + 1);
+		File dir = new File(localConfig.getImagePath() + file_path);
 		if (!dir.exists())
 			throw new InvoiceException("修改模板失败，原图片文件不存在！");
 		// 更新文件夹名字
-		String file_path = label + "_" + TimeUtil.getFileCurrentTime() + "/";
-		dir.renameTo(new File(localConfig.getImagePath() + file_path));
+/*		String file_path = "image/model/" + label + "_" + TimeUtil.getFileCurrentTime() + "/";
+		logger.info(localConfig.getImagePath() + file_path);
+		dir.renameTo(new File(localConfig.getImagePath() + file_path));*/
 		modelAction.setFile_path(file_path);
+		modelAction.setModel_url(file_path + "model.jpg");
 		// 生成模板框图，先将原文件删除
 		File originImage = new File(localConfig.getImagePath() + file_path + "model.jpg");
 		if (originImage.exists())
@@ -218,8 +221,10 @@ public class ModelServiceImpl implements ModelService {
 				thread_msg.notifyAll();
 			}
 		}
+		//返回model_url
 		Map<String, Object> map = new HashMap<>();
 		map.put("success", "操作成功，等待服务器响应");
+		map.put("model_url", localConfig.getIp() + file_path + "model.jpg");
 		return JSON.toJSONString(map);
 	}
 
@@ -342,12 +347,14 @@ public class ModelServiceImpl implements ModelService {
 			int status = (int) response_map.get("status");
 			String temp_str = message.getFinalMessage(action_id);
 			Map<String, Object> temp_map = JSON.parseObject(temp_str);
-			temp_map.put(Const.URL, url);
+			logger.info("返回给服务器的model.jpg=" + url);
+			temp_map.put("model_url", url);
+			temp_map.put("origin_url", localConfig.getIp() + modelAction.getFile_path() + "0.jpg");
 			Map<String, Object> json_model = modelAction.getJson_model();
 			temp_map.put(Const.JSON_MODEL, json_model);
-			String str = JSON.toJSONString(temp_map);
 			if (status == 0) {
 				// 2.model表更新该model
+				logger.info("修改模板成功！，准备写入数据库");
 				modelDao.updateModel(modelAction);
 				temp_map.put("success", "修改模板成功");
 			}
@@ -357,7 +364,7 @@ public class ModelServiceImpl implements ModelService {
 			// actionDao.solrAddUpdateAction(modelAction);
 			// 延时一秒，将结果推送给前端
 			try {
-				systemWebSocketHandler.sendMessageToUsers(new TextMessage(str.getBytes("utf-8")), new int[] { 3 });
+				systemWebSocketHandler.sendMessageToUsers(new TextMessage((JSON.toJSONString(temp_map)).getBytes("utf-8")), new int[] { 3 });
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -447,7 +454,8 @@ public class ModelServiceImpl implements ModelService {
 				for (String url : urls) {
 					// 设置原图url
 					int flag = url.lastIndexOf("/");
-					String dir_path = url.substring(0, flag + 1);
+					String dir_path = localConfig.getImagePath() +  url.substring(0, flag + 1);
+					System.out.println("要删除的文件夹为" + dir_path);
 					deleteDir(new File(dir_path));
 				}
 				// 删除全部model
@@ -619,6 +627,7 @@ public class ModelServiceImpl implements ModelService {
 	public String uploadModelOrigin(MultipartFile[] files, Integer type, String file_path) throws InvoiceException {
 		final Map<String, Object> ans_map = new HashMap<>();
 		// type=0的话，则是上传原图，开始操作模板，所以要建立文件夹
+		logger.info("type=" + type + " file_path=" + file_path);
 		if (type == 0) {
 			// 建立临时文件夹路径,"temp"+时间字符串， 文件夹的名字放到session中，模板完成之后，文件夹名字规范化
 			String time_str = TimeUtil.getFileCurrentTime();
@@ -626,7 +635,7 @@ public class ModelServiceImpl implements ModelService {
 			// 将file_path返回给客户端
 			ans_map.put("file_path", "image/model/temp_" + time_str + "/");
 		}
-		if (file_path == null)
+		if (file_path == null || file_path.equals(""))
 			throw new InvoiceException("file_path");
 		File save_folder = new File(localConfig.getImagePath() + file_path);
 		if (save_folder.exists() == false) {
@@ -750,17 +759,21 @@ public class ModelServiceImpl implements ModelService {
 	public String getImgStr(String url) throws InvoiceException {
 		Map<String, Object> ans_map = new HashMap<>();
 		logger.info("图片url=" + url);
-		String url_suffix = ImageUtil.getUrlSuffix(url);
-		String local_path = localConfig.getImagePath() + url_suffix;
-		File temp = new File(local_path);
-		if (!temp.exists())
-			throw new InvoiceException("原图片不存在，返回bas64图片编码失败！");
-		// 获得原图
-		String img_str = ImageUtil.GetImageStr(local_path);
-		// 找到后缀名
-		int flag = url.lastIndexOf(".") + 1;
-		String tail = url.substring(flag, url.length());
-		ans_map.put(Const.IMG_STR, "data:image/" + tail + ";base64," + img_str);
+		if(url != null){
+			String url_suffix = ImageUtil.getUrlSuffix(url);
+			String local_path = localConfig.getImagePath() + url_suffix;
+			File temp = new File(local_path);
+			if (!temp.exists())
+				throw new InvoiceException("原图片不存在，返回bas64图片编码失败！");
+			// 获得原图
+			String img_str = ImageUtil.GetImageStr(local_path);
+			// 找到后缀名
+			int flag = url.lastIndexOf(".") + 1;
+			String tail = url.substring(flag, url.length());
+			ans_map.put(Const.IMG_STR, "data:image/" + tail + ";base64," + img_str);
+		}else {
+			ans_map.put("err", "url为空");
+		}
 		return JSON.toJSONString(ans_map);
 	}
 
@@ -768,10 +781,12 @@ public class ModelServiceImpl implements ModelService {
 		// 得到第一张原图的文件名
 		File dir = new File(localConfig.getImagePath() + file_path);
 		String[] list = dir.list();
-		for (String temp : list) {
-			if (!temp.contains("model")) {
-				// 找到第一张不是模板的文件名字
-				return temp;
+		if(list != null){
+			for (String temp : list) {
+				if (!temp.contains("model")) {
+					// 找到第一张不是模板的文件名字
+					return temp;
+				}
 			}
 		}
 		return "1.jpg";
@@ -839,10 +854,9 @@ public class ModelServiceImpl implements ModelService {
 		redisDao.removeListIndex(modelAction.getBatch_id(), action_id.toString());
 		//删除该value
 		redisDao.deleteKey(action_id.toString());
-		return "{'success':'删除成功'}";
+		return JSON.toJSONString(new SimpleResponse("删除成功", null));
 	}
 
-	
 	@Override
 	public String updateCacheModel(ModelAction modelAction, String img_str) throws InvoiceException{
 		//修改缓冲队列中的一张模板的请求
