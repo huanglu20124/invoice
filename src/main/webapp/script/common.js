@@ -88,7 +88,7 @@ function handleShow(data) {
         //cxt.strokeStyle = "#00b717";
         strokeDashRect(cxt, position.convert_x, position.convert_y, position.convert_x+position.convert_w, position.convert_h+position.convert_y, 10, temp_imageData);
 
-        if(position.convert_y < 20) cur_text_y = position.convert_y + 5 + position.convert_h;
+        if(position.convert_y < 20) cur_text_y = position.convert_y + 20 + position.convert_h;
         else cur_text_y = position.convert_y - 10;
 
         cur_text_x = position.convert_x;
@@ -337,7 +337,7 @@ function connectEndpoint(){
 
                     //直接修改視圖中的src和json_model
                     // alert(edited_canvas_url);s
-                    ChangeInfo(temp_click_jq_img.get(0).model_id, "model_url", edited_canvas_url);
+                    ChangeInfo(temp_click_jq_img.get(0).model_id, "model_url", data.model_url);
                     ChangeInfo(temp_click_jq_img.get(0).model_id, "json_model", data.json_model);
                     ChangeInfo(temp_click_jq_img.get(0).model_id, "model_label", data.json_model.global_setting.label);
                 }

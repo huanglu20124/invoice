@@ -281,6 +281,7 @@ aside {
 	display: inline-block;
 	margin-bottom: 20px;
 	vertical-align: top;
+	text-align: center;
 }
 
 .fault_img:last-of-type, .ku_img_container:last-of-type {

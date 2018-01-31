@@ -112,7 +112,7 @@
                 orientation: "horizontal",
                 range: "min",
                 max: 30,
-                value: 0,
+                value: 1,
                 step: 1,
                 change : function(event, ui) {
                     tooltip_cancel = 1;
@@ -132,7 +132,7 @@
             });
 
             //tooltip
-            $(".ui-slider-handle").append("<span id=\'slide_tooltip\'>0</span>");
+            $(".ui-slider-handle").append("<span id=\'slide_tooltip\'>1</span>");
             $(".ui-slider-handle").mouseenter(function(){
                 $("#slide_tooltip").css("opacity", 1);
             })
