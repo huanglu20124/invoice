@@ -51,8 +51,14 @@ function handleShow(data) {
         var temp_img = new Image();
         temp_img.onload = function(){
             console.log("here");
+            var img_whsize = temp_img.width / temp_img.height;
             cxt.clearRect(0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
-            cxt.drawImage(temp_img, 0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
+            if(img_whsize >= 1) {
+                cxt.drawImage(temp_img, 0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
+            } else {
+                cxt.drawImage(temp_img, 0, 0, parseFloat($("#show_fapiao").height()) * img_whsize, parseFloat($("#show_fapiao").height()));
+            }
+            
             $(".muban_info").text("（正在搜索可用模板）");
             $("#muban").get(0).src = "pic/search_placehold.png";
 
