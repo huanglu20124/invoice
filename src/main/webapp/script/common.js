@@ -1,6 +1,6 @@
 var ip2; //host_ip
 var wsuri; //websocket_url
-var invoice_height, invoice_width, invoice_width_ver, invoice_height_ver;
+var invoice_height, invoice_width, invoice_width_ver, invoice_height_ver, invoice_size_ver, invoice_size;
 var console_level; //控制台輸出等級 值越大輸出越多東西
 var ws = null;
 var queue_sub_num = 0;
@@ -30,6 +30,7 @@ function loadxml(fileName) {
             invoice_height = xml_data.getElementsByTagName("invoice_height")[0].innerHTML;
             invoice_width_ver = xml_data.getElementsByTagName("invoice_width_ver")[0].innerHTML;
             invoice_height_ver = xml_data.getElementsByTagName("invoice_height_ver")[0].innerHTML;
+            invoice_size_ver = parseFloat(invoice_width_ver / invoice_height_ver);
             console_level = xml_data.getElementsByTagName("console_level")[0].innerHTML;
             relatvie_image_size = xml_data.getElementsByTagName("relatvie_image_size")[0].innerHTML;
 			wsuri = "ws://" + ip2 + "/invoice/webSocketServer.action";
@@ -56,7 +57,7 @@ function handleShow(data) {
             if(img_whsize >= 1) {
                 cxt.drawImage(temp_img, 0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
             } else {
-                cxt.drawImage(temp_img, 0, 0, parseFloat($("#show_fapiao").height()) * img_whsize, parseFloat($("#show_fapiao").height()));
+                cxt.drawImage(temp_img, 0, 0, parseFloat($("#show_fapiao").height()) * invoice_size_ver, parseFloat($("#show_fapiao").height()));
             }
             
             $(".muban_info").text("（正在搜索可用模板）");
