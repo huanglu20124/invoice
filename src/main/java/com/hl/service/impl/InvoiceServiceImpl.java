@@ -14,6 +14,7 @@ import java.util.UUID;
 import javax.annotation.Resource;
 import javax.servlet.ServletContext;
 
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import com.alibaba.fastjson.JSON;
@@ -68,6 +69,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 	@Resource(name = "localConfig")
 	private LocalConfig localConfig;
 
+	private static Logger logger = Logger.getLogger(InvoiceServiceImpl.class);
+	
 	// ajax处理web请求
 	@Override
 	public String  addRecognizeInvoice(RecognizeAction recognizeAction,TestCase testCase,
@@ -88,7 +91,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 		//如果发过来的是一整套测试集，若是第一次发
 		if(testCase != null && testCase.getPage() == 0){
 			CheckUtil.initGlobal(redisDao, testCase);
-			System.out.println("收到测试集，初始化" + testCase.getTest_name());
+			logger.info("收到测试集，初始化" + testCase.getTest_name());
 		}
 		
 		// 发票全部加入到等待队列里,队列左进右出
@@ -113,11 +116,11 @@ public class InvoiceServiceImpl implements InvoiceService {
 			invoice.setOrder(k);
 			//暂时将recognize_num存到invoice里。。
 			invoice.setRecognize_num(invoice_list.size());
-			System.out.println("上传的url_suffix为" + invoice.getInvoice_url() + "对应uuid为：" + uuid);
+			logger.info("上传的url_suffix为" + invoice.getInvoice_url() + "对应uuid为：" + uuid);
 			redisDao.leftPush(Const.RECOGNIZE_WAIT, uuid);
 			redisDao.addKey(uuid, JSON.toJSONString(invoice));
 		}
-		System.out.println("等待队列新增" + invoice_list.size() + "张发票");
+		logger.info("等待队列新增" + invoice_list.size() + "张发票");
 
 		// 将增加的通知给全体用户
 		broadcast_map.put(Const.MSG_ID, 201);
@@ -127,12 +130,12 @@ public class InvoiceServiceImpl implements InvoiceService {
 
 		Long recognize_size = redisDao.getWaitSize(); // 识别队列
 		Long manage_size = redisDao.getManageSize();// 操作队列
-		System.out.println("当前识别队列的数量为：" + recognize_size);
-		System.out.println("当前操作队列的数量为：" + manage_size);
+		logger.info("当前识别队列的数量为：" + recognize_size);
+		logger.info("当前操作队列的数量为：" + manage_size);
 
 		Long image_size = Long.valueOf(invoice_list.size());
 		if ((recognize_size - image_size) == 0l && manage_size == 0l) {
-			System.out.println("通知切换线程进行下一步操作");
+			logger.info("通知切换线程进行下一步操作");
 			// 7.通知切换线程进行下一步操作
 			synchronized (thread_msg) {
 				thread_msg.notifyAll();
@@ -167,7 +170,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 		msg_map.put(Const.DELAY, delay);
 		//发送消息给算法端
 		MessageUtil.sendMessage(outputStream, 1, JSON.toJSONString(msg_map),systemWebSocketHandler);
-		System.out.println(uuid + "发送了识别请求");
+		logger.info(uuid + "发送了识别请求");
 		// 将算法运行结果分阶段的广播给所有管理员
 		Map<String, Object> err_map = new HashMap<>();// 用来发送异常消息
 		Integer model_id = 0;// 模板编号
@@ -186,9 +189,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 						if (customerSocket != null) {
 							MessageUtil.sendMessage(customerSocket.getOutputStream(), message.getMsg_id(),
 									message.getJson_str(), null);
-							System.out.println("成功将识别后的信息发送给客户端");
+							logger.info("成功将识别后的信息发送给客户端");
 						} else {
-							System.out.println("与模拟客户端的连接未打开！");
+							//System.out.println("与模拟客户端的连接未打开！");
 						}
 						// 同时，加入到redis队列里记录
 						redisDao.leftPush(Const.RECOGNIZE_PROCESS, message.getFinalMessage(action_id));
@@ -213,7 +216,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 								map.put("msg_id", 205);
 								map.put("fault_num", new Integer((String)redisDao.getValue("fault_num")));
 								//告诉其他页面
-								System.out.println("发送更新错误发票数量的消息");
+								logger.info("发送更新错误发票数量的消息");
 								systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(map)),
 										new int[]{1,2,3,5,6,7});
 								//告诉错误发票页面
@@ -229,7 +232,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 							invoice_id = invoiceDao.addRecognizeInvoice(invoice_data,invoice);
 							//记录下来id
 							invoice_id_list.add(invoice_id);
-							System.out.println("成功将该发票信息写入数据库,invoice_id=" + invoice_id);
+							logger.info("成功将该发票信息写入数据库,invoice_id=" + invoice_id);
 							//如果是测试集的话，准备统计识别结果、识别率
 							String testCase_str = (String) redisDao.getValue("testCase");
 							if(testCase_str != null){
@@ -244,10 +247,10 @@ public class InvoiceServiceImpl implements InvoiceService {
 							action.setDescription("识别发票" + invoice_id_list.toString());
 							actionDao.updateActionDescription(action.getAction_id(),action.getDescription());
 							//actionDao.solrAddUpdateAction(action);
-							System.out.println("成功更新该action,action_id=" + action_id);
+							logger.info("成功更新该action,action_id=" + action_id);
 							if(testCase != null){
 								if(testCase.getPage()*10 + invoice.getOrder() == testCase.getPic_num()){
-									System.out.println("测试集以及到了最后一张");
+									logger.info("测试集以及到了最后一张");
 									//判断是否到了测试集最后一张，完成一些善后操作
 									CheckUtil.finishCheck(redisDao,testCase);
 								}
@@ -289,7 +292,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 						message.setJson_str(JSON.toJSONString(json_map));
 						// 过程信息，直接转交给前端
 						systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)),new int[]{2});
-						System.out.println("model_id为" + model_id);
+						logger.info("model_id为" + model_id);
 					} else if (message.getMsg_id() == 101 || message.getMsg_id() == 102) {
 						//加入可信度判断
 						if(message.getMsg_id() == 102){
@@ -306,7 +309,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 						// 过程信息，直接转交给前端
 						systemWebSocketHandler.sendMessageToUsers(new TextMessage(message.getFinalMessage(action_id)),new int[]{2});
 					}else if (message.getMsg_id() == -1) {
-						System.out.println("该发票没有相关分类");
+						logger.info("该发票没有相关分类");
 						// 弹出队列头，同时删除key(如果正常识别的话，如果不能，则加到异常队列)
 						redisDao.pop(Const.RECOGNIZE_WAIT);
 						redisDao.deleteKey(uuid);
@@ -338,7 +341,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 				String invoice_str = (String) redisDao.getValue(uuid);
 				Invoice invoice = JSON.parseObject(invoice_str,Invoice.class);
 				recognize_wait.add(invoice);
-				System.out.println("将缓冲队列的信息推送给前端");
+				logger.info("将缓冲队列的信息推送给前端");
 			}
 			ans_map.put(Const.RECOGNIZE_WAIT, recognize_wait);
 		}
@@ -400,7 +403,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 	public void broadcastRegionList(){
 		List<String> region_list = redisDao.getRangeId(Const.RECOGNIZE_PROCESS);
 		Collections.reverse(region_list);
-		System.out.println("region_list = " + region_list);
+		logger.info("region_list = " + region_list);
 		Map<String, Object>temp = new HashMap<>();
 		temp.put("region_list", region_list);
 		temp.put("msg_id", 204);

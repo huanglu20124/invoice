@@ -1,6 +1,5 @@
  package com.hl.controller;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -11,6 +10,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,13 +28,14 @@ import com.hl.domain.SimpleResponse;
 import com.hl.exception.InvoiceException;
 import com.hl.service.ModelService;
 import com.hl.util.Const;
-import com.hl.util.ImageUtil;
 import com.hl.util.IpUtil;
 import com.hl.websocket.SystemWebSocketHandler;
-import com.mysql.fabric.xmlrpc.base.Array;
 
 @Controller
 public class ModelController {
+	
+	private static Logger logger = Logger.getLogger(ModelController.class);
+	
 	@Resource(name = "systemWebSocketHandler")
 	private SystemWebSocketHandler systemWebSocketHandler;
 	
@@ -48,7 +50,7 @@ public class ModelController {
 	@RequestMapping(value = "/addModel.action", method = RequestMethod.POST)
 	@ResponseBody
 	public String addModel(HttpServletRequest request, HttpServletResponse response,String img_str,Integer type) throws InvoiceException{
-		System.out.println("接收到来自web端的新增模板的请求");
+		logger.info("接收到来自web端的新增模板的请求");
 		return modelService.addModel(request);
 	}
 
@@ -57,7 +59,7 @@ public class ModelController {
 	@RequestMapping(value = "/updateModel.action", method = RequestMethod.POST)
 	@ResponseBody
 	public String updateModel(HttpServletRequest request, HttpServletResponse response,String img_str,Integer type) throws InvoiceException{
-		System.out.println("接收到来自web端的修改模板的请求");
+		logger.info("接收到来自web端的修改模板的请求");
 		Integer thread_msg = (Integer) request.getServletContext().getAttribute(Const.THREAD_MSG);//获取上锁对象
 		return modelService.updateModel(request,thread_msg);
 	}
@@ -67,9 +69,9 @@ public class ModelController {
 	@RequestMapping(value = "/deleteModel.action", method = RequestMethod.POST)
 	@ResponseBody
 	public String deleteModel(HttpServletRequest request,Integer user_id, Integer model_id) throws InvoiceException{
-		System.out.println("接收到删除单张模板的请求");
+		logger.info("接收到删除单张模板的请求");
 		Integer thread_msg = (Integer) request.getServletContext().getAttribute(Const.THREAD_MSG);//获取上锁对象
-		System.out.println("model_id = " + model_id);
+		logger.info("model_id = " + model_id);
 		String user_ip = IpUtil.getIpAddr(request);
 		return modelService.deleteModel(user_id,model_id,user_ip,thread_msg);
 	}
@@ -78,15 +80,13 @@ public class ModelController {
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/getAllModel.action", method = RequestMethod.POST)
 	public void getAllModel(HttpServletRequest request, HttpServletResponse response)throws IOException{
-		System.out.println(request.getSession().getId());
-		System.out.println("接收到来自web端的返回当前模板库全部信息的请求");
+		logger.info("接收到来自web端的返回当前模板库全部信息的请求");
 		request.setCharacterEncoding("utf-8");
 		response.setCharacterEncoding("utf-8");
 		Map<String, Object> ans_map = new HashMap<>();
 		Integer user_id = new Integer(request.getParameter(Const.USER_ID));
 		Integer page = new Integer(request.getParameter("page"));
 		modelService.getAllModel(ans_map,user_id,page);
-		System.out.println(JSON.toJSONString(ans_map));
 		response.getWriter().write(JSON.toJSONString(ans_map));
 	}
 
@@ -96,8 +96,9 @@ public class ModelController {
 	@ResponseBody
 	public String uploadModelOrigin(HttpServletRequest request,@RequestParam("type")Integer type,
 			@RequestParam("file")MultipartFile[]files) throws InvoiceException{
-		System.out.println("接收到来自web端的上传发票原图请求");
-		System.out.println("session_id=" + request.getSession().getId());
+		logger.info("接收到来自web端的上传发票原图请求");
+		logger.info("session_id=" + request.getSession().getId());
+		logger.info("file_path=" + request.getParameter("file_path"));
 		String file_path = request.getParameter("file_path");
 		return modelService.uploadModelOrigin(files,type,file_path);
 	}
@@ -106,7 +107,7 @@ public class ModelController {
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/deleteAllModel.action", method = RequestMethod.POST)
 	public void deleteAllModel(HttpServletRequest request, HttpServletResponse response) throws IOException{
-		System.out.println("接收到清空模板的请求");
+		logger.info("接收到清空模板的请求");
 		Integer user_id = new Integer(request.getParameter(Const.USER_ID));
 		Map<String, Object> ans_map = new HashMap<>();
 		Integer thread_msg = (Integer) request.getServletContext().getAttribute(Const.THREAD_MSG);//获取上锁对象
@@ -137,7 +138,7 @@ public class ModelController {
 	@RequestMapping(value = "/pushBatchModel.action", method = RequestMethod.POST)
 	@ResponseBody
 	public String pushBatchModel(HttpServletRequest request,String batch_id) throws InvoiceException{
-		System.out.println("收到提交全部模板的请求batch_id=" + batch_id);
+		logger.info("收到提交全部模板的请求batch_id=" + batch_id);
 		Integer thread_msg = (Integer) request.getServletContext().getAttribute(Const.THREAD_MSG);//获取上锁对象
 		return modelService.pushBatchModel(batch_id,thread_msg);
 	}	
@@ -147,7 +148,7 @@ public class ModelController {
 	@RequestMapping(value = "/getImgStr.action", method = RequestMethod.POST)
 	@ResponseBody
 	public String getImgStr(String url)throws InvoiceException{
-		System.out.println("接收到发送模板图片imgStr的请求");
+		logger.info("接收到发送模板图片imgStr的请求");
 		return modelService.getImgStr(url);
 	}
 	
@@ -156,7 +157,7 @@ public class ModelController {
 	@RequestMapping(value = "/cancelAddModel.action", method = RequestMethod.POST)
 	@ResponseBody
 	public String cancelAddModel(String file_path) throws InvoiceException{
-		System.out.println("收到删除上传原图的请求");
+		logger.info("收到删除上传原图的请求");
 		return modelService.cancelAddModel(file_path);
 	}		
 
@@ -165,7 +166,7 @@ public class ModelController {
 	@RequestMapping(value = "/getModelQueue.action", method = RequestMethod.POST)
 	@ResponseBody
 	public String getModelQueue(HttpSession session) throws InvoiceException{
-		System.out.println("收到获取提交模板队列的请求");
+		logger.info("收到获取提交模板队列的请求");
 		String batch_id = (String)session.getAttribute("batch_id");
 		if(batch_id == null){
 			//throw new InvoiceException("session中的batch_id为空!");
@@ -183,17 +184,17 @@ public class ModelController {
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/rewriteJsonModel.action", method = RequestMethod.POST)
 	public void rewriteJsonModel(HttpServletRequest request, HttpServletResponse response)throws IOException{
-		System.out.println("接收到将本地json_model写入Mysql数据库的请求");
+		logger.info("接收到将本地json_model写入Mysql数据库的请求");
 		PrintWriter writer = response.getWriter();
 		Map<String, Object> ans_map = new HashMap<>();
 		try {
 			modelService.rewriteJsonModel();
 			ans_map.put(Const.SUCCESS, "更新成功");
-			System.out.println("更新成功");
+			logger.info("更新成功");
 		} catch (Exception e) {
 			e.printStackTrace();
 			ans_map.put(Const.SUCCESS, "更新失败");
-			System.out.println("更新失败");
+			logger.info("更新失败");
 		}
 		writer.write(JSON.toJSONString(ans_map));
 		writer.flush();
@@ -205,7 +206,7 @@ public class ModelController {
 	@RequestMapping(value = "/deleteCacheModel.action", method = RequestMethod.POST)
 	@ResponseBody
 	public String deleteCacheModel(Integer action_id) throws InvoiceException{
-		System.out.println("收到删除缓冲队列中的一张模板的请求");
+		logger.info("收到删除缓冲队列中的一张模板的请求");
 		return modelService.deleteCacheModel(action_id);
 	}
 	
@@ -214,7 +215,7 @@ public class ModelController {
 	@RequestMapping(value = "/updateCacheModel.action", method = RequestMethod.POST)
 	@ResponseBody
 	public String updateCacheModel(String modelAction, String img_str) throws InvoiceException{
-		System.out.println("收到修改缓冲队列中的一张模板的请求");
+		logger.info("收到修改缓冲队列中的一张模板的请求");
 		return modelService.updateCacheModel(JSON.parseObject(modelAction, ModelAction.class),img_str);
 	}	
 	

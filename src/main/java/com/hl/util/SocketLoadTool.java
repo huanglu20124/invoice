@@ -3,6 +3,7 @@ package com.hl.util;
 import java.io.IOException;
 import java.net.Socket;
 
+import org.apache.log4j.Logger;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -13,22 +14,24 @@ public class SocketLoadTool {
 	private Socket algorithmSocket;
 	private Socket customerSocket;
 	
+	private static Logger logger = Logger.getLogger(SocketLoadTool.class);
+	
 	public SocketLoadTool() {
 		
 		try {
 			algorithmSocket = new Socket("127.0.0.1",new Integer(Const.PORT));
-			System.out.println("与算法端成功建立连接");
+			logger.info("与算法端成功建立连接");
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.out.println("与算法端成功建立连接失败");
+			logger.info("与算法端成功建立连接失败");
 		}
 		
 		try {
 			customerSocket = new Socket("127.0.0.1", 9000);
-			System.out.println("与客户端成功建立连接");
+			logger.info("与客户端成功建立连接");
 		} catch (IOException e) {
 			//e.printStackTrace();
-			System.out.println("与客户端成功建立连接失败");
+			logger.info("与客户端成功建立连接失败");
 		}
 	}
 	

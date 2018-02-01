@@ -99,54 +99,42 @@ public class SwitcherThread implements Runnable {
 				manage_size = redisDao.getManageSize();
 				if (wait_size == 0l && manage_size == 0l) {
 					logger.info("SwitcherThread睡眠,等待新请求加入两个队列");
-					try {
-						thread_msg.wait();
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
+					threadWait();
 					logger.info("SwitcherThread被唤醒");
 				}
+				//先检查连接是否保持，如果断开就重连
+				checkAlogrithmConnect();
 				// 重新读
 				wait_size = redisDao.getWaitSize();
 				manage_size = redisDao.getManageSize();
 				if (manage_size != 0l) {
 					try {
-						if(algorithmSocket.isConnected()){
-							switchManageModel();
-						}else {
-							logger.info("与算法端的连接被关闭，线程休眠");
-							try {
-								thread_msg.wait();
-							} catch (InterruptedException e) {
-								e.printStackTrace();
-							}
-						}
-						logger.info("SwitcherThread被唤醒");
+						logger.info("切换到模板操作");
+						switchManageModel();
 					} catch (Exception e) {
-						logger.error("执行操作队列任务中出错");
-					}
-					
+						e.printStackTrace();
+						logger.error("模板操作出错,即将清除模板操作,线程睡眠");
+						clearManageWait();
+						threadWait();
+						logger.info("SwitcherThread被唤醒");
+					}		
 				}
+				
 				// 重新读
 				wait_size = redisDao.getWaitSize();
 				manage_size = redisDao.getManageSize();
 				if (wait_size != 0l && manage_size == 0) {
 					try {
-						if(algorithmSocket.isConnected()){
-							switchRecognizeInvoice();
-						}else {
-							logger.info("与算法端的连接被关闭，线程休眠");
-							try {
-								thread_msg.wait();
-							} catch (InterruptedException e) {
-								e.printStackTrace();
-							}
-						}
-						logger.info("SwitcherThread被唤醒");
+						logger.info("切换到发票识别");
+						switchRecognizeInvoice();
 					} catch (Exception e) {
-						logger.error("执行识别队列任务中出错");
+						e.printStackTrace();
+						logger.error("发票识别出错,即将清除发票队列操作,线程睡眠");
+						clearRecognizeWait();
+						threadWait();
+						logger.info("SwitcherThread被唤醒");					
 					}
-					
+
 				}
 			}
 		}
@@ -156,10 +144,8 @@ public class SwitcherThread implements Runnable {
 		try {
 			Thread.sleep(3000);
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		checkAlogrithmConnect();
 		// 得到最新的延时速度
 		deley = (Integer) servletContext.getAttribute(Const.DELAY);
 		// 0.延时3秒
@@ -168,7 +154,6 @@ public class SwitcherThread implements Runnable {
 	}
 
 	public void switchManageModel() {
-		checkAlogrithmConnect();
 		// 1.先得到等待队列头的action_id
 		String action_id = redisDao.getRight(Const.MANAGE_WAIT, 0l);
 		// 2.根据这个作为key，取得对应的url,json_model,msg_id
@@ -221,10 +206,10 @@ public class SwitcherThread implements Runnable {
 
 		case 5:// 清空
 			MessageUtil.sendMessage(outputStream, 5, null, systemWebSocketHandler);
-			System.out.println(action_id + "发送了清空发票模板请求");
+			logger.info(action_id + "发送了清空发票模板请求");
 			// 4. 弹出队列头，删除key
 			redisDao.pop(Const.MANAGE_WAIT);
-			System.out.println(action_id + "弹出操作队列");
+			logger.info(action_id + "弹出操作队列");
 			redisDao.deleteKey(action_id + "");
 			modelService.broadcastClearModel(inputStream, new Integer(action_id));
 			break;
@@ -288,21 +273,71 @@ public class SwitcherThread implements Runnable {
 	}
 
 	private void checkAlogrithmConnect() {
+		if(socketLoadTool.getAlgorithmSocket() != null)
+			logger.info(socketLoadTool.getAlgorithmSocket().isClosed());
 		// 检查与算法端的连接是否保持，如果断开的话，直接重连
-		if (socketLoadTool.getAlgorithmSocket() == null || socketLoadTool.getAlgorithmSocket().isClosed() == true) {
+		if (socketLoadTool.getAlgorithmSocket() == null ||
+				socketLoadTool.getAlgorithmSocket().isClosed() == true
+				||socketLoadTool.getAlgorithmSocket().isConnected() == false) {
 			try {
+				logger.info("即将断线重连");
 				Socket socket = new Socket("127.0.0.1", new Integer(Const.PORT));
 				socketLoadTool.setAlgorithmSocket(socket);
 				algorithmSocket = socket;
 				outputStream = algorithmSocket.getOutputStream();
 				inputStream = algorithmSocket.getInputStream();
-				System.out.println("断线重连成功");
+				logger.info("断线重连成功");
 			} catch (IOException e) {
 				e.printStackTrace();
-				System.out.println("断线重连失败");
+				
+				logger.error("断线重连失败,线程休眠");
+				synchronized (thread_msg){
+					threadWait();
+				}
+				logger.info("SwitcherThread被唤醒");	
 			}
 
 		}
 	}
+	
+	private void threadWait(){
+		try {
+			thread_msg.wait();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void clearRecognizeWait(){
+		List<String>uuids = redisDao.getRangeId(Const.RECOGNIZE_WAIT);
+		for(String uuid : uuids){
+			redisDao.deleteKey(uuid);
+		}	
+		logger.info("清除识别队列完成");
+	}
 
+	private void clearManageWait(){
+		List<String>action_ids = redisDao.getRangeId(Const.MANAGE_WAIT);
+		for(String action_id : action_ids){
+			String manage_map_str = (String) redisDao.getValue(action_id);
+			ModelAction modelAction = JSON.parseObject(manage_map_str, ModelAction.class);
+			if(modelAction.getMsg_id() != 6){
+				redisDao.deleteKey(action_id);
+			}else {
+				//批处理类型
+				redisDao.deleteKey(action_id);
+				// 得到batch_id，遍历所有携带该batch_id的modelAction,
+				String batch_id = modelAction.getBatch_id();
+				// 如果是第一张的话，得到新增模板缓存队列
+				List<String> extra_ids = redisDao.getRangeId(batch_id.toString());
+				for(String id : extra_ids){
+					redisDao.deleteKey(id);
+				}
+				//删除队列
+				redisDao.deleteKey(batch_id);
+			}
+		}
+		redisDao.deleteKey(Const.MANAGE_WAIT);
+		logger.info("清除操作队列完成");
+	}
 }

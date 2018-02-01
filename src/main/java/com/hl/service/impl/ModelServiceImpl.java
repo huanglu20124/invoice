@@ -79,8 +79,7 @@ public class ModelServiceImpl implements ModelService {
 	public String addModel(HttpServletRequest request) throws InvoiceException {
 		String action_str = request.getParameter("modelAction");
 		String img_str = request.getParameter("img_str");
-
-		System.out.println("modelAction = " + action_str);
+		logger.info("增加模板：接收到的modelAction = " + action_str);
 		ModelAction modelAction = JSON.parseObject(action_str, ModelAction.class);
 
 		// 提取出模板名称
@@ -103,10 +102,9 @@ public class ModelServiceImpl implements ModelService {
 		modelAction.setFile_path(file_path);// 关键，要设置给modelAction
 		// 生成模板框图
 		if (ImageUtil.generateImage(img_str, localConfig.getImagePath() + file_path, "model.jpg") == true) {
-			System.out.println("上传文件成功");
+			logger.info("保存模板图成功");
 			modelAction.setImage_size(ImageUtil.getImageSize(localConfig.getImagePath() + file_path + "model.jpg"));
 		} else {
-			System.out.println("上传文件失败");
 			throw new InvoiceException("保存图片失败");
 		}
 		// 增加模板(将单张模板的请求的情况包括进去)
@@ -149,8 +147,7 @@ public class ModelServiceImpl implements ModelService {
 		ans_map.put("json_model", JSON.toJSONString(modelAction.getJson_model()));
 		// 最后一件事，把batch_id保存到session中
 		request.getSession().setAttribute("batch_id", batch_id);
-		System.out.println("增发票模板的请求已加入队列，等待算法服务器处理");
-		logger.info("增加模板的返回:\r\n" +JSON.toJSONString(ans_map));
+		logger.info("增加模板的请求已加入队列，等待算法服务器处理,batch_id=" + batch_id + " ,action_id=" + modelAction.getAction_id());
 		return JSON.toJSONString(ans_map);
 	}
 
@@ -189,10 +186,9 @@ public class ModelServiceImpl implements ModelService {
 		if (originImage.exists())
 			originImage.delete();
 		if (ImageUtil.generateImage(img_str, localConfig.getImagePath() + file_path, "model.jpg") == true) {
-			System.out.println("上传文件成功");
+			logger.info("上传发票图成功");
 			modelAction.setImage_size(ImageUtil.getImageSize(localConfig.getImagePath() + file_path + "model.jpg"));
 		} else {
-			System.out.println("上传文件失败");
 			throw new InvoiceException("保存图片失败");
 		}
 		// 修改模板
@@ -221,6 +217,7 @@ public class ModelServiceImpl implements ModelService {
 				thread_msg.notifyAll();
 			}
 		}
+		logger.info("修改发票的请求已提交，等待算法服务器的处理,action_id=" + action_id);
 		//返回model_url
 		Map<String, Object> map = new HashMap<>();
 		map.put("success", "操作成功，等待服务器响应");
@@ -257,15 +254,13 @@ public class ModelServiceImpl implements ModelService {
 		// 3.获取两个队列长度
 		Long recognize_size = redisDao.getWaitSize(); // 识别队列
 		Long manage_size = redisDao.getManageSize();// 操作队列
-		System.out.println("当前识别队列的数量为：" + recognize_size);
-		System.out.println("当前操作队列的数量为：" + manage_size);
 		if (recognize_size == 0l && manage_size == 1l) {
 			// 4.通知切换线程
 			synchronized (thread_msg) {
 				thread_msg.notifyAll();
 			}
-
 		}
+		logger.info("删除模板的请求已发出，等待算法服务器的处理");
 		Map<String, Object> map = new HashMap<>();
 		map.put(Const.SUCCESS, "已加入操作队列，等待算法服务器处理");
 		return JSON.toJSONString(map);
@@ -279,7 +274,7 @@ public class ModelServiceImpl implements ModelService {
 		try {
 			message = MessageUtil.getMessage(inputStream);
 		} catch (IOException e) {
-			System.out.println("接收消息时异常");
+			logger.error("接收算法端的消息时异常");
 			e.printStackTrace();
 		}
 		String json_str = message.getJson_str();
@@ -325,8 +320,7 @@ public class ModelServiceImpl implements ModelService {
 		//弹出队列头该modelAction
 		redisDao.pop(Const.MANAGE_WAIT);
 		//删除批处理的key
-		redisDao.deleteKey(batch_id);
-		
+		redisDao.deleteKey(batch_id);	
 		// 将批处理结果发送给前端
 		systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(ans_map)), new int[] {3});
 
@@ -399,7 +393,7 @@ public class ModelServiceImpl implements ModelService {
 			if (status == 0) {
 				// 找到图片文件,删除全部本地文件
 				String file_path = modelAction.getFile_path();
-				System.out.println("要删除的文件路径" + file_path);
+				logger.info("要删除的文件路径" + file_path);
 				File dir = new File(localConfig.getImagePath() + file_path);
 				if(dir.exists()){
 					deleteDir(dir);
@@ -417,7 +411,7 @@ public class ModelServiceImpl implements ModelService {
 			}
 			// 4. 弹出队列头，删除key
 			redisDao.pop(Const.MANAGE_WAIT);
-			System.out.println(action_id + "弹出操作队列");
+			logger.info(action_id + "弹出操作队列");
 			redisDao.deleteKey(action_id + "");
 			if (status < 0) {
 				err_map.put(Const.ERR, "删除失败");
@@ -455,7 +449,7 @@ public class ModelServiceImpl implements ModelService {
 					// 设置原图url
 					int flag = url.lastIndexOf("/");
 					String dir_path = localConfig.getImagePath() +  url.substring(0, flag + 1);
-					System.out.println("要删除的文件夹为" + dir_path);
+					logger.info("要删除的文件夹为" + dir_path);
 					deleteDir(new File(dir_path));
 				}
 				// 删除全部model
@@ -514,8 +508,7 @@ public class ModelServiceImpl implements ModelService {
 		// 3.获取两个队列长度
 		Long recognize_size = redisDao.getWaitSize(); // 识别队列
 		Long manage_size = redisDao.getManageSize();// 操作队列
-		System.out.println("当前识别队列的数量为：" + recognize_size);
-		System.out.println("当前操作队列的数量为：" + manage_size);
+		logger.info("提交了清空模板的请求");
 		if (recognize_size == 0l && manage_size == 1l) {
 			// 4.通知切换线程
 			synchronized (thread_msg) {

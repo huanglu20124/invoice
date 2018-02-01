@@ -7,8 +7,7 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -22,10 +21,11 @@ import com.hl.dao.RedisDao;
 import com.hl.service.InvoiceService;
 import com.hl.util.Const;
 import com.hl.util.SocketLoadTool;
-import com.sun.org.apache.bcel.internal.generic.NEW;
 
 @Component("systemWebSocketHandler")
 public class SystemWebSocketHandler implements WebSocketHandler {
+	
+	private static Logger logger = Logger.getLogger(SystemWebSocketHandler.class);
 	
 	@Resource(name = "socketListener")
 	private SocketLoadTool socketListener;
@@ -33,7 +33,7 @@ public class SystemWebSocketHandler implements WebSocketHandler {
 	@Resource(name = "redisDao")
 	private RedisDao redisDao;
 	
-	private Logger log = LoggerFactory.getLogger(SystemWebSocketHandler.class);
+	//private Logger log = LoggerFactory.getLogger(SystemWebSocketHandler.class);
 	
 	@Resource(name = "invoiceService")
 	private InvoiceService invoiceService;
@@ -43,8 +43,7 @@ public class SystemWebSocketHandler implements WebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-    	System.out.println("通过websocket与web前端建立连接,id为" + session.getId());
-    	log.debug("ConnectionEstablished");
+    	logger.info("通过websocket与web前端建立连接,id为" + session.getId());
         users.add(session); //把当前会话添加到用户列表里
 		//返回最新的报错发票数量
 		Map<String, Object>map = new HashMap<>();
@@ -58,7 +57,7 @@ public class SystemWebSocketHandler implements WebSocketHandler {
     //接收消息，（可选）返回消息
     @Override
     public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
-    	System.out.println("接收到消息" + message.getPayload());
+    	logger.info("接收到消息" + message.getPayload());
     	String message_str = (String) message.getPayload();
     	Map<String, Object>cus_map = JSON.parseObject(message_str);
     	Map<String, Object>attibutes = session.getAttributes();
@@ -93,8 +92,7 @@ public class SystemWebSocketHandler implements WebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
         users.remove(session);
-        log.debug("afterConnectionClosed" + closeStatus.getReason());
-        System.out.println("会话正常关闭");
+        logger.info("会话正常关闭"+ closeStatus.getReason() );
     }
  
     @Override
@@ -113,11 +111,11 @@ public class SystemWebSocketHandler implements WebSocketHandler {
                 try {
                     if (user.isOpen()) {
                     	Integer user_status = (Integer) user.getAttributes().get("console_status");
-                    	System.out.println("user_status=" + user_status);
+                    	logger.info("user_status=" + user_status);
                     	for(int console_status : console_status_mul){
                         	if(user_status != null && user_status == console_status){
                                 user.sendMessage(message);
-                                System.out.println("成功群发消息");
+                                logger.info("成功群发消息");
                                 break;
                         	}
                     	}

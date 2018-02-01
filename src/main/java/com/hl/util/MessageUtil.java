@@ -5,12 +5,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.log4j.Logger;
+
 import com.hl.domain.ResponseMessage;
 import com.hl.websocket.SystemWebSocketHandler;
 
 public class MessageUtil {
 	//发送信息，接收信息相关的工具类
-	
+	private static Logger logger = Logger.getLogger(MessageUtil.class);
 	//发送信息给算法端
 	public static void sendMessage(OutputStream outputStream,int msg_id, String json_str,SystemWebSocketHandler systemWebSocketHandler){
 		//消息长度为 4+4+len
@@ -43,7 +46,7 @@ public class MessageUtil {
 
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.out.println("发送消息异常");
+			logger.error("发送消息异常");
 			Map<String,Object>err_map = new HashMap<>();
 			err_map.put(Const.ERR, "向服务器发送消息异常");
 		}
@@ -74,9 +77,9 @@ public class MessageUtil {
 			byte[] json_byte = new byte[msg_len];
 			System.arraycopy(cache, 8, json_byte, 0, msg_len);
 			json_str = new String(json_byte, "gbk");
-			System.out.println("msg_id = " + msg_id);
-			System.out.println("msg_len = " + msg_len);
-			System.out.println("json_byte= " + json_str);
+			logger.info("msg_id = " + msg_id);
+			logger.info("msg_len = " + msg_len);
+			logger.info("json_byte= " + json_str);
 			message.setMsg_id(msg_id);
 			message.setMsg_len(msg_len);
 			message.setJson_str(json_str);
