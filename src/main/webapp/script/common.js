@@ -13,6 +13,7 @@ var cur_text_x, cur_text_y, cur_x, cur_y, cur_width, cur_height;
 var fault_array = []; //记录错误发票的数组
 var user_id = 1; //记录当前用户的id
 var root_host; //记录根主机名
+var canvas_offsetLeft = 0; //竖图居中时距左边距离
 
 //读取config.xml配置ip等信息
 function loadxml(fileName) {
@@ -46,19 +47,27 @@ function handleShow(data) {
 	console.log(data);
     if(data.msg_id == 203) {
         console.log(data.msg_id);
-        //copy_fapiao获取背景图, show_fapiao绘制图片
-        $("#copy_fapiao").css("backgroundImage", "url(" + data.img_str + ")");
-        $("#show_fapiao").css("backgroundImage", "url('')");
+
         var temp_img = new Image();
         temp_img.onload = function(){
             console.log("here");
             var img_whsize = temp_img.width / temp_img.height;
             cxt.clearRect(0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
             if(img_whsize >= 1) {
+                canvas_offsetLeft = 0;
+                $("#copy_fapiao").css("backgroundSize", $("#copy_fapiao").get(0).width+"px "+$("#copy_fapiao").get(0).height+"px");
+                $("#copy_fapiao").css("backgroundPosition", "center");
                 cxt.drawImage(temp_img, 0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
             } else {
-                cxt.drawImage(temp_img, 0, 0, parseFloat($("#show_fapiao").height()) * invoice_size_ver, parseFloat($("#show_fapiao").height()));
+                canvas_offsetLeft = (parseFloat($("#show_fapiao").width()) - parseFloat($("#show_fapiao").height()) * invoice_size_ver) / 2;
+                $("#copy_fapiao").css("backgroundSize", parseFloat($("#show_fapiao").height()) * invoice_size_ver + "px " + parseFloat($("#show_fapiao").height()) + "px");
+                $("#copy_fapiao").css("backgroundPosition", canvas_offsetLeft + "px 0px");
+                cxt.drawImage(temp_img, canvas_offsetLeft, 0, parseFloat($("#show_fapiao").height()) * invoice_size_ver, parseFloat($("#show_fapiao").height()));
             }
+
+            //copy_fapiao获取背景图, show_fapiao绘制图片
+            $("#show_fapiao").css("backgroundImage", "url('')");
+            $("#copy_fapiao").css("backgroundImage", "url(" + data.img_str + ")");
             
             $(".muban_info").text("（正在搜索可用模板）");
             $("#muban").get(0).src = "pic/search_placehold.png";
@@ -72,7 +81,18 @@ function handleShow(data) {
     }
     else if(data.msg_id == 100 && data.status == 0) {
         $(".muban_info").text("（模板名称：" + data.label + "）");
-        $("#muban").get(0).src = data.url;
+        var temp_img = new Image();
+        temp_img.onload = function() {
+            if(temp_img.width >= temp_img.height) {
+                $("#muban").css("width", "100%");
+                $("#muban").css("height", "100%");
+            } else {
+                $("#muban").css("height", "100%");
+                $("#muban").css("width", (parseFloat($("#muban").height()) * invoice_size_ver) + "px");
+            }
+            $("#muban").get(0).src = data.url;
+        }
+        temp_img.src = data.url;
 
         $("td.area_hd").eq(0).next().text(data.model_label);
         $("td.area_hd").eq(0).next().next().text("1.00");
@@ -89,17 +109,17 @@ function handleShow(data) {
         // console.log(cxt1);
         var position = coordinateConvert(data.position.x, data.position.y, data.position.w, data.position.h);
         //console.log("data.position.x:" + data.position.x + ";" + "position.convert_x:" + position.convert_x);
-        var temp_imageData = cxt1.getImageData(position.convert_x, position.convert_y, position.convert_w, position.convert_h);
-        cxt.putImageData(temp_imageData, position.convert_x, position.convert_y);
+        var temp_imageData = cxt1.getImageData(position.convert_x+canvas_offsetLeft, position.convert_y, position.convert_w, position.convert_h);
+        cxt.putImageData(temp_imageData, position.convert_x+canvas_offsetLeft, position.convert_y);
         //cxt.strokeRect(position.convert_x, position.convert_y, position.convert_w, position.convert_h);
         //cxt.strokeStyle = "#00b717";
-        strokeDashRect(cxt, position.convert_x, position.convert_y, position.convert_x+position.convert_w, position.convert_h+position.convert_y, 10, temp_imageData);
+        strokeDashRect(cxt, position.convert_x+canvas_offsetLeft, position.convert_y, position.convert_x+canvas_offsetLeft+position.convert_w, position.convert_h+position.convert_y, 10, temp_imageData);
 
         if(position.convert_y < 20) cur_text_y = position.convert_y + 20 + position.convert_h;
         else cur_text_y = position.convert_y - 10;
 
-        cur_text_x = position.convert_x;
-        cur_x = position.convert_x; cur_y = position.convert_y;
+        cur_text_x = position.convert_x+canvas_offsetLeft;
+        cur_x = position.convert_x+canvas_offsetLeft; cur_y = position.convert_y;
         cur_width = position.convert_w; cur_height = position.convert_h;
 
         $(".title_load").text("（正在识别" + data.pos_id + "）");
@@ -139,7 +159,7 @@ function handleShow(data) {
         tellConsole(data["金额"], 3);
         $("td.area_hd").each(function() {
             if($(this).text() == "金额") {
-                if($(this).next().text() == "") {
+                if($(this).next().text() == "" && data["金额"]) {
                     $(this).next().text(data["金额"]);
                     if(data["金额prob"] > data["中文金额prob"]) {
                         $(this).next().next().text(data["金额prob"]); 
@@ -169,6 +189,11 @@ function handleShow(data) {
         //过3秒后重置
         setTimeout(function(){
             $(".title_load").text("");
+            //恢复画布大小
+            $("#copy_fapiao").css("backgroundSize", $("#copy_fapiao").get(0).width+"px "+$("#copy_fapiao").get(0).height+"px");
+            $("#copy_fapiao").css("backgroundPosition", "center");
+            $("#muban").css("width", "100%");
+            $("#muban").css("height", "100%");
             cxt.clearRect(0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
             cxt1.clearRect(0, 0, parseFloat($("#copy_fapiao").width()), parseFloat($("#copy_fapiao").height()));
             //$("#show_fapiao").css("backgroundImage", "url('pic/shibie_placehold.png')");
@@ -197,7 +222,9 @@ function handleAddMuban(data) {
     if(data.status == 0) {
         $("#progressModal h4").text("添加模板成功");
         $("#progressModal .progress-bar").get(0).style.width = "100%";
-        setTimeout(function(){$("#progressModal").modal('hide');}, 1000);
+        setTimeout(function(){
+            $("#progressModal").modal('hide');
+        }, 1000);
         //增加图片至模板库
         // console.log(data.model_label);
         addImgMuban(data.model_url, data.origin_url, temp_json_model, data.id, data.model_register_time, data.image_size, data.model_label);

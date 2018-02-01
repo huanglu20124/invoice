@@ -27,10 +27,10 @@
 
 			<div class="panel_hd_line flex flex-align-end">
 				<span class="flex-1" style="font-size: 16px;">共<span id="muban_num">0</span>张模板</span>
-				<span class="flex-none zoom_icon" onclick="zoom(1)" style="margin-right: 0.6em;" title="放大视图">
+				<span class="flex-none zoom_icon" onclick="zoomfunc(1)" style="margin-right: 0.6em;" title="放大视图">
 					<i class="fa fa-search-plus" aria-hidden="true"></i>
 				</span>
-				<span class="flex-none zoom_icon" onclick="zoom(0)" title="缩小视图">
+				<span class="flex-none zoom_icon" onclick="zoomfunc(0)" title="缩小视图">
 					<i class="fa fa-search-minus" aria-hidden="true"></i>
 				</span>
 				<span class="flex-none" style="font-size: 14px; margin-left: 2em;">
@@ -306,9 +306,13 @@
         //翻页
         function changePage(type) {
         	if(type == 1 && cur_page > 0) { //前翻
+        		deleteImgMuban();
         		getModel(--cur_page);
-        	} else if(type == 0 && cur_page < all_page) { //后翻 
+        		$(".cur_page").text(cur_page + 1);
+        	} else if(type == 0 && cur_page < all_page) { //后翻
+        		deleteImgMuban(); 
         		getModel(++cur_page);
+        		$(".cur_page").text(cur_page + 1);
         	}
         }
 
@@ -326,14 +330,14 @@
         }
 
         //调整图片的宽度
-        function zoom(type) {
+        function zoomfunc(type) {
         	if(type == 1) { // zoom in
         		$(".ku_img_container").css("width", zoom[++zoom_index] + "%");
-        		adjustKuImgContainer();
+        		adjustKuImg();
 
         	} else { //zoom out
         		$(".ku_img_container").css("width", zoom[--zoom_index] + "%");
-        		adjustKuImgContainer();
+        		adjustKuImg();
         	}
         }
 
@@ -1154,7 +1158,7 @@
 					var res1 = JSON.parse(res);
 					
 					all_page = res1.sum;
-					$(".all_page").text(all_page);
+					$(".all_page").text(all_page + 1);
 					//添加模板img元素
 					for(var i = 0; i < res1.model_list.length; i++) {
 						//alert(res1.model_list[i].json_model);
@@ -1698,6 +1702,7 @@
 			 		};
 
 					$.ajax({
+						cache: false,
 						url: temp_click_flag == 1 ? "http://" + ip2 + "/invoice/updateModel.action" : "http://" + ip2 + "/invoice/updateCacheModel.action",
 						type: "POST",
 						dataType: "text",
