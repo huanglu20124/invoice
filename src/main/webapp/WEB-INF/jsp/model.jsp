@@ -309,7 +309,7 @@
         		deleteImgMuban();
         		getModel(--cur_page);
         		$(".cur_page").text(cur_page + 1);
-        	} else if(type == 0 && cur_page < all_page) { //后翻
+        	} else if(type == 0 && cur_page < all_page-1) { //后翻
         		deleteImgMuban(); 
         		getModel(++cur_page);
         		$(".cur_page").text(cur_page + 1);
@@ -1158,7 +1158,7 @@
 					var res1 = JSON.parse(res);
 					
 					all_page = res1.sum;
-					$(".all_page").text(all_page + 1);
+					$(".all_page").text(all_page);
 					//添加模板img元素
 					for(var i = 0; i < res1.model_list.length; i++) {
 						//alert(res1.model_list[i].json_model);

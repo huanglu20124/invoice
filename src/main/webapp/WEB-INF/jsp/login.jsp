@@ -13,7 +13,7 @@
 	<link rel="stylesheet" type="text/css" href="font-awesome-4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-	<img src="pic/login_bg.jpg" style="height: 100%; width: auto; opacity: 0.5;">
+	<img src="pic/login_bg.jpg" style="height: 100%; width: 100%; opacity: 0.5;">
 	<main class="login_main" style="overflow: visible;">
 		<i class="fa fa-user-circle login_hd" aria-hidden="true" style="font-size: 60px; display: inline-block; margin-bottom: 0.5em;"></i>
 		<ul id="login_tab" class="nav nav-tabs login_nav">
