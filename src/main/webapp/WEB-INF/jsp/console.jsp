@@ -10,8 +10,7 @@
 	<script type="text/javascript" src="script/bootstrap.min.js"></script>
     <script type="text/javascript" src="script/jquery-ui.min.js"></script>
     <script type="text/javascript" src="script/reconnecting-websocket.min.js"></script>
-    <link rel="stylesheet" type="text/c
-    ss" href="style/jquery-ui.min.css">
+    <link rel="stylesheet" type="text/css" href="style/jquery-ui.min.css">
 	<link rel="stylesheet" type="text/css" href="style/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="font-awesome-4.7.0/css/font-awesome.min.css">
 	<link rel="stylesheet" type="text/css" href="style/layout.css">
@@ -33,7 +32,7 @@
 						<div style="width: 100%; height:auto; overflow: hidden; border-radius: 4px; position: relative;" id="canvas_panel_body">
 							<canvas style="background-color: transparent; background-size: contain; position:relative; z-index: 2;" id="show_fapiao"></canvas>
 							<!-- 用于备份图片的画布 -->
-							<canvas id="copy_fapiao" style="z-index: 1; position: absolute; background: url('pic/shibie_placehold.png') no-repeat center; background-size: contain;"></canvas>
+							<canvas id="copy_fapiao" style="z-index: 1; position: absolute; background: url('pic/shibie_placehold.png') no-repeat center;"></canvas>
 						</div>
 				    </div>
 				</div>
@@ -70,7 +69,7 @@
 					<div class="panel-heading">
 				        <h3 class="panel-title">套用模板<span class="muban_info"></span></h3>
 				    </div>
-				    <div class="panel-body">
+				    <div class="panel-body muban_container">
 				        <img src="pic/shibie_placehold.png" style="width: 100%;" id="muban" />
 				    </div>
 				</div>
@@ -95,14 +94,25 @@
         }
 
         //返回的画布坐标和实际画布坐标换算
-        function coordinateConvert(x, y, w, h) {
-        	var size = parseFloat($("#show_fapiao").width()) / invoice_width;
-        	return {
-        		convert_x: parseFloat(x * size),
-        		convert_y: parseFloat(y * size),
-        		convert_w: parseFloat(w * size),
-        		convert_h: parseFloat(h * size)
-        	}
+        function coordinateConvert(x, y, w, h, offsetleft) {
+            if(offsetleft == 0) { //宽图
+                var size = parseFloat($("#show_fapiao").width()) / invoice_width;
+                return {
+                    convert_x: parseFloat(x * size),
+                    convert_y: parseFloat(y * size),
+                    convert_w: parseFloat(w * size),
+                    convert_h: parseFloat(h * size)
+                }      
+            } else {
+                var size = parseFloat($("#show_fapiao").height()) / invoice_height_ver;
+                return {
+                    convert_x: parseFloat(x * size),
+                    convert_y: parseFloat(y * size),
+                    convert_w: parseFloat(w * size),
+                    convert_h: parseFloat(h * size)
+                }
+            }
+        	
         }
 
         //初始化slider
@@ -151,7 +161,8 @@
         //初始化画布调整画布及图片比例
         function initCanvasPhoto() {
             tellConsole((invoice_height + " " + invoice_width), 4);
-        	$("#muban").get(0).style.height = parseFloat($("#muban").width() * parseFloat(invoice_height / invoice_width)) + "px";
+        	$(".muban_container").get(0).style.height = parseFloat($(".muban_container").width() * parseFloat(invoice_height / invoice_width)) + "px";
+            $(".muban_container").css("textAlign", "center");
         	$("#show_fapiao").get(0).width = $("#canvas_panel_body").get(0).offsetWidth;
         	$("#show_fapiao").get(0).height = parseFloat($("#show_fapiao").get(0).width * parseFloat(invoice_height / invoice_width));
     		$("#show_fapiao").css("backgroundSize", $("#show_fapiao").get(0).width+"px "+$("#show_fapiao").get(0).height+"px");
@@ -177,47 +188,61 @@
 			cxt.lineWidth = 2;
             //开始加载图片
             $.ajax({
-                url: "http://" + ip2 + "/invoice/openConsole.action",
-                type: "POST",
-                data: {},
-                success: function(res) {
-                    tellConsole(res, 2);
-                    var data = JSON.parse(res);
-                    if(data.img_str != undefined) {
-                        $("#copy_fapiao").css("backgroundImage", "url(" + data.img_str + ")");
-                        $("#show_fapiao").css("backgroundImage", "url('')");
-                        $( "#slider" ).slider({value: data.delay});
-                        $("#slide_tooltip").text(data.delay.toString());
+                 url: "http://" + ip2 + "/invoice/openConsole.action",
+                 type: "POST",
+                 data: {},
+                 success: function(res) {
+                     console.log(res);
+                     var data = JSON.parse(res);
+                     $( "#slider" ).slider({value: data.delay});
+                     $("#slide_tooltip").text(data.delay.toString());
+                     if(data.img_str != undefined) {
+                         $("#copy_fapiao").css("backgroundImage", "url(" + data.img_str + ")");
+                         $("#show_fapiao").css("backgroundImage", "url('')");
 
-                        var temp_img = new Image();
-                        temp_img.onload = function(){
+                         var temp_img = new Image();
+                         temp_img.onload = function(){
+
                             cxt.clearRect(0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
-                            cxt.drawImage(temp_img, 0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
 
-                            //console.log("here" + data.region_list);
-                            ws.send(JSON.stringify({
+                            var img_whsize = temp_img.width / temp_img.height;
+                            if(img_whsize >= 1) {
+                                canvas_offsetLeft = 0;
+                                $("#copy_fapiao").css("backgroundSize", $("#copy_fapiao").get(0).width+"px "+$("#copy_fapiao").get(0).height+"px");
+                                $("#copy_fapiao").css("backgroundPosition", "center");
+                                cxt.drawImage(temp_img, 0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
+                            } else {
+                                canvas_offsetLeft = (parseFloat($("#show_fapiao").width()) - parseFloat($("#show_fapiao").height()) * invoice_size_ver) / 2;
+                                $("#copy_fapiao").css("backgroundSize", parseFloat($("#show_fapiao").height()) * invoice_size_ver + "px " + parseFloat($("#show_fapiao").height()) + "px");
+                                $("#copy_fapiao").css("backgroundPosition", canvas_offsetLeft + "px 0px");
+                                cxt.drawImage(temp_img, canvas_offsetLeft, 0, parseFloat($("#show_fapiao").height()) * invoice_size_ver, parseFloat($("#show_fapiao").height()));
+                            }
+
+                             //console.log("here" + data.region_list);
+                             ws.send(JSON.stringify({
                                 code: "002"
-                            }));
+                             }));
                             
-                        }
-                        temp_img.src = data.img_str;
-                        //temp_img.src = data.url;
-                        if(data.user_name != undefined) {
-                            $("#user_name").text($("#user_name").text().split("：")[0] + "：" + data.user_name);
-                            $("#action_start_time").text($("#action_start_time").text().split("：")[0] + "：" + data.action_time);
-                            $("#company_name").text($("#company_name").text().split("：")[0] + "：" + data.company_name);   
+                         }
+                         temp_img.src = data.img_str;
+                         //temp_img.src = data.url;
+                         if(data.user_name != undefined) {
+                             $("#user_name").text($("#user_name").text().split("：")[0] + "：" + data.user_name);
+                             $("#action_start_time").text($("#action_start_time").text().split("：")[0] + "：" + data.action_time);
+                             $("#company_name").text($("#company_name").text().split("：")[0] + "：" + data.company_name);   
                         }    
                     }
                     
-                },
-                error: function(e) {
-                    tellConsole(e, 1);
-                }
-            })
+                 },
+                 error: function(e) {
+                     tellConsole(e, 1);
+                 }
+             })
         	//ws.send("success");
 
             //加载滑块
             initSlider();
+            //$( "#slider" ).slider();
 
         })
 	</script>

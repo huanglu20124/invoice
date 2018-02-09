@@ -27,10 +27,10 @@
 
 			<div class="panel_hd_line flex flex-align-end">
 				<span class="flex-1" style="font-size: 16px;">共<span id="muban_num">0</span>张模板</span>
-				<span class="flex-none" style="font-size: 16px; margin-right: 0.8em;" onclick="zoom(1)">
+				<span class="flex-none zoom_icon" onclick="zoomfunc(1)" style="margin-right: 0.6em;" title="放大视图">
 					<i class="fa fa-search-plus" aria-hidden="true"></i>
 				</span>
-				<span class="flex-none" style="font-size: 16px;" onclick="zoom(0)">
+				<span class="flex-none zoom_icon" onclick="zoomfunc(0)" title="缩小视图">
 					<i class="fa fa-search-minus" aria-hidden="true"></i>
 				</span>
 				<span class="flex-none" style="font-size: 14px; margin-left: 2em;">
@@ -48,13 +48,6 @@
 				    	<div class="thumbnail_muban" style="padding-top: 15px;">
 					  		<div style="display:none"></div>
 						</div>
-						<div class="page_foot">
-							<span class="left_page"><<</span>
-							<span class="page_desc">
-								当前页数 <span class="cur_page">1</span>/<span class="all_page">1</span>
-							</span>
-							<span class="right_page">>></span>
-						</div>
 					</div>
 					<div class="list_muban" style="display: none;">
 						<div style="display:none"></div>
@@ -70,12 +63,17 @@
 						    </tr>
 						  </thead>
 						  <tbody style="font-size: 13px; line-height: 1.5em;">
-							    <!-- <tr><td>Eric</td><td>2017.8.17</td><td>180KB</td><td>jpg</td></tr>
-							    <tr><td>Tywen</td><td>2m 016.9.17</td><td>280KB</td><td>jpg</td></tr>
-							    <tr><td>Ponyo</td><td>2017.9.17</td><td>140KB</td><td>png</td></tr> -->
 							    
 						  </tbody>
 						</table>
+					</div>
+
+					<div class="page_foot">
+						<span class="left_page" onclick="changePage(1)"><<</span>
+						<span class="page_desc">
+							当前页数 <span class="cur_page">1</span>/<span class="all_page">1</span>
+						</span>
+						<span class="right_page" onclick="changePage(0)">>></span>
 					</div>
 			    </div>
 			</div>
@@ -93,7 +91,7 @@
 					<button type="button" class="btn btn-primary" style="margin-left: 20px; vertical-align: middle;" id="addImageForm_btn">上传新增队列</button>
 				</div>
 				<!-- <button type="submit" class="btn btn-default" onclick="addImageSubmit()" data-write="true">提交图片并制作新的模板</button> -->
-				<button type="button" class="btn btn-danger" onclick="deleteAllMuban()">清空模板库</button>
+				<!-- <button type="button" class="btn btn-danger" onclick="deleteAllMuban()">清空模板库</button> -->
 			</form>
 		</div>
 	</main>
@@ -249,6 +247,7 @@
 		var other_img_array = []; //记录当前新增的模板的相关原图
 		var batch_id; //暂存队列的batch_id
 		var option_width; //长图的补长
+		var cur_page = 0, all_page = 0; //当前的页数
 
 		//储存服务器传过来的对象
 		var model_array = [];
@@ -304,6 +303,19 @@
         var muban_type = 0; //记录是修改还是增加模板
         var zoom = [8, 13, 18, 23, 28], zoom_index = 3; //图片纵深大小级别
 
+        //翻页
+        function changePage(type) {
+        	if(type == 1 && cur_page > 0) { //前翻
+        		deleteImgMuban();
+        		getModel(--cur_page);
+        		$(".cur_page").text(cur_page + 1);
+        	} else if(type == 0 && cur_page < all_page-1) { //后翻
+        		deleteImgMuban(); 
+        		getModel(++cur_page);
+        		$(".cur_page").text(cur_page + 1);
+        	}
+        }
+
         //调整ku_img_container长宽
         function adjustKuImg() {
         	$(".ku_img_container .ku_img").each(function() {
@@ -318,14 +330,14 @@
         }
 
         //调整图片的宽度
-        function zoom(type) {
+        function zoomfunc(type) {
         	if(type == 1) { // zoom in
         		$(".ku_img_container").css("width", zoom[++zoom_index] + "%");
-        		adjustKuImgContainer();
+        		adjustKuImg();
 
         	} else { //zoom out
         		$(".ku_img_container").css("width", zoom[--zoom_index] + "%");
-        		adjustKuImgContainer();
+        		adjustKuImg();
         	}
         }
 
@@ -707,6 +719,18 @@
 			})
 		}
 
+		//清空显示的模板图片
+		function deleteImgMuban(){
+			//数组
+			model_array.splice(0, model_array.length);
+			//缩略图
+			deleteThumbnail();
+			//列表
+			deleteList();
+			//详细信息
+			deleteDetail();
+		}
+
 		//添加模板图片至模板库
 		function addImgMuban(url, origin_url, json_model, id, model_register_time, image_size, model_label) { 
 
@@ -824,6 +848,25 @@
 			$(".muban_table tbody tr:last-child").unbind("click").click(function() {
 				clickMuban($(this),1);
 			})
+		}
+
+		//清空thumbnail视图
+		function deleteThumbnail() {
+			$(".ku_img_container").each(function(){
+				$(this).remove();
+			})
+		}
+
+		//清空list视图
+		function deleteList() {
+			$(".list_muban_contain").each(function() {
+				$(this).remove();
+			})
+		}
+
+		//清空detail视图
+		function deleteDetail() {
+			$(".mmuban_table tbody").html("");
 		}
 
 		//修改模板庫中的模板信息
@@ -960,16 +1003,19 @@
 				$(".thumbnail_muban").css("display", "block");
 				$(".list_muban").css("display", "none");
 				$(".detail_muban").css("display", "none");
+				$(".zoom_icon").css("display", "inline-block");
 			}
 			else if($("#show_type").val() == "列表") {
 				$(".list_muban").css("display", "block");
 				$(".thumbnail_muban").css("display", "none");
 				$(".detail_muban").css("display", "none");
+				$(".zoom_icon").css("display", "none");
 			}
 			else if($("#show_type").val() == "详细信息") {
 				$(".detail_muban").css("display", "block");
 				$(".list_muban").css("display", "none");
 				$(".thumbnail_muban").css("display", "none");
+				$(".zoom_icon").css("display", "none");
 			}
 		}
 
@@ -1049,7 +1095,7 @@
 			        	var img_temp = new Image();
 			        	img_temp.onload = function() {
 
-			        		// justifySize(img_temp.width, img_temp.height);
+			        		justifySize(img_temp.width, img_temp.height);
 			        		flushForm();
 				        	temp_img_str = res1.img_str;
 				        	$("#myCanvas").get(0).style.backgroundImage = "url(\'" + res1.img_str + "\')";
@@ -1097,6 +1143,37 @@
 		    $("#addMubanImg_form").ajaxForm(options_other);
 		}
 
+		//获取发票
+		function getModel(page) {
+			$.ajax({
+				url: "http://"+ip2+"/invoice/getAllModel.action",
+				type : 'POST',
+				cache : false,
+				data: {
+					user_id: user_id,
+					page : page //首次查询，第一页page为0
+				},
+				success : function(res, status) {
+					tellConsole(res,-1);
+					var res1 = JSON.parse(res);
+					
+					all_page = res1.sum;
+					$(".all_page").text(all_page);
+					//添加模板img元素
+					for(var i = 0; i < res1.model_list.length; i++) {
+						//alert(res1.model_list[i].json_model);
+						addImgMuban(res1.model_list[i].model_url, res1.model_list[i].origin_url, res1.model_list[i].json_model, res1.model_list[i].model_id, res1.model_list[i].model_register_time, res1.model_list[i].image_size, res1.model_list[i].model_label);
+					}
+					var muban_num = res1.model_list.length;
+					$("#muban_num").text(muban_num.toString());
+
+				},
+				error : function() {
+					tellConsole("首次获取12条发票模板错误", 1);
+				}
+			})
+		}
+
 		$(document).ready(function() {
 			// loadxml("config.xml");
 			// connectEndpoint();
@@ -1128,33 +1205,8 @@
 			//ajaxForm配置添加图片按钮
 			initAjaxForm();
 		    
-			//一次获取12条发票模板的请求（首次查询）
-			$.ajax({
-				async: true,
-				url: "http://"+ip2+"/invoice/getAllModel.action",
-				type : 'POST',
-				cache : false,
-				data: {
-					user_id: user_id,
-					page : 0 //首次查询，第一页page为0
-				},
-				success : function(res, status) {
-					tellConsole(res,2);
-					var res1 = JSON.parse(res);
-					
-					//添加模板img元素
-					for(var i = 0; i < res1.model_list.length; i++) {
-						//alert(res1.model_list[i].json_model);
-						addImgMuban(res1.model_list[i].model_url, res1.model_list[i].origin_url, res1.model_list[i].json_model, res1.model_list[i].model_id, res1.model_list[i].model_register_time, res1.model_list[i].image_size, res1.model_list[i].model_label);
-					}
-					var muban_num = res1.model_list.length;
-					$("#muban_num").text(muban_num.toString());
-
-				},
-				error : function() {
-					tellConsole("首次获取12条发票模板错误", 1);
-				}
-			})
+			//一次获取20条发票模板的请求（首次查询）
+			getModel(0);
 
 			//获取发送队列
 			$.ajax({
@@ -1303,7 +1355,7 @@
 									// if(end_x > )
 									$(".setting_panel").css("display", "block");
 									$(".setting_panel").css("top", large_y+"px");
-									$(".setting_panel").css("left", large_x+"px");	
+									$(".setting_panel").css("left", large_x+option_width+"px");	
 								}
 							});
 							
@@ -1650,6 +1702,7 @@
 			 		};
 
 					$.ajax({
+						cache: false,
 						url: temp_click_flag == 1 ? "http://" + ip2 + "/invoice/updateModel.action" : "http://" + ip2 + "/invoice/updateCacheModel.action",
 						type: "POST",
 						dataType: "text",

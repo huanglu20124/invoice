@@ -37,9 +37,10 @@
 			    </div>
 			</div>
 			
-			<button type="button" class="btn btn-danger" onclick="deleteTempSaveList()" style="margin: 15px;">清空缓冲队列</button>
+			<button type="button" class="btn btn-danger" onclick="deleteTempSaveList()" style="margin: 15px 15px 15px 0px;" data-write="true">清空缓冲队列</button>
 			
-			<input type="file" onchange="addImgs()" id="analog_img" multiple/>
+			<label for="analog_img" class="file_label" data-write="true" style="margin-top: 15px;">选择本地图片识别</label>
+			<input type="file" onchange="addImgs()" id="analog_img" multiple style="display: none;" />
 		</div>
 	</main>
 

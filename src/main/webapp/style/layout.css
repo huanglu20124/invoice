@@ -275,6 +275,16 @@ aside {
   display: block;
 }
 
+.zoom_icon {
+	font-size: 18px;
+	display: inline-block;
+	cursor: pointer;
+}
+
+.zoom_icon:nth-of-type(1) {
+	margin-right: 0.8em;
+}
+
 .fault_img, .ku_img_container {
 	width: 23%;
 	margin-right: 2%;
@@ -977,4 +987,8 @@ aside {
 
 .company_panel .form-group {
 	margin-bottom: 30px;
+}
+
+.muban_container {
+    text-align: center;
 }
