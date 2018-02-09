@@ -107,7 +107,7 @@ function handleShow(data) {
         
         //框出识别区域并使其区域清晰
         // console.log(cxt1);
-        var position = coordinateConvert(data.position.x, data.position.y, data.position.w, data.position.h);
+        var position = coordinateConvert(data.position.x, data.position.y, data.position.w, data.position.h, canvas_offsetLeft);
         //console.log("data.position.x:" + data.position.x + ";" + "position.convert_x:" + position.convert_x);
         var temp_imageData = cxt1.getImageData(position.convert_x+canvas_offsetLeft, position.convert_y, position.convert_w, position.convert_h);
         cxt.putImageData(temp_imageData, position.convert_x+canvas_offsetLeft, position.convert_y);

@@ -94,14 +94,25 @@
         }
 
         //返回的画布坐标和实际画布坐标换算
-        function coordinateConvert(x, y, w, h) {
-        	var size = parseFloat($("#show_fapiao").width()) / invoice_width;
-        	return {
-        		convert_x: parseFloat(x * size),
-        		convert_y: parseFloat(y * size),
-        		convert_w: parseFloat(w * size),
-        		convert_h: parseFloat(h * size)
-        	}
+        function coordinateConvert(x, y, w, h, offsetleft) {
+            if(offsetleft == 0) { //宽图
+                var size = parseFloat($("#show_fapiao").width()) / invoice_width;
+                return {
+                    convert_x: parseFloat(x * size),
+                    convert_y: parseFloat(y * size),
+                    convert_w: parseFloat(w * size),
+                    convert_h: parseFloat(h * size)
+                }      
+            } else {
+                var size = parseFloat($("#show_fapiao").height()) / invoice_height_ver;
+                return {
+                    convert_x: parseFloat(x * size),
+                    convert_y: parseFloat(y * size),
+                    convert_w: parseFloat(w * size),
+                    convert_h: parseFloat(h * size)
+                }
+            }
+        	
         }
 
         //初始化slider
@@ -151,6 +162,7 @@
         function initCanvasPhoto() {
             tellConsole((invoice_height + " " + invoice_width), 4);
         	$(".muban_container").get(0).style.height = parseFloat($(".muban_container").width() * parseFloat(invoice_height / invoice_width)) + "px";
+            $(".muban_container").css("textAlign", "center");
         	$("#show_fapiao").get(0).width = $("#canvas_panel_body").get(0).offsetWidth;
         	$("#show_fapiao").get(0).height = parseFloat($("#show_fapiao").get(0).width * parseFloat(invoice_height / invoice_width));
     		$("#show_fapiao").css("backgroundSize", $("#show_fapiao").get(0).width+"px "+$("#show_fapiao").get(0).height+"px");
@@ -190,8 +202,21 @@
 
                          var temp_img = new Image();
                          temp_img.onload = function(){
-                             cxt.clearRect(0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
-                             cxt.drawImage(temp_img, 0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
+
+                            cxt.clearRect(0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
+
+                            var img_whsize = temp_img.width / temp_img.height;
+                            if(img_whsize >= 1) {
+                                canvas_offsetLeft = 0;
+                                $("#copy_fapiao").css("backgroundSize", $("#copy_fapiao").get(0).width+"px "+$("#copy_fapiao").get(0).height+"px");
+                                $("#copy_fapiao").css("backgroundPosition", "center");
+                                cxt.drawImage(temp_img, 0, 0, parseFloat($("#show_fapiao").width()), parseFloat($("#show_fapiao").height()));
+                            } else {
+                                canvas_offsetLeft = (parseFloat($("#show_fapiao").width()) - parseFloat($("#show_fapiao").height()) * invoice_size_ver) / 2;
+                                $("#copy_fapiao").css("backgroundSize", parseFloat($("#show_fapiao").height()) * invoice_size_ver + "px " + parseFloat($("#show_fapiao").height()) + "px");
+                                $("#copy_fapiao").css("backgroundPosition", canvas_offsetLeft + "px 0px");
+                                cxt.drawImage(temp_img, canvas_offsetLeft, 0, parseFloat($("#show_fapiao").height()) * invoice_size_ver, parseFloat($("#show_fapiao").height()));
+                            }
 
                              //console.log("here" + data.region_list);
                              ws.send(JSON.stringify({
