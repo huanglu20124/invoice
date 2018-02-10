@@ -32,22 +32,42 @@
 
 ### 后端
 
-(补充。。。)
-
-## Extra
+* Spring MVC + Spring + JDBC搭建后端框架，Controller负责接收请求，Service负责主要业务逻辑，Dao负责数据库访问
+* 算法端用C++编写，java后端通过多线程+socket+TCP与算法端通讯，利用对象锁完成线程调度
+* 利用redis实现缓冲队列以及模板操作调度队列
+* 利用spring-websocket与前端进行全双工通信
+* 使用shiro作为安全管理框架，通过其内置session实现安全登录，使用shiro注解完成权限管理。
 
 
 
 ## Screenshot
 
-* 登录页面<br/>
-![img](https://github.com/huanghlun/img_repository/raw/master/%E4%BB%93%E9%BC%A01.png)
+* 缓冲队列<br/>
+![img](https://github.com/huanglu20124/ImgRespository/blob/master/invoice/缓冲队列.png?raw=true)
 
-* 首页<br/>
-![img](https://github.com/huanghlun/img_repository/raw/master/仓鼠2.png)
+* 算法可视<br/>
+![img](https://github.com/huanglu20124/ImgRespository/blob/master/invoice/算法可视.png?raw=true)
 
-* 个人页<br/>
-![img](https://github.com/huanghlun/img_repository/raw/master/仓鼠3.png)
+* 发票模板<br/>
+![img](https://github.com/huanglu20124/ImgRespository/blob/master/invoice/发票模板1.png?raw=true)
+
+* 添加/修改模板<br/>
+![img](https://github.com/huanglu20124/ImgRespository/blob/master/invoice/模板2.png?raw=true)
+
+* 未识发票<br/>
+![img](https://github.com/huanglu20124/ImgRespository/blob/master/invoice/未识别发票.png?raw=true)
+
+* 日志查询<br/>
+![img](https://github.com/huanglu20124/ImgRespository/blob/master/invoice/日志查询.png?raw=true)
+
+* 用户管理<br/>
+![img](https://github.com/huanglu20124/ImgRespository/blob/master/invoice/用户管理.png?raw=true)
+
+* 单位管理<br/>
+![img](https://github.com/huanglu20124/ImgRespository/blob/master/invoice/单位管理.png?raw=true)
+
+* 个人设置<br/>
+![img](https://github.com/huanglu20124/ImgRespository/blob/master/invoice/个人设置.png?raw=true)
 
 ## Author
 
