@@ -1,6 +1,8 @@
 package com.hl.service.impl;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -41,10 +43,13 @@ import com.hl.service.ModelService;
 import com.hl.util.Const;
 import com.hl.util.ImageUtil;
 import com.hl.util.IpUtil;
+import com.hl.util.JDBCUtil;
 import com.hl.util.MessageUtil;
 import com.hl.util.SocketLoadTool;
 import com.hl.util.TimeUtil;
 import com.hl.websocket.SystemWebSocketHandler;
+
+import net.sf.json.util.NewBeanInstanceStrategy;
 
 @Service("modelService")
 public class ModelServiceImpl implements ModelService {
@@ -469,9 +474,11 @@ public class ModelServiceImpl implements ModelService {
 
 	// ajax处理web请求
 	@Override
-	public void getAllModel(Map<String, Object> ans_map, Integer user_id, Integer page) {
+	public String getAllModel(Integer user_id, Integer page) {
+		Map<String, Object> ans_map = new HashMap<>();
 		// 返回当前模板库全部信息,一次12条
-		List<Model> model_list = modelDao.getTwelveModel(page);
+		ModelQuery query = modelDao.getTwelveModel(page);
+		List<Model>model_list = query.getModel_list();
 		Collections.reverse(model_list);
 		// 将url_suffix转为网络url
 		for (Model model : model_list) {
@@ -483,6 +490,8 @@ public class ModelServiceImpl implements ModelService {
 			model.setOrigin_url(localConfig.getIp() + dir_path + getOriginalUrl(dir_path));
 		}
 		ans_map.put(Const.MODEL_LIST, model_list);
+		ans_map.put("sum", query.getPage_sum());
+		return JSON.toJSONString(ans_map);
 	}
 
 	// ajax处理web请求
@@ -898,6 +907,92 @@ public class ModelServiceImpl implements ModelService {
 		map.put("origin_url", localConfig.getIp() + file_path + "0.jpg");
 		return JSON.toJSONString(map);
 	}
+
+	
+	
+	@Override
+	public String clearManageModel() {
+		List<String>action_ids = redisDao.getRangeId(Const.MANAGE_WAIT);
+		for(String action_id : action_ids){
+			String manage_map_str = (String) redisDao.getValue(action_id);
+			ModelAction modelAction = JSON.parseObject(manage_map_str, ModelAction.class);
+			if(modelAction.getMsg_id() != 6){
+				redisDao.deleteKey(action_id);
+			}else {
+				//批处理类型
+				redisDao.deleteKey(action_id);
+				// 得到batch_id，遍历所有携带该batch_id的modelAction,
+				String batch_id = modelAction.getBatch_id();
+				// 如果是第一张的话，得到新增模板缓存队列
+				List<String> extra_ids = redisDao.getRangeId(batch_id.toString());
+				for(String id : extra_ids){
+					redisDao.deleteKey(id);
+				}
+				//删除队列
+				redisDao.deleteKey(batch_id);
+			}
+		}
+		redisDao.deleteKey(Const.MANAGE_WAIT);
+		logger.info("清除操作队列完成，请重启服务器");
+		SimpleResponse response = new SimpleResponse("清空成功", null);
+		return JSON.toJSONString(response);
+	}
+
+	//一键备份
+	@Override
+	public String backupModel() {
+		//主要工作：1、model文件夹备份   2、mysql model表备份，invoice表清空   3、database、training备份
+		return null;
+	}
+	
+    public static void copy(File file, File toFile) throws Exception { 
+	    byte[] b = new byte[1024]; 
+	    int a; 
+	    FileInputStream fis; 
+	    FileOutputStream fos; 
+	    if (file.isDirectory()) { 
+	      String filepath = file.getAbsolutePath(); 
+	      filepath=filepath.replaceAll("\\\\", "/"); 
+	      String toFilepath = toFile.getAbsolutePath(); 
+	      toFilepath=toFilepath.replaceAll("\\\\", "/"); 
+	      int lastIndexOf = filepath.lastIndexOf("/"); 
+	      toFilepath = toFilepath + filepath.substring(lastIndexOf ,filepath.length()); 
+	      File copy=new File(toFilepath); 
+	      //复制文件夹 
+	      if (!copy.exists()) { 
+	        copy.mkdir(); 
+	      } 
+	      //遍历文件夹 
+	      for (File f : file.listFiles()) { 
+	        copy(f, copy); 
+	      } 
+	    } else { 
+	      if (toFile.isDirectory()) { 
+	        String filepath = file.getAbsolutePath(); 
+	        filepath=filepath.replaceAll("\\\\", "/"); 
+	        String toFilepath = toFile.getAbsolutePath(); 
+	        toFilepath=toFilepath.replaceAll("\\\\", "/"); 
+	        int lastIndexOf = filepath.lastIndexOf("/"); 
+	        toFilepath = toFilepath + filepath.substring(lastIndexOf ,filepath.length()); 
+	          
+	        //写文件 
+	        File newFile = new File(toFilepath); 
+	        fis = new FileInputStream(file); 
+	        fos = new FileOutputStream(newFile); 
+	        while ((a = fis.read(b)) != -1) { 
+	          fos.write(b, 0, a); 
+	        } 
+	      } else { 
+	        //写文件 
+	        fis = new FileInputStream(file); 
+	        fos = new FileOutputStream(toFile); 
+	        while ((a = fis.read(b)) != -1) { 
+	          fos.write(b, 0, a); 
+	        } 
+	      } 
+	  
+	    } 
+	  } 
 
 	
 }

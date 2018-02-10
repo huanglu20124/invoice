@@ -148,6 +148,7 @@ public class SwitcherThread implements Runnable {
 		}
 		// 得到最新的延时速度
 		deley = (Integer) servletContext.getAttribute(Const.DELAY);
+		logger.info("延时速度为" + deley);
 		// 0.延时3秒
 		// 调用service层方法处理识别过程返回的数据
 		invoiceService.broadcastRecognizeProcess(inputStream, outputStream, deley);
@@ -190,6 +191,7 @@ public class SwitcherThread implements Runnable {
 			}
 			// 得到json_model，加入图片url
 			Map<String, Object> json_model = modelAction.getJson_model();
+			json_model.put("id", modelAction.getModel_id());
 			//暂时只发送一张原图，暂定第一张
 			json_model.put(Const.URL, origins.get(0));
 			// 另外json_model还要包一层。
@@ -313,6 +315,7 @@ public class SwitcherThread implements Runnable {
 		for(String uuid : uuids){
 			redisDao.deleteKey(uuid);
 		}	
+		redisDao.deleteKey(Const.RECOGNIZE_WAIT);
 		logger.info("清除识别队列完成");
 	}
 

@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.hl.domain.Model;
 import com.hl.domain.ModelAction;
+import com.hl.domain.ModelQuery;
 
 public interface  ModelDao {
 	int addModel(ModelAction modelAction);
@@ -18,6 +19,6 @@ public interface  ModelDao {
 	void updateModelJsonModel(int model_id, String string);
 	String getModelLabel(Integer model_id);
 	String getModelUrl(int model_id);
-	List<Model>getTwelveModel(Integer start);
+	ModelQuery getTwelveModel(Integer start);
 	List<Model> searchModelLabel(Integer page,String keywords);
 }

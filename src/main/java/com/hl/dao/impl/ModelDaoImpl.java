@@ -17,6 +17,7 @@ import com.alibaba.fastjson.JSON;
 import com.hl.dao.ModelDao;
 import com.hl.domain.Model;
 import com.hl.domain.ModelAction;
+import com.hl.domain.ModelQuery;
 import com.hl.util.Const;
 
 public class ModelDaoImpl extends JdbcDaoSupport implements ModelDao {
@@ -121,16 +122,22 @@ public class ModelDaoImpl extends JdbcDaoSupport implements ModelDao {
 	}
 	
 	@Override
-	public List<Model> getTwelveModel(Integer page) {
+	public ModelQuery getTwelveModel(Integer page) {
+		ModelQuery query = new ModelQuery();
 		if(page == 0){
-			String sql = "select * from model order by model_id desc LIMIT 12";
-			return getJdbcTemplate().query(sql,new ModelRowmapper());
+			String sql = "SELECT SQL_CALC_FOUND_ROWS * from model order by model_id desc LIMIT 20";
+			query.setModel_list(getJdbcTemplate().query(sql,new ModelRowmapper()));
 		}else {
-			Integer beagin = page * 12;
-			String sql = "select * from model order by model_id desc LIMIT ?,12";
-			return getJdbcTemplate().query(sql,new ModelRowmapper(),beagin);
+			Integer beagin = page * 20;
+			String sql = "SELECT SQL_CALC_FOUND_ROWS * from model order by model_id desc LIMIT ?,20";
+			query.setModel_list(getJdbcTemplate().query(sql,new ModelRowmapper(),beagin));
 		}
 		
+		String sql2 = "SELECT FOUND_ROWS();";
+		Integer sum = getJdbcTemplate().queryForObject(sql2, Integer.class);
+		Integer page_sum = sum/20 +1;
+		query.setPage_sum(page_sum);
+		return query;
 	}
 	
 	class ModelRowmapper implements RowMapper<Model>{

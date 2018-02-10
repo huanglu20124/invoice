@@ -16,7 +16,7 @@ public interface ModelService {
 	public String deleteModel(Integer user_id, Integer model_id,String user_ip, Integer thread_msg);
 	public void broadcastUpdateModel(InputStream inputStream, ModelAction modelAction);
 	public void broadcastDeleteModel(InputStream inputStream, ModelAction modelAction);
-	public void getAllModel(Map<String, Object> ans_map, Integer user_id, Integer start);
+	public String getAllModel(Integer user_id, Integer start);
 	public void deleteAllModel(Map<String, Object> ans_map, Integer user_id, Integer thread_msg);
 	public void broadcastClearModel(InputStream inputStream, Integer integer);
 	public void rewriteJsonModel()throws Exception;
@@ -30,4 +30,6 @@ public interface ModelService {
 	public String broadcastAddModelSingle(InputStream inputStream, ModelAction modelAction);
 	public String deleteCacheModel(Integer action_id);
 	public String updateCacheModel(ModelAction parseObject, String img_str)throws InvoiceException;
+	public String clearManageModel();
+	public String backupModel();
 }

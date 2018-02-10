@@ -352,6 +352,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 	// ajax处理web请求 msg_id = 202
 	@Override
 	public String openConsole(Integer delay) {
+		RecognizeConsole console = new RecognizeConsole();
 		// 打开监控台，返回当前图片的url，action_id,img_str
 		String uuid = redisDao.getRight(Const.RECOGNIZE_WAIT, 0l);
 		if (uuid != null) {
@@ -360,7 +361,6 @@ public class InvoiceServiceImpl implements InvoiceService {
 			// 补充，加入img_str
 			String local_path = ImageUtil.suffixToJpg(localConfig.getImagePath() + invoice.getInvoice_url());
 			String img_str = ImageUtil.GetImageStr(local_path);
-			RecognizeConsole console = new RecognizeConsole();
 			console.setUser_id(invoice.getUser_id());
 			console.setUser_name(invoice.getUser_name());
 			console.setCompany_id(invoice.getCompany_id());
@@ -368,12 +368,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 			console.setAction_time(invoice.getAction_time());
 			console.setImg_str("data:image/jpg;base64," + img_str);
 			console.setMsg_id(202);
-			//获取发票识别延时
-			console.setDelay(delay);
-			return JSON.toJSONString(console);
-		}else {
-			return "{}";
 		}
+		console.setDelay(delay);
+		return JSON.toJSONString(console);
 	}
 
 	// websocket返回处理结果 msg_id = 203
@@ -393,7 +390,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 		start_map.put(Const.IMG_STR, "data:image/jpg;base64," + img_str);
 		start_map.put(Const.MSG_ID, 203);
 		start_map.put(Const.USER_NAME, invoice.getUser_name());
-		start_map.put(Const.ACTION_START_TIME, invoice.getAction_time());
+		logger.info("action_time=" + invoice.getAction_time());
+		start_map.put("action_time", invoice.getAction_time());
 		start_map.put(Const.COMPANY_NAME, invoice.getCompany_name());
 		systemWebSocketHandler.sendMessageToUsers(new TextMessage(JSON.toJSONString(start_map)),new int[]{2});
 	}
@@ -451,6 +449,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 		}
 		redisDao.deleteKey(Const.RECOGNIZE_WAIT);
 		redisDao.deleteKey(Const.RECOGNIZE_PROCESS);
+		//同时清空未处理操作
+		
 		return JSON.toJSONString(new SimpleResponse("清除成功！", null));
 	}
 

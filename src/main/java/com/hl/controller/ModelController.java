@@ -1,5 +1,8 @@
  package com.hl.controller;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -79,15 +82,10 @@ public class ModelController {
 	// 返回当前模板库全部信息,一次12条
 	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
 	@RequestMapping(value = "/getAllModel.action", method = RequestMethod.POST)
-	public void getAllModel(HttpServletRequest request, HttpServletResponse response)throws IOException{
-		logger.info("接收到来自web端的返回当前模板库全部信息的请求");
-		request.setCharacterEncoding("utf-8");
-		response.setCharacterEncoding("utf-8");
-		Map<String, Object> ans_map = new HashMap<>();
-		Integer user_id = new Integer(request.getParameter(Const.USER_ID));
-		Integer page = new Integer(request.getParameter("page"));
-		modelService.getAllModel(ans_map,user_id,page);
-		response.getWriter().write(JSON.toJSONString(ans_map));
+	@ResponseBody
+	public String getAllModel(Integer user_id, Integer page)throws IOException{
+		logger.info("接收到来自web端的返回当前模板库全部信息的请求, page=" + page);
+		return modelService.getAllModel(user_id,page);
 	}
 
 	//上传发票模板原图
@@ -219,6 +217,23 @@ public class ModelController {
 		return modelService.updateCacheModel(JSON.parseObject(modelAction, ModelAction.class),img_str);
 	}	
 	
-	
+	//清空已提交的模板操作
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/clearManageModel.action", method = RequestMethod.POST)
+	@ResponseBody
+	public String clearManageModel() throws InvoiceException{
+		logger.info("收到清空已提交模板队列的请求");
+		return modelService.clearManageModel();
+	}
+
+	//一键备份
+	@CrossOrigin(origins = "*", maxAge = 36000000) // 配置跨域访问
+	@RequestMapping(value = "/clearManageModel.action", method = RequestMethod.POST)
+	@ResponseBody
+	public String backupModel() throws InvoiceException{
+		//主要工作：1、model文件夹备份   2、mysql model表备份，invoice表清空   3、database、training备份
+		logger.info("收到一键备份的请求");
+		return modelService.backupModel();
+	}	
 	
 }
